@@ -1,0 +1,6 @@
+[package]
+name = "ruthless"
+version = "0.0.1"
+authors = ["Ethan Jaszewski <ethanjaszewski@yahoo.com>"]
+
+[dependencies]
