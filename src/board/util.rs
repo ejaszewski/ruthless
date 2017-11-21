@@ -1,27 +1,30 @@
+use board::constants;
+
 pub fn coord_to_bitmask(pos: String) -> Option<u64> {
     let mut chars = pos.chars();
-    let mut pos = 0x1;
-    
-    match chars.next() {
+
+    let mut pos = match chars.next() {
         Some(c) => {
-            pos = match c.to_uppercase().next().unwrap() {
-                'A' => pos << 7, 'B' => pos << 6,
-                'C' => pos << 5, 'D' => pos << 4,
-                'E' => pos << 3, 'F' => pos << 2,
-                'G' => pos << 1, 'H' => pos,
+            match c.to_uppercase().next().unwrap() {
+                'A' => constants::FILE_A, 'B' => constants::FILE_B,
+                'C' => constants::FILE_C, 'D' => constants::FILE_D,
+                'E' => constants::FILE_E, 'F' => constants::FILE_F,
+                'G' => constants::FILE_G, 'H' => constants::FILE_G,
                 _ => return None
             }
         },
         None => return None
-    }
+    };
 
-    match chars.next() {
+    pos &= match chars.next() {
         Some(c) => {
             match c.to_string().parse::<u8>() {
                 Ok(r) => {
-                    pos = if r <= 8 && r >= 1 {
-                        pos << 8 * (8 - r)
-                    } else { return None }
+                    if r >= 1 && r <= 8 {
+                        constants::RANKS[r as usize - 1]
+                    } else {
+                        return None;
+                    }
                 },
                 Err(_) => return None
             }
