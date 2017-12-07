@@ -34,3 +34,12 @@ pub fn coord_to_bitmask(pos: String) -> Option<u64> {
 
     Some(pos)
 }
+
+#[inline]
+pub fn directional_shift(x: u64, shift: i8) -> u64 {
+    if shift < 0 {
+        x << -shift
+    } else {
+        x >> shift
+    }
+}
