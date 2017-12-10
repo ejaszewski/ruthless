@@ -4,7 +4,7 @@ def bs(pos):
     bs = ''
     for i in range(0, 8):
         for j in range(0, 8):
-            if (abs(x - i) > 1 or abs(y-j) > 1) and ((x == i or y == j) or (x - i == y - j) or (x - i == j - y)):
+            if (abs(x - i) > 0 or abs(y-j) > 0) and ((x == i or y == j) or (x - i == y - j) or (x - i == j - y)):
                 bs += '1'
             else:
                 bs += '0'
@@ -17,7 +17,7 @@ def left(pos):
     bs = ''
     for i in range(0, 8):
         for j in range(0, 8):
-            if y - j > 1 and x == i:
+            if y - j > 0 and x == i:
                 bs += '1'
             else:
                 bs += '0'
@@ -30,7 +30,7 @@ def right(pos):
     bs = ''
     for i in range(0, 8):
         for j in range(0, 8):
-            if j - y > 1 and x == i:
+            if j - y > 0 and x == i:
                 bs += '1'
             else:
                 bs += '0'
@@ -43,7 +43,7 @@ def up(pos):
     bs = ''
     for i in range(0, 8):
         for j in range(0, 8):
-            if x - i > 1 and y == j:
+            if x - i > 0 and y == j:
                 bs += '1'
             else:
                 bs += '0'
@@ -56,7 +56,7 @@ def down(pos):
     bs = ''
     for i in range(0, 8):
         for j in range(0, 8):
-            if i - x > 1 and y == j:
+            if i - x > 0 and y == j:
                 bs += '1'
             else:
                 bs += '0'
@@ -69,7 +69,7 @@ def up_left(pos):
     bs = ''
     for i in range(0, 8):
         for j in range(0, 8):
-            if x - i > 1 and (x - i == y - j):
+            if x - i > 0 and (x - i == y - j):
                 bs += '1'
             else:
                 bs += '0'
@@ -82,7 +82,7 @@ def up_right(pos):
     bs = ''
     for i in range(0, 8):
         for j in range(0, 8):
-            if x - i > 1 and (x - i == j - y):
+            if x - i > 0 and (x - i == j - y):
                 bs += '1'
             else:
                 bs += '0'
@@ -95,7 +95,7 @@ def down_left(pos):
     bs = ''
     for i in range(0, 8):
         for j in range(0, 8):
-            if i - x > 1 and (x - i == j - y):
+            if i - x > 0 and (x - i == j - y):
                 bs += '1'
             else:
                 bs += '0'
@@ -108,7 +108,7 @@ def down_right(pos):
     bs = ''
     for i in range(0, 8):
         for j in range(0, 8):
-            if i - x > 1 and (x - i == y - j):
+            if i - x > 0 and (x - i == y - j):
                 bs += '1'
             else:
                 bs += '0'
