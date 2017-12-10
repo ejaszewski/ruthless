@@ -25,7 +25,7 @@ impl Board {
         // light_disks |= util::coord_to_bitmask(String::from("d5")).unwrap();
         // light_disks |= util::coord_to_bitmask(String::from("d6")).unwrap();
 
-        let dark_move = false;
+        let dark_move = true;
         Board {
             light_disks, dark_disks, dark_move
         }
@@ -54,7 +54,7 @@ impl Board {
                     dark_adjacent = util::directional_shift(dark_adjacent, shift);
 
                     let light_ray = constants::MASKS[i][j];
-                    let new_move = light_ray & dark_adjacent & !self.dark_disks;
+                    let new_move = light_ray & dark_adjacent & !self.all_disks();
                     if new_move != 0 {
                         moves.push(new_move.leading_zeros() as u8);
                     }
@@ -80,7 +80,7 @@ impl Board {
                     light_adjacent = util::directional_shift(light_adjacent, shift);
 
                     let dark_ray = constants::MASKS[i][j];
-                    let new_move = dark_ray & light_adjacent & !self.light_disks;
+                    let new_move = dark_ray & light_adjacent & !self.all_disks();
                     if new_move != 0 {
                         moves.push(new_move.leading_zeros() as u8);
                     }
@@ -95,7 +95,6 @@ impl Board {
     pub fn make_move(&mut self, m: u8) {
         let num_directions = constants::SHIFT_DIRS.len();
         let disk = 0x80_00_00_00_00_00_00_00 >> m;
-        println!("{}", disk);
         if self.dark_move {
             self.dark_disks |= disk;
         } else {
