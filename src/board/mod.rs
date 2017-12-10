@@ -6,7 +6,7 @@ use std::fmt;
 pub struct Board {
     light_disks: u64,
     dark_disks: u64,
-    dark_move: bool
+    pub dark_move: bool
 }
 
 impl Board {
@@ -54,8 +54,9 @@ impl Board {
                     dark_adjacent = util::directional_shift(dark_adjacent, shift);
 
                     let light_ray = constants::MASKS[i][j];
-                    let new_move = light_ray & dark_adjacent & !self.all_disks();
-                    if new_move != 0 {
+                    let new_move = light_ray & (light_ray ^ (dark_adjacent ^ !self.all_disks()));
+                    eprintln!("AAAAAAAAHHHH");
+                    if new_move.count_ones() == 1 {
                         moves.push(new_move.leading_zeros() as u8);
                     }
                 }
@@ -81,8 +82,12 @@ impl Board {
 
                     let dark_ray = constants::MASKS[i][j];
                     let new_move = dark_ray & light_adjacent & !self.all_disks();
-                    if new_move != 0 {
+
+                    if new_move.count_ones() == 1 {
                         moves.push(new_move.leading_zeros() as u8);
+                        if moves.len() == 1 {
+                            eprintln!("{} {} {} {} {}", mask, dark_ray, light_adjacent, !self.all_disks(), new_move)
+                        }
                     }
                 }
             }

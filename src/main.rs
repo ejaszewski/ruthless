@@ -19,19 +19,32 @@ fn play_stdin(mut board: board::Board) {
         let line = line.unwrap();
         let line_split: Vec<&str> = line.split(" ").collect();
 
-        let x: u8 = str::parse::<u8>(line_split[0]).unwrap();
-        let y: u8 = str::parse::<u8>(line_split[1]).unwrap();
-        let coord = y * 8 + x;
-        board.make_move(coord);
+        let x: i8 = str::parse::<i8>(line_split[0]).unwrap();
+        let y: i8 = str::parse::<i8>(line_split[1]).unwrap();
+        if x >= 0 && y >= 0 {
+            let coord: u8 = (y * 8 + x) as u8;
+            board.make_move(coord);
+        }
 
-        eprintln!("{}", board);
+        // eprintln!("{}", board);
 
         let moves = board.get_moves();
-        let x: u8 = (moves[0] % 8) as u8;
-        let y: u8 = (moves[0] / 8) as u8;
+        eprintln!("{:?}", moves);
+        let x: i32;
+        let y: i32;
 
-        board.make_move(moves[0]);
-        eprintln!("{}", board);
+        if moves.len() > 0 {
+            x = (moves[0] % 8) as i32;
+            y = (moves[0] / 8) as i32;
+        } else {
+            x = -1;
+            y = -1;
+        }
+
+        if x >= 0 && y >= 0 {
+            board.make_move(moves[0]);
+        }
+        // eprintln!("{}", board);
 
         println!("{} {}", x, y);
     }
