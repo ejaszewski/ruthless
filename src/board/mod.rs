@@ -44,20 +44,22 @@ impl Board {
         let mut mask = 0x80_00_00_00_00_00_00_00;
         let mut moves: Vec<u8> = vec![];
 
+        eprintln!("Light Move Generation");
+
         for i in 0..64 {
             if mask & self.light_disks != 0 {
                 let num_directions = constants::SHIFT_DIRS.len();
                 for j in 0..num_directions {
                     let shift = constants::SHIFT_DIRS[j];
-
-                    let mut dark_adjacent = self.dark_disks & constants::SHIFT_MASKS[j];
-                    dark_adjacent = util::directional_shift(dark_adjacent, shift);
-
-                    let light_ray = constants::MASKS[i][j];
-                    let new_move = light_ray & (light_ray ^ (dark_adjacent ^ !self.all_disks()));
-                    eprintln!("AAAAAAAAHHHH");
-                    if new_move.count_ones() == 1 {
-                        moves.push(new_move.leading_zeros() as u8);
+                    let prop = self.dark_disks & constants::SHIFT_MASKS[j] & constants::MASKS[i][j];
+                    let mut gen = util::directional_shift(mask, shift) & prop;
+                    let mut next = util::directional_shift(gen, shift);
+                    while next & prop != 0 {
+                        gen = next & prop;
+                        next = util::directional_shift(gen, shift);
+                    }
+                    if next != 0 && next & self.all_disks() == 0 {
+                        moves.push(next.leading_zeros() as u8);
                     }
                 }
             }
@@ -71,23 +73,22 @@ impl Board {
         let mut mask = 0x80_00_00_00_00_00_00_00;
         let mut moves: Vec<u8> = vec![];
 
+        eprintln!("Dark Move Generation.");
+
         for i in 0..64 {
             if mask & self.dark_disks != 0 {
                 let num_directions = constants::SHIFT_DIRS.len();
                 for j in 0..num_directions {
                     let shift = constants::SHIFT_DIRS[j];
-
-                    let mut light_adjacent = self.light_disks & constants::SHIFT_MASKS[j];
-                    light_adjacent = util::directional_shift(light_adjacent, shift);
-
-                    let dark_ray = constants::MASKS[i][j];
-                    let new_move = dark_ray & light_adjacent & !self.all_disks();
-
-                    if new_move.count_ones() == 1 {
-                        moves.push(new_move.leading_zeros() as u8);
-                        if moves.len() == 1 {
-                            eprintln!("{} {} {} {} {}", mask, dark_ray, light_adjacent, !self.all_disks(), new_move)
-                        }
+                    let prop = self.light_disks & constants::SHIFT_MASKS[j] & constants::MASKS[i][j];
+                    let mut gen = util::directional_shift(mask, shift) & prop;
+                    let mut next = util::directional_shift(gen, shift);
+                    while next & prop != 0 {
+                        gen = next & prop;
+                        next = util::directional_shift(gen, shift);
+                    }
+                    if next != 0 && next & self.all_disks() == 0 {
+                        moves.push(next.leading_zeros() as u8);
                     }
                 }
             }

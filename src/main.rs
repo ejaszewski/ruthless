@@ -13,10 +13,13 @@ fn main() {
 fn play_stdin(mut board: board::Board) {
     let stdin = io::stdin();
 
+    eprintln!("Initialized...");
     println!("");
 
     for line in stdin.lock().lines() {
         let line = line.unwrap();
+        eprintln!("{}", line);
+
         let line_split: Vec<&str> = line.split(" ").collect();
 
         let x: i8 = str::parse::<i8>(line_split[0]).unwrap();
@@ -26,7 +29,7 @@ fn play_stdin(mut board: board::Board) {
             board.make_move(coord);
         }
 
-        // eprintln!("{}", board);
+        eprintln!("{}", board);
 
         let moves = board.get_moves();
         eprintln!("{:?}", moves);
@@ -44,7 +47,7 @@ fn play_stdin(mut board: board::Board) {
         if x >= 0 && y >= 0 {
             board.make_move(moves[0]);
         }
-        // eprintln!("{}", board);
+        eprintln!("{}", board);
 
         println!("{} {}", x, y);
     }
