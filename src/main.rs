@@ -16,6 +16,8 @@ fn play_stdin(mut board: board::Board) {
     eprintln!("Initialized...");
     println!("");
 
+    board.make_move(None);
+
     for line in stdin.lock().lines() {
         let line = line.unwrap();
         eprintln!("{}", line);
@@ -26,7 +28,9 @@ fn play_stdin(mut board: board::Board) {
         let y: i8 = str::parse::<i8>(line_split[1]).unwrap();
         if x >= 0 && y >= 0 {
             let coord: u8 = (y * 8 + x) as u8;
-            board.make_move(coord);
+            board.make_move(Some(coord));
+        } else {
+            board.make_move(None);
         }
 
         eprintln!("{}", board);
@@ -39,8 +43,8 @@ fn play_stdin(mut board: board::Board) {
 
         match best_move {
             Some(m) => {
-                x = (moves[0] % 8) as i32;
-                y = (moves[0] / 8) as i32;
+                x = (m % 8) as i32;
+                y = (m / 8) as i32;
             },
             None => {
                 x = -1;
@@ -48,9 +52,8 @@ fn play_stdin(mut board: board::Board) {
             }
         }
 
-        if x >= 0 && y >= 0 {
-            board.make_move(moves[0]);
-        }
+        board.make_move(best_move);
+
         eprintln!("{}", board);
 
         println!("{} {}", x, y);

@@ -44,8 +44,6 @@ impl Board {
         let mut mask = 0x80_00_00_00_00_00_00_00;
         let mut moves: Vec<u8> = vec![];
 
-        eprintln!("Light Move Generation");
-
         for i in 0..64 {
             if mask & self.light_disks != 0 {
                 let num_directions = constants::SHIFT_DIRS.len();
@@ -73,8 +71,6 @@ impl Board {
         let mut mask = 0x80_00_00_00_00_00_00_00;
         let mut moves: Vec<u8> = vec![];
 
-        eprintln!("Dark Move Generation.");
-
         for i in 0..64 {
             if mask & self.dark_disks != 0 {
                 let num_directions = constants::SHIFT_DIRS.len();
@@ -98,45 +94,53 @@ impl Board {
         moves
     }
 
-    pub fn make_move(&mut self, m: u8) -> u64 {
-        let num_directions = constants::SHIFT_DIRS.len();
-        let disk = 0x80_00_00_00_00_00_00_00 >> m;
-        if self.dark_move {
-            self.dark_disks |= disk;
-        } else {
-            self.light_disks |= disk;
-        }
-        let mut flood = 0;
-        for i in 0..num_directions {
-            let shift = constants::SHIFT_DIRS[i];
-            let prop = if self.dark_move { self.light_disks } else { self.dark_disks } & constants::SHIFT_MASKS[i];
-            let mut temp_flood = 0;
-
-            let mut gen = disk;
-            let mut next = gen;
-            while gen != 0 {
-                temp_flood |= gen;
-                next = util::directional_shift(gen, shift);
-                gen = next & prop;
-            }
-
-            if self.dark_move {
-                if next & self.dark_disks != 0 {
-                    flood |= temp_flood ^ disk;
+    pub fn make_move(&mut self, move_option: Option<u8>) -> u64 {
+        match move_option {
+            Some(m) => {
+                let num_directions = constants::SHIFT_DIRS.len();
+                let disk = 0x80_00_00_00_00_00_00_00 >> m;
+                if self.dark_move {
+                    self.dark_disks |= disk;
+                } else {
+                    self.light_disks |= disk;
                 }
-            } else {
-                if next & self.light_disks != 0 {
-                    flood |= temp_flood ^ disk;
+                let mut flood = 0;
+                for i in 0..num_directions {
+                    let shift = constants::SHIFT_DIRS[i];
+                    let prop = if self.dark_move { self.light_disks } else { self.dark_disks } & constants::SHIFT_MASKS[i];
+                    let mut temp_flood = 0;
+
+                    let mut gen = disk;
+                    let mut next = gen;
+                    while gen != 0 {
+                        temp_flood |= gen;
+                        next = util::directional_shift(gen, shift);
+                        gen = next & prop;
+                    }
+
+                    if self.dark_move {
+                        if next & self.dark_disks != 0 {
+                            flood |= temp_flood ^ disk;
+                        }
+                    } else {
+                        if next & self.light_disks != 0 {
+                            flood |= temp_flood ^ disk;
+                        }
+                    }
+
                 }
+
+                self.light_disks ^= flood;
+                self.dark_disks ^= flood;
+                self.dark_move = !self.dark_move;
+
+                flood
+            },
+            None => {
+                self.dark_move = !self.dark_move;
+                0
             }
-
         }
-
-        self.light_disks ^= flood;
-        self.dark_disks ^= flood;
-        self.dark_move = !self.dark_move;
-
-        flood
     }
 
     pub fn undo_move(&mut self, undo: u64, m: u8) {
