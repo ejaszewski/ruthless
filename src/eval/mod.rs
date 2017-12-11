@@ -51,8 +51,8 @@ pub fn do_search(board: &mut board::Board) -> Option<u8> {
     let mut searched = 0;
     let start_time = time::now();
 
-    let mut best_move = moves[0];
-    let mut score = -10000.;
+    let mut best_move = 0;
+    let mut score = -10001.;
 
     for m in &moves {
         let undo = board.make_move(Some(*m));

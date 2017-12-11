@@ -2,6 +2,7 @@ pub mod util;
 pub mod constants;
 
 use std::fmt;
+use std::collections::HashSet;
 
 pub struct Board {
     pub light_disks: u64,
@@ -31,22 +32,19 @@ impl Board {
         }
     }
 
-    #[inline]
-    pub fn get_moves(&self) -> Vec<u8> {
-        let mut moves: Vec<u8>;
+    pub fn get_moves(&self) -> HashSet<u8> {
+        let mut moves: HashSet<u8>;
         if self.dark_move {
             moves = self.get_dark_moves();
         } else {
             moves = self.get_light_moves();
         }
-        moves.sort();
-        moves.dedup();
         moves
     }
 
-    fn get_light_moves(&self) -> Vec<u8> {
+    fn get_light_moves(&self) -> HashSet<u8> {
         let mut mask = 0x80_00_00_00_00_00_00_00;
-        let mut moves: Vec<u8> = vec![];
+        let mut moves: HashSet<u8> = HashSet::new();
 
         for i in 0..64 {
             if mask & self.light_disks != 0 {
@@ -61,7 +59,7 @@ impl Board {
                         next = util::directional_shift(gen, shift);
                     }
                     if next != 0 && next & self.all_disks() == 0 {
-                        moves.push(next.leading_zeros() as u8);
+                        moves.insert(next.leading_zeros() as u8);
                     }
                 }
             }
@@ -71,9 +69,9 @@ impl Board {
         moves
     }
 
-    fn get_dark_moves(&self) -> Vec<u8> {
+    fn get_dark_moves(&self) -> HashSet<u8> {
         let mut mask = 0x80_00_00_00_00_00_00_00;
-        let mut moves: Vec<u8> = vec![];
+        let mut moves: HashSet<u8> = HashSet::new();
 
         for i in 0..64 {
             if mask & self.dark_disks != 0 {
@@ -88,7 +86,7 @@ impl Board {
                         next = util::directional_shift(gen, shift);
                     }
                     if next != 0 && next & self.all_disks() == 0 {
-                        moves.push(next.leading_zeros() as u8);
+                        moves.insert(next.leading_zeros() as u8);
                     }
                 }
             }
