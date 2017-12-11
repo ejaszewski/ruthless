@@ -35,13 +35,17 @@ fn play_stdin(mut board: board::Board) {
         eprintln!("{:?}", moves);
         let x: i32;
         let y: i32;
+        let best_move = ruthless::eval::do_search(&mut board);
 
-        if moves.len() > 0 {
-            x = (moves[0] % 8) as i32;
-            y = (moves[0] / 8) as i32;
-        } else {
-            x = -1;
-            y = -1;
+        match best_move {
+            Some(m) => {
+                x = (moves[0] % 8) as i32;
+                y = (moves[0] / 8) as i32;
+            },
+            None => {
+                x = -1;
+                y = -1;
+            }
         }
 
         if x >= 0 && y >= 0 {

@@ -4,8 +4,8 @@ pub mod constants;
 use std::fmt;
 
 pub struct Board {
-    light_disks: u64,
-    dark_disks: u64,
+    pub light_disks: u64,
+    pub dark_disks: u64,
     pub dark_move: bool
 }
 
@@ -98,7 +98,7 @@ impl Board {
         moves
     }
 
-    pub fn make_move(&mut self, m: u8) {
+    pub fn make_move(&mut self, m: u8) -> u64 {
         let num_directions = constants::SHIFT_DIRS.len();
         let disk = 0x80_00_00_00_00_00_00_00 >> m;
         if self.dark_move {
@@ -135,6 +135,21 @@ impl Board {
         self.light_disks ^= flood;
         self.dark_disks ^= flood;
         self.dark_move = !self.dark_move;
+
+        flood
+    }
+
+    pub fn undo_move(&mut self, undo: u64, m: u8) {
+        self.light_disks ^= undo;
+        self.dark_disks ^= undo;
+        self.dark_move = !self.dark_move;
+
+        let disk = 0x80_00_00_00_00_00_00_00 >> m;
+        if self.dark_move {
+            self.dark_disks &= !disk;
+        } else {
+            self.light_disks &= !disk;
+        }
     }
 
     #[inline]
