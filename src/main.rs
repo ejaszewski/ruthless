@@ -33,8 +33,6 @@ fn play_stdin(mut board: board::Board) {
             board.make_move(None);
         }
 
-        eprintln!("{}", board);
-
         let moves = board.get_moves();
         eprintln!("{:?}", moves);
         let x: i32;
@@ -53,8 +51,6 @@ fn play_stdin(mut board: board::Board) {
         }
 
         board.make_move(best_move);
-
-        eprintln!("{}", board);
 
         println!("{} {}", x, y);
     }
