@@ -33,11 +33,15 @@ impl Board {
 
     #[inline]
     pub fn get_moves(&self) -> Vec<u8> {
+        let mut moves: Vec<u8>;
         if self.dark_move {
-            self.get_dark_moves()
+            moves = self.get_dark_moves();
         } else {
-            self.get_light_moves()
+            moves = self.get_light_moves();
         }
+        moves.sort();
+        moves.dedup();
+        moves
     }
 
     fn get_light_moves(&self) -> Vec<u8> {
