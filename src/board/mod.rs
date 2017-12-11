@@ -104,10 +104,11 @@ impl Board {
                 } else {
                     self.light_disks |= disk;
                 }
+
                 let mut flood = 0;
                 for i in 0..num_directions {
                     let shift = constants::SHIFT_DIRS[i];
-                    let prop = if self.dark_move { self.light_disks } else { self.dark_disks } & constants::SHIFT_MASKS[i];
+                    let prop = if self.dark_move { self.light_disks } else { self.dark_disks } & constants::SHIFT_MASKS[i] & constants::MASKS[m as usize][i];
                     let mut temp_flood = 0;
 
                     let mut gen = disk;
@@ -127,7 +128,6 @@ impl Board {
                             flood |= temp_flood ^ disk;
                         }
                     }
-
                 }
 
                 self.light_disks ^= flood;
