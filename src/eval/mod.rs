@@ -68,7 +68,7 @@ pub fn do_search(board: &mut board::Board) -> Option<u8> {
 
     let end_time = time::now();
     let time_taken: time::Duration = (end_time - start_time).num_milliseconds();
-    let nps = searched as f32 / time_taken as f32
+    let nps = searched as f32 / time_taken as f32;
 
     eprintln!("Searched {} nodes in {} millis. ({} nodes/sec)", searched, time_taken, nps);
     eprintln!("Making move {} with score {}.", best_move, score);
