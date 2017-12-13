@@ -2,6 +2,7 @@ extern crate time;
 
 pub mod search;
 
+use std::collections::HashMap;
 use ::board;
 
 // A B C D D C B A
@@ -43,7 +44,7 @@ pub fn do_search(board: &mut board::Board) -> Option<u8> {
 
     eprintln!("Current board score: {}", get_score(board));
 
-    let moves = board.get_moves();
+    let mut moves = board.get_moves();
     if moves.len() == 0 {
         return None
     }
@@ -54,21 +55,37 @@ pub fn do_search(board: &mut board::Board) -> Option<u8> {
     let mut best_move = 0;
     let mut best_score: f32 = -10001.0;
 
-    let depth = 7;
-    eprintln!("Evaluating moves with depth {}.", depth);
+    let max_depth = 7;
 
-    for m in &moves {
-        let undo = board.make_move(Some(*m));
-        let (mut score, leaves) = search::negamax(board, -10000., 10000., depth);
-        board.undo_move(undo, *m);
+    for depth in 1..(max_depth + 1) {
+        eprint!("Evaluating moves with depth {}.", depth);
 
-        score = -score;
-        searched += leaves;
+        let mut move_map: HashMap<u8, f32> = HashMap::new();
 
-        if score > best_score {
-            best_score = score;
-            best_move = *m;
+        for m in &moves {
+            let undo = board.make_move(Some(*m));
+            let (mut score, leaves) = search::negamax(board, -10000., 10000., depth);
+            board.undo_move(undo, *m);
+
+            score = -score;
+            searched += leaves;
+
+            move_map.insert(*m, score);
         }
+
+        let mut sorted_moves: Vec<(&u8, &f32)> = move_map.iter().collect();
+        sorted_moves.sort_by(|a, b| b.1.partial_cmp(a.1).unwrap());
+
+        best_move = *sorted_moves[0].0;
+        best_score = *sorted_moves[0].1;
+
+        moves.clear();
+        moves = sorted_moves.iter().map(|&x| *x.0).collect();
+
+        eprintln!(" Move ordering: {:?}", moves);
+        eprintln!("\tBest Move was {} with score {}.", sorted_moves[0].0, sorted_moves[0].1);
+        eprintln!("\tSearched {} nodes.", searched);
+        searched = 0;
     }
 
     let end_time = time::now();
