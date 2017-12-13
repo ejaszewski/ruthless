@@ -12,11 +12,10 @@ fn main() {
 
 fn play_stdin(mut board: board::Board) {
     let stdin = io::stdin();
+    let mut first = true;
 
     eprintln!("Initialized...");
     println!("");
-
-    board.make_move(None);
 
     for line in stdin.lock().lines() {
         let line = line.unwrap();
@@ -29,6 +28,8 @@ fn play_stdin(mut board: board::Board) {
         if x >= 0 && y >= 0 {
             let coord: u8 = (y * 8 + x) as u8;
             board.make_move(Some(coord));
+        } else if first {
+            first = false;
         } else {
             board.make_move(None);
         }
