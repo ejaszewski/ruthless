@@ -33,7 +33,7 @@ impl Board {
     }
 
     pub fn get_moves(&self) -> HashSet<u8> {
-        let mut moves: HashSet<u8>;
+        let moves: HashSet<u8>;
         if self.dark_move {
             moves = self.get_dark_moves();
         } else {
