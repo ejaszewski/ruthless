@@ -19,7 +19,7 @@ const SCORE_FUNC: [(u64, f32); 7] = [
 ];
 
 const MATERIAL_WEIGHT: f32 = 0.1;
-const MOBILITY_WEIGHT: f32 = 0.5;
+const MOBILITY_WEIGHT: f32 = 2.0;
 
 fn disk_count(x: u64, mask: u64) -> f32 {
     return (x & mask).count_ones() as f32
@@ -62,7 +62,6 @@ pub fn do_search(board: &mut board::Board) -> Option<u8> {
         let (mut score, leaves) = search::negamax(board, -10000., 10000., depth);
         board.undo_move(undo, *m);
 
-        // if board.dark_move { score = -score; }
         score = -score;
         searched += leaves;
 
@@ -77,6 +76,6 @@ pub fn do_search(board: &mut board::Board) -> Option<u8> {
     let nps = searched as f32 / time_taken as f32;
 
     eprintln!("Searched {} nodes in {} millis. ({} knodes/sec)", searched, time_taken, nps);
-    eprintln!("Making move {} with score {}.", best_move, best_score);
+    eprintln!("Found best move {} with score {}.", best_move, best_score);
     return Some(best_move)
 }

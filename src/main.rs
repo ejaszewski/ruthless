@@ -19,7 +19,7 @@ fn play_stdin(mut board: board::Board) {
 
     for line in stdin.lock().lines() {
         let line = line.unwrap();
-        eprintln!("{}", line);
+        eprintln!("\nRuthless: Making {} Move", if board.dark_move { "Dark" } else { "Light" });
 
         let line_split: Vec<&str> = line.split(" ").collect();
 
@@ -35,7 +35,7 @@ fn play_stdin(mut board: board::Board) {
         }
 
         let moves = board.get_moves();
-        eprintln!("{:?}", moves);
+        eprintln!("Found Moves: {:?}", moves);
         let x: i32;
         let y: i32;
         let best_move = ruthless::eval::do_search(&mut board);
@@ -53,6 +53,7 @@ fn play_stdin(mut board: board::Board) {
 
         board.make_move(best_move);
 
+        eprintln!("");
         println!("{} {}", x, y);
     }
 }
