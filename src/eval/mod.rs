@@ -10,7 +10,7 @@ use ::board;
 // D F F E E F F D
 const SCORE_FUNC: [(u64, f32); 7] = [
     (0x81_00_00_00_00_00_00_81, 30.0), // A
-    (0x42_C3_00_00_00_00_C3_42,  5.0), // B
+    (0x42_C3_00_00_00_00_C3_42, -7.0), // B
     (0x24_00_81_00_00_81_00_24, 15.0), // C
     (0x18_00_00_81_81_00_00_18, 10.0), // D
     (0x00_24_42_00_00_42_24_00,  1.0), // E
@@ -52,17 +52,23 @@ pub fn do_search(board: &mut board::Board) -> Option<u8> {
     let start_time = time::now();
 
     let mut best_move = 0;
-    let mut score = -10001.;
+    let mut best_score: f32 = -10001.0;
+
+    let depth = 7;
+    eprintln!("Evaluating moves with depth {}.", depth);
 
     for m in &moves {
         let undo = board.make_move(Some(*m));
-        let (m_score, leaves) = search::negamax(board, -10000., 10000., 7);
-        let m_score = -m_score;
-        searched += leaves;
+        let (mut score, leaves) = search::negamax(board, -10000., 10000., depth);
         board.undo_move(undo, *m);
-        if m_score > score {
+
+        // if board.dark_move { score = -score; }
+        score = -score;
+        searched += leaves;
+
+        if score > best_score {
+            best_score = score;
             best_move = *m;
-            score = m_score;
         }
     }
 
@@ -71,6 +77,6 @@ pub fn do_search(board: &mut board::Board) -> Option<u8> {
     let nps = searched as f32 / time_taken as f32;
 
     eprintln!("Searched {} nodes in {} millis. ({} knodes/sec)", searched, time_taken, nps);
-    eprintln!("Making move {} with score {}.", best_move, score);
+    eprintln!("Making move {} with score {}.", best_move, best_score);
     return Some(best_move)
 }
