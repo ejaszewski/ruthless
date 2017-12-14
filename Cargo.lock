@@ -19,7 +19,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "ruthless"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "time 0.1.38 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
