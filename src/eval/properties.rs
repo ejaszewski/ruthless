@@ -3,8 +3,6 @@ extern crate clap;
 use std::str;
 use self::clap::ArgMatches;
 
-static mut MAX_DEPTH: u8 = 1;
-
 /*
 Layout of these constants:
     A B C D D C B A
@@ -16,43 +14,64 @@ Layout of these constants:
     B E F G G F E B
     A B C D D C B A
 */
-static mut MATERIAL_EVAL: [(u64, f32); 10] = [
-    (0x81_00_00_00_00_00_00_81, 1.0), // A
-    (0x42_81_00_00_00_00_81_42, 1.0), // B
-    (0x24_00_81_00_00_81_00_24, 1.0), // C
-    (0x18_00_00_81_81_00_00_18, 1.0), // D
-    (0x00_42_00_00_00_00_42_00, 1.0), // E
-    (0x00_18_00_42_42_00_18_00, 1.0), // G
-    (0x00_24_42_00_00_42_24_00, 1.0), // F
-    (0x00_00_24_00_00_24_00_00, 1.0), // H
-    (0x00_00_18_24_24_18_00_00, 1.0), // I
-    (0x00_00_00_18_18_00_00_00, 1.0), // J
+const MATERIAL_MASKS: [u64; 10] = [
+    0x81_00_00_00_00_00_00_81, // A
+    0x42_81_00_00_00_00_81_42, // B
+    0x24_00_81_00_00_81_00_24, // C
+    0x18_00_00_81_81_00_00_18, // D
+    0x00_42_00_00_00_00_42_00, // E
+    0x00_18_00_42_42_00_18_00, // G
+    0x00_24_42_00_00_42_24_00, // F
+    0x00_00_24_00_00_24_00_00, // H
+    0x00_00_18_24_24_18_00_00, // I
+    0x00_00_00_18_18_00_00_00, // J
 ];
 
-static mut MATERIAL_WEIGHT: f32 = 1.0;
-static mut MOBILITY_WEIGHT: f32 = 1.0;
+struct Properties {
+    max_depth: u8,
+    material_weight: f32,
+    mobility_weight: f32,
+    material_eval: [(u64, f32)]
+}
 
-pub unsafe fn load_from_args(matches: &ArgMatches) {
-    match matches.value_of("depth") {
-        Some(depth) => {
-            MAX_DEPTH = str::parse::<u8>(depth).unwrap_or(1);
-        },
-        None => {}
-    }
-    match matches.value_of("mat_weight") {
-        Some(material_weight) => {
-            MATERIAL_WEIGHT = str::parse::<f32>(material_weight).unwrap_or(1.0);
-        },
-        None => {}
-    }
-    match matches.value_of("mob_weight") {
-        Some(mobility_weight) => {
-            MOBILITY_WEIGHT = str::parse::<f32>(mobility_weight).unwrap_or(1.0);
-        },
-        None => {}
-    }
-    match matches.values_of("tile_weights") {
-        Some(tile_weights) => { println!("{:?}", tile_weights.collect::<Vec<&str>>()) },
-        None => {}
+impl Properties {
+    pub fn from_args(matches: &ArgMatches) {
+        let max_depth: u8;
+        let material_weight: f32;
+        let mobility_weight: f32;
+        let mut material_eval: [(u64, f32); 10];
+
+        match matches.value_of("depth") {
+            Some(depth) => {
+                max_depth = str::parse::<u8>(depth).unwrap_or(1);
+            },
+            None => {}
+        }
+
+        match matches.value_of("mat_weight") {
+            Some(weight) => {
+                material_weight = str::parse::<f32>(weight).unwrap_or(1.0);
+            },
+            None => {}
+        }
+
+        match matches.value_of("mob_weight") {
+            Some(weight) => {
+                mobility_weight = str::parse::<f32>(weight).unwrap_or(1.0);
+            },
+            None => {}
+        }
+
+        match matches.values_of("tile_weights") {
+            Some(weights) => {
+                material_eval = [(0, 0.0); 10];
+                let mut i = 0;
+                for weight in weights {
+                    material_eval[i] = (MATERIAL_MASKS[i], str::parse::<f32>(weight).unwrap_or(1.0));
+                    i += 1;
+                }
+            },
+            None => {}
+        }
     }
 }
