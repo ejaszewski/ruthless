@@ -1,13 +1,25 @@
+#[macro_use]
+extern crate clap;
+
 extern crate ruthless;
 
 use std::io;
 use std::io::BufRead;
 use std::str;
+use clap::App;
+use clap::Arg;
 use ruthless::board;
 
 fn main() {
-    let board = board::Board::new();
-    play_stdin(board);
+    let cli_yaml = load_yaml!("cli_spec.yml");
+    let matches = App::from_yaml(cli_yaml).get_matches();
+
+    unsafe {        
+        ruthless::eval::properties::load_from_args(&matches);
+    }
+
+    // let board = board::Board::new();
+    // play_stdin(board);
 }
 
 fn play_stdin(mut board: board::Board) {

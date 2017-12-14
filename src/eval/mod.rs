@@ -1,6 +1,7 @@
 extern crate time;
 
 pub mod search;
+pub mod properties;
 
 use std::collections::HashMap;
 use ::board;
