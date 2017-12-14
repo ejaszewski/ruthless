@@ -1,5 +1,5 @@
 while True:
-    dec = int(input("Decimal:"))
+    dec = int(input("Decimal:").replace('_', ''), 0)
     bs = bin(dec)[2:].rjust(64, '0');
     for i in range(0, 64, 8):
         print(i // 8 + 1, bs[i : i+8])
