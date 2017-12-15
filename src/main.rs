@@ -8,16 +8,18 @@ use std::io::BufRead;
 use std::str;
 use clap::App;
 use ruthless::board;
+use ruthless::eval::properties;
 
 fn main() {
     let cli_yaml = load_yaml!("cli_spec.yml");
     let matches = App::from_yaml(cli_yaml).get_matches();
+    let eval_properties = properties::Properties::from_args(&matches);
 
     let board = board::Board::new();
-    play_stdin(board);
+    play_stdin(board, eval_properties);
 }
 
-fn play_stdin(mut board: board::Board) {
+fn play_stdin(mut board: board::Board, properties: properties::Properties) {
     let stdin = io::stdin();
     let mut first = true;
 
@@ -45,7 +47,7 @@ fn play_stdin(mut board: board::Board) {
         eprintln!("Found Moves: {:?}", moves);
         let x: i32;
         let y: i32;
-        let best_move = ruthless::eval::do_search(&mut board);
+        let best_move = ruthless::eval::do_search(&mut board, &properties);
 
         match best_move {
             Some(m) => {

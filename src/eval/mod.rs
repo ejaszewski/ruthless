@@ -41,9 +41,23 @@ pub fn get_score(board: &board::Board) -> f32 {
     }
 }
 
-pub fn do_search(board: &mut board::Board) -> Option<u8> {
+pub fn get_score_with_props(board: &board::Board, properties: &properties::Properties) -> f32 {
+    let mut material_score = 0.0;
+    for &(mask, score) in SCORE_FUNC.iter() {
+        material_score += (disk_count(board.dark_disks, mask) - disk_count(board.light_disks, mask)) * score;
+    }
+    let mobility_score = board.get_moves().len() as f32;
+    let score = material_score * properties.material_weight + mobility_score * properties.mobility_weight;
+    if board.dark_move {
+        score
+    } else {
+        -score
+    }
+}
 
-    eprintln!("Current board score: {}", get_score(board));
+pub fn do_search(board: &mut board::Board, props: &properties::Properties) -> Option<u8> {
+
+    eprintln!("Current board score: {}", get_score_with_props(board, props));
 
     let mut moves = board.get_moves();
     if moves.len() == 0 {
@@ -65,7 +79,7 @@ pub fn do_search(board: &mut board::Board) -> Option<u8> {
 
         for m in &moves {
             let undo = board.make_move(Some(*m));
-            let (mut score, leaves) = search::negamax(board, -10000., 10000., depth);
+            let (mut score, leaves) = search::negamax(board, props, -10000., 10000., depth);
             board.undo_move(undo, *m);
 
             score = -score;

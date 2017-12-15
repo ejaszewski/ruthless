@@ -27,19 +27,19 @@ const MATERIAL_MASKS: [u64; 10] = [
     0x00_00_00_18_18_00_00_00, // J
 ];
 
-struct Properties {
-    max_depth: u8,
-    material_weight: f32,
-    mobility_weight: f32,
-    material_eval: [(u64, f32)]
+pub struct Properties {
+    pub max_depth: u8,
+    pub material_weight: f32,
+    pub mobility_weight: f32,
+    pub material_eval: [(u64, f32); 10]
 }
 
 impl Properties {
-    pub fn from_args(matches: &ArgMatches) {
-        let max_depth: u8;
-        let material_weight: f32;
-        let mobility_weight: f32;
-        let mut material_eval: [(u64, f32); 10];
+    pub fn from_args(matches: &ArgMatches) -> Properties {
+        let mut max_depth: u8 = 1;
+        let mut material_weight: f32 = 0.0;
+        let mut mobility_weight: f32 = 0.0;
+        let mut material_eval: [(u64, f32); 10] = [(0, 0.0); 10];
 
         match matches.value_of("depth") {
             Some(depth) => {
@@ -64,7 +64,6 @@ impl Properties {
 
         match matches.values_of("tile_weights") {
             Some(weights) => {
-                material_eval = [(0, 0.0); 10];
                 let mut i = 0;
                 for weight in weights {
                     material_eval[i] = (MATERIAL_MASKS[i], str::parse::<f32>(weight).unwrap_or(1.0));
@@ -72,6 +71,13 @@ impl Properties {
                 }
             },
             None => {}
+        }
+
+        Properties {
+            max_depth,
+            material_weight,
+            mobility_weight,
+            material_eval
         }
     }
 }
