@@ -43,3 +43,15 @@ pub fn directional_shift(x: u64, shift: i8) -> u64 {
         x >> shift
     }
 }
+
+pub fn directional_moves(player: u64, mask: u64, dir: i8) -> u64 {
+    let mask_2 = mask & directional_shift(mask, dir);
+    let mask_4 = mask_2 & directional_shift(mask_2, 2 * dir);
+
+    let mut flip = player;
+    flip |= mask   & directional_shift(flip, dir);
+    flip |= mask_2 & directional_shift(flip, dir * 2);
+    flip |= mask_4 & directional_shift(flip, dir * 4);
+
+    directional_shift(flip & mask, dir)
+}

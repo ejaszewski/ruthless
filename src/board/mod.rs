@@ -27,64 +27,32 @@ impl Board {
     }
 
     pub fn get_moves(&self) -> HashSet<u8> {
-        // let moves: HashSet<u8>;
-        // if self.dark_move {
-        //     moves = self.get_dark_moves();
-        // } else {
-        //     moves = self.get_light_moves();
-        // }
-        // moves
+        let (player, opponent) =
+            if self.dark_move {
+                (self.dark_disks, self.light_disks)
+            } else {
+                (self.light_disks, self.dark_disks)
+            };
 
-        self.get_moves_fast()
-    }
+        let mask = opponent & 0x7E_7E_7E_7E_7E_7E_7E_7E;
 
-    fn get_light_moves(&self) -> HashSet<u8> {
-        let mut mask = 0x80_00_00_00_00_00_00_00;
-        let mut moves: HashSet<u8> = HashSet::new();
-
-        for i in 0..64 {
-            if mask & self.light_disks != 0 {
-                let num_directions = constants::SHIFT_DIRS.len();
-                for j in 0..num_directions {
-                    let shift = constants::SHIFT_DIRS[j];
-                    let prop = self.dark_disks & constants::SHIFT_MASKS[j] & constants::MASKS[i][j];
-                    let mut gen = util::directional_shift(mask, shift) & prop;
-                    let mut next = util::directional_shift(gen, shift);
-                    while next & prop != 0 {
-                        gen = next & prop;
-                        next = util::directional_shift(gen, shift);
-                    }
-                    if next != 0 && next & self.all_disks() == 0 {
-                        moves.insert(next.leading_zeros() as u8);
-                    }
-                }
+        let mut all_moves: u64 = 0;
+        for shift in &constants::SHIFT_DIRS {
+            let shift = *shift;
+            if shift == 8 || shift == -8 {
+                all_moves |= util::directional_moves(player, opponent, shift);
+            } else {
+                all_moves |= util::directional_moves(player, mask, shift);
             }
-            mask >>= 1;
         }
 
-        moves
-    }
+        all_moves &= !self.all_disks();
 
-    fn get_dark_moves(&self) -> HashSet<u8> {
         let mut mask = 0x80_00_00_00_00_00_00_00;
         let mut moves: HashSet<u8> = HashSet::new();
-
         for i in 0..64 {
-            if mask & self.dark_disks != 0 {
-                let num_directions = constants::SHIFT_DIRS.len();
-                for j in 0..num_directions {
-                    let shift = constants::SHIFT_DIRS[j];
-                    let prop = self.light_disks & constants::SHIFT_MASKS[j] & constants::MASKS[i][j];
-                    let mut gen = util::directional_shift(mask, shift) & prop;
-                    let mut next = util::directional_shift(gen, shift);
-                    while next & prop != 0 {
-                        gen = next & prop;
-                        next = util::directional_shift(gen, shift);
-                    }
-                    if next != 0 && next & self.all_disks() == 0 {
-                        moves.insert(next.leading_zeros() as u8);
-                    }
-                }
+            if mask & all_moves != 0 {
+                moves.insert(i);
             }
             mask >>= 1;
         }
