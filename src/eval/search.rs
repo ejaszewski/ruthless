@@ -6,7 +6,7 @@ pub fn negamax(board: &mut Board, props: &Properties, mut alpha: f32, beta: f32,
     let mut count = 0;
     for m in &board.get_moves() {
 
-        let undo = board.make_move(Some(*m));
+        let undo = board.make_move(*m);
         let result = negamax(board, props, -beta, -alpha, depth - 1);
         let score = -result.0;
         count += result.1;

@@ -26,7 +26,7 @@ impl Board {
         }
     }
 
-    pub fn get_moves(&self) -> HashSet<u8> {
+    pub fn get_moves(&self) -> HashSet<Option<u8>> {
         let (player, opponent) =
             if self.dark_move {
                 (self.dark_disks, self.light_disks)
@@ -48,13 +48,18 @@ impl Board {
 
         all_moves &= !self.all_disks();
 
-        let mut mask = 0x80_00_00_00_00_00_00_00;
-        let mut moves: HashSet<u8> = HashSet::new();
-        for i in 0..64 {
-            if mask & all_moves != 0 {
-                moves.insert(i);
+        let mut moves: HashSet<Option<u8>> = HashSet::new();
+        
+        if all_moves == 0 {
+            moves.insert(None);
+        } else {
+            let mut mask = 0x80_00_00_00_00_00_00_00;
+            for i in 0..64 {
+                if mask & all_moves != 0 {
+                    moves.insert(Some(i));
+                }
+                mask >>= 1;
             }
-            mask >>= 1;
         }
 
         moves
@@ -65,16 +70,19 @@ impl Board {
             Some(m) => {
                 let num_directions = constants::SHIFT_DIRS.len();
                 let disk = 0x80_00_00_00_00_00_00_00 >> m;
-                if self.dark_move {
+
+                let (player, opponent) = if self.dark_move {
                     self.dark_disks |= disk;
+                    (self.dark_disks, self.light_disks)
                 } else {
                     self.light_disks |= disk;
-                }
+                    (self.light_disks, self.dark_disks)
+                };
 
                 let mut flood = 0;
                 for i in 0..num_directions {
                     let shift = constants::SHIFT_DIRS[i];
-                    let prop = if self.dark_move { self.light_disks } else { self.dark_disks } & constants::SHIFT_MASKS[i] & constants::MASKS[m as usize][i];
+                    let prop = opponent & constants::SHIFT_MASKS[i] & constants::MASKS[m as usize][i];
                     let mut temp_flood = 0;
 
                     let mut gen = disk;
@@ -85,14 +93,8 @@ impl Board {
                         gen = next & prop;
                     }
 
-                    if self.dark_move {
-                        if next & self.dark_disks != 0 {
-                            flood |= temp_flood ^ disk;
-                        }
-                    } else {
-                        if next & self.light_disks != 0 {
-                            flood |= temp_flood ^ disk;
-                        }
+                    if next & player != 0 {
+                        flood |= temp_flood ^ disk;
                     }
                 }
 
@@ -109,16 +111,23 @@ impl Board {
         }
     }
 
-    pub fn undo_move(&mut self, undo: u64, m: u8) {
-        self.light_disks ^= undo;
-        self.dark_disks ^= undo;
-        self.dark_move = !self.dark_move;
+    pub fn undo_move(&mut self, undo: u64, move_option: Option<u8>) {
+        match move_option {
+            Some(m) => {
+                self.light_disks ^= undo;
+                self.dark_disks ^= undo;
+                self.dark_move = !self.dark_move;
 
-        let disk = 0x80_00_00_00_00_00_00_00 >> m;
-        if self.dark_move {
-            self.dark_disks &= !disk;
-        } else {
-            self.light_disks &= !disk;
+                let disk = 0x80_00_00_00_00_00_00_00 >> m;
+                if self.dark_move {
+                    self.dark_disks &= !disk;
+                } else {
+                    self.light_disks &= !disk;
+                }
+            },
+            None => {
+                self.dark_move = !self.dark_move;
+            }
         }
     }
 

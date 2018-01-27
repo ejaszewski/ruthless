@@ -4,6 +4,7 @@ pub mod search;
 pub mod properties;
 
 use std::collections::HashMap;
+use std::collections::HashSet;
 use ::board;
 
 // A B C D D C B A
@@ -59,7 +60,7 @@ pub fn do_search(board: &mut board::Board, props: &properties::Properties) -> Op
 
     eprintln!("Current board score: {}", get_score_with_props(board, props));
 
-    let mut moves = board.get_moves();
+    let mut moves: HashSet<Option<u8>> = board.get_moves();
     if moves.len() == 0 {
         return None
     }
@@ -67,47 +68,44 @@ pub fn do_search(board: &mut board::Board, props: &properties::Properties) -> Op
     let mut searched = 0;
     let start_time = time::now();
 
-    let mut best_move = 0;
-    let mut best_score: f32 = -10001.0;
+    let mut best_move: Option<u8>;
+    let mut best_score: f32;
 
-    let max_depth = props.max_depth;
+    let depth = props.max_depth;
 
-    for depth in max_depth..(max_depth + 1) {
-        eprint!("Evaluating moves with depth {}.", depth);
+    eprint!("Evaluating moves with depth {}.", depth);
 
-        let mut move_map: HashMap<u8, f32> = HashMap::new();
+    let mut move_map: HashMap<Option<u8>, f32> = HashMap::new();
 
-        for m in &moves {
-            let undo = board.make_move(Some(*m));
-            let (mut score, leaves) = search::negamax(board, props, -10000., 10000., depth);
-            board.undo_move(undo, *m);
+    for m in &moves {
+        let undo = board.make_move(*m);
+        let (mut score, leaves) = search::negamax(board, props, -10000., 10000., depth);
+        board.undo_move(undo, *m);
 
-            score = -score;
-            searched += leaves;
+        score = -score;
+        searched += leaves;
 
-            move_map.insert(*m, score);
-        }
-
-        let mut sorted_moves: Vec<(&u8, &f32)> = move_map.iter().collect();
-        sorted_moves.sort_by(|a, b| b.1.partial_cmp(a.1).unwrap());
-
-        best_move = *sorted_moves[0].0;
-        best_score = *sorted_moves[0].1;
-
-        moves.clear();
-        moves = sorted_moves.iter().map(|&x| *x.0).collect();
-
-        eprintln!(" Move ordering: {:?}", moves);
-        eprintln!("\tBest Move was {} with score {}.", sorted_moves[0].0, sorted_moves[0].1);
-        eprintln!("\tSearched {} nodes.", searched);
-        // searched = 0;
+        move_map.insert(*m, score);
     }
+
+    let mut sorted_moves: Vec<(&Option<u8>, &f32)> = move_map.iter().collect();
+    sorted_moves.sort_by(|a, b| b.1.partial_cmp(a.1).unwrap());
+
+    best_move = *sorted_moves[0].0;
+    best_score = *sorted_moves[0].1;
+
+    moves.clear();
+    moves = sorted_moves.iter().map(|&x| *x.0).collect();
+
+    eprintln!(" Move ordering: {:?}", moves);
+    eprintln!("\tBest Move was {:?} with score {}.", sorted_moves[0].0, sorted_moves[0].1);
+    eprintln!("\tSearched {} nodes.", searched);
 
     let end_time = time::now();
     let time_taken = (end_time - start_time).num_milliseconds();
     let nps = searched as f32 / time_taken as f32;
 
     eprintln!("Searched {} nodes in {} millis. ({} knodes/sec)", searched, time_taken, nps);
-    eprintln!("Found best move {} with score {}.", best_move, best_score);
-    return Some(best_move)
+    eprintln!("Found best move {:?} with score {}.", best_move, best_score);
+    return best_move
 }

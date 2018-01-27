@@ -101,7 +101,7 @@ fn perft_impl(depth: u64, board: &mut board::Board)-> u64 {
     let mut nodes = 0;
 
     for m in &board.get_moves() {
-        let undo = board.make_move(Some(*m));
+        let undo = board.make_move(*m);
         nodes += perft_impl(depth - 1, board);
         board.undo_move(undo, *m);
     }
