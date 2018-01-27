@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate clap;
+extern crate time;
 
 extern crate ruthless;
 
@@ -15,20 +16,27 @@ fn main() {
     let matches = App::from_yaml(cli_yaml).get_matches();
     let eval_properties = properties::Properties::from_args(&matches);
 
-    let board = board::Board::new();
-    play_stdin(board, eval_properties);
+    if matches.is_present("perft") {
+        let depth = str::parse::<u64>(matches.value_of("depth").unwrap()).unwrap_or(1);
+        run_perft(depth);
+    } else {
+        let board = board::Board::new();
+        let black = matches.value_of("color").unwrap() == "Black";
+        play_stdin(board, eval_properties, black);
+    }
 }
 
-fn play_stdin(mut board: board::Board, properties: properties::Properties) {
+fn play_stdin(mut board: board::Board, properties: properties::Properties, black: bool) {
     let stdin = io::stdin();
-    let mut first = true;
+    let mut first_move = true;
 
     eprintln!("Initialized...");
     println!("");
 
     for line in stdin.lock().lines() {
         let line = line.unwrap();
-        eprintln!("\nRuthless: Making {} Move", if board.dark_move { "Dark" } else { "Light" });
+        eprintln!("Line: {}", line);
+        eprintln!("\nRuthless: Making {} Move", if !board.dark_move { "Dark" } else { "Light" });
 
         let line_split: Vec<&str> = line.split(" ").collect();
 
@@ -37,8 +45,8 @@ fn play_stdin(mut board: board::Board, properties: properties::Properties) {
         if x >= 0 && y >= 0 {
             let coord: u8 = (y * 8 + x) as u8;
             board.make_move(Some(coord));
-        } else if first {
-            first = false;
+        } else if black && first_move {
+            eprintln!("First move & black.");
         } else {
             board.make_move(None);
         }
@@ -61,8 +69,42 @@ fn play_stdin(mut board: board::Board, properties: properties::Properties) {
         }
 
         board.make_move(best_move);
+        first_move = false;
 
         eprintln!("");
         println!("{} {}", x, y);
     }
+}
+
+fn run_perft(depth: u64) {
+    println!("Running perft test at depth {}.", depth);
+    let mut board = board::Board::new();
+
+    let start_time = time::now();
+    let nodes = perft_impl(depth, &mut board);
+    let end_time = time::now();
+    let time_taken = (end_time - start_time).num_milliseconds();
+    let nps = nodes as f32 / time_taken as f32;
+
+    println!("Perft Finished:");
+    println!("  Nodes      : {} nodes", nodes);
+    println!("  Time Taken : {} millis", time_taken);
+    println!("  Nodes/Sec  : {} knodes/sec", nps);
+
+}
+
+fn perft_impl(depth: u64, board: &mut board::Board)-> u64 {
+    if depth == 0 {
+        return 1;
+    }
+
+    let mut nodes = 0;
+
+    for m in &board.get_moves() {
+        let undo = board.make_move(Some(*m));
+        nodes += perft_impl(depth - 1, board);
+        board.undo_move(undo, *m);
+    }
+
+    nodes
 }

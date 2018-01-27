@@ -31,3 +31,12 @@ args:
         number_of_values: 10
         value_names: [A, B, C, D, E, F, G, H, I, J]
         takes_value: true
+    - color:
+        long: color
+        help: Tells the bot whether to play as Black or White.
+        value_name: COLOR
+        takes_value: true
+    - perft:
+        long: perft
+        help: Runs a perft test at the provided depth.
+        requires: depth

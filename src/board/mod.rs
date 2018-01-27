@@ -20,12 +20,6 @@ impl Board {
         dark_disks |= util::coord_to_bitmask(String::from("e4")).unwrap();
         dark_disks |= util::coord_to_bitmask(String::from("d5")).unwrap();
 
-        // dark_disks |= util::coord_to_bitmask(String::from("e5")).unwrap();
-        // dark_disks |= util::coord_to_bitmask(String::from("e6")).unwrap();
-        // dark_disks |= util::coord_to_bitmask(String::from("f5")).unwrap();
-        // light_disks |= util::coord_to_bitmask(String::from("d5")).unwrap();
-        // light_disks |= util::coord_to_bitmask(String::from("d6")).unwrap();
-
         let dark_move = true;
         Board {
             light_disks, dark_disks, dark_move
@@ -33,13 +27,15 @@ impl Board {
     }
 
     pub fn get_moves(&self) -> HashSet<u8> {
-        let moves: HashSet<u8>;
-        if self.dark_move {
-            moves = self.get_dark_moves();
-        } else {
-            moves = self.get_light_moves();
-        }
-        moves
+        // let moves: HashSet<u8>;
+        // if self.dark_move {
+        //     moves = self.get_dark_moves();
+        // } else {
+        //     moves = self.get_light_moves();
+        // }
+        // moves
+
+        self.get_moves_fast()
     }
 
     fn get_light_moves(&self) -> HashSet<u8> {

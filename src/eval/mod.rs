@@ -11,17 +11,17 @@ use ::board;
 // C E G F F G E C
 // D F F E E F F D
 const SCORE_FUNC: [(u64, f32); 7] = [
-    (0x81_00_00_00_00_00_00_81, 30.0), // A
-    (0x42_C3_00_00_00_00_C3_42, -7.0), // B
-    (0x24_00_81_00_00_81_00_24, 15.0), // C
-    (0x18_00_00_81_81_00_00_18, 10.0), // D
-    (0x00_24_42_00_00_42_24_00,  1.0), // E
+    (0x81_00_00_00_00_00_00_81, 20.0), // A
+    (0x42_C3_00_00_00_00_C3_42, -5.0), // B
+    (0x24_00_81_00_00_81_00_24,  5.0), // C
+    (0x18_00_00_81_81_00_00_18,  5.0), // D
+    (0x00_24_42_00_00_42_24_00,  2.0), // E
     (0x00_18_18_66_66_18_18_00,  2.0), // F
-    (0x00_00_24_00_00_24_00_00,  5.0)  // G
+    (0x00_00_24_00_00_24_00_00,  2.0)  // G
 ];
 
-const MATERIAL_WEIGHT: f32 = 0.1;
-const MOBILITY_WEIGHT: f32 = 2.0;
+const MATERIAL_WEIGHT: f32 = 0.5;
+const MOBILITY_WEIGHT: f32 = 1.0;
 
 fn disk_count(x: u64, mask: u64) -> f32 {
     return (x & mask).count_ones() as f32
@@ -70,9 +70,9 @@ pub fn do_search(board: &mut board::Board, props: &properties::Properties) -> Op
     let mut best_move = 0;
     let mut best_score: f32 = -10001.0;
 
-    let max_depth = 7;
+    let max_depth = props.max_depth;
 
-    for depth in 1..(max_depth + 1) {
+    for depth in max_depth..(max_depth + 1) {
         eprint!("Evaluating moves with depth {}.", depth);
 
         let mut move_map: HashMap<u8, f32> = HashMap::new();
@@ -100,7 +100,7 @@ pub fn do_search(board: &mut board::Board, props: &properties::Properties) -> Op
         eprintln!(" Move ordering: {:?}", moves);
         eprintln!("\tBest Move was {} with score {}.", sorted_moves[0].0, sorted_moves[0].1);
         eprintln!("\tSearched {} nodes.", searched);
-        searched = 0;
+        // searched = 0;
     }
 
     let end_time = time::now();
