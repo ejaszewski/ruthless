@@ -2,7 +2,6 @@ pub mod util;
 pub mod constants;
 
 use std::fmt;
-use std::collections::HashSet;
 
 pub struct Board {
     pub light_disks: u64,
@@ -26,7 +25,7 @@ impl Board {
         }
     }
 
-    pub fn get_moves(&self) -> HashSet<Option<u8>> {
+    pub fn get_moves(&self) -> Vec<Option<u8>> {
         let (player, opponent) =
             if self.dark_move {
                 (self.dark_disks, self.light_disks)
@@ -48,17 +47,17 @@ impl Board {
 
         all_moves &= !self.all_disks();
 
-        let mut moves: HashSet<Option<u8>> = HashSet::new();
-        
+        let num_moves = all_moves.count_ones() as usize;
+        let mut moves: Vec<Option<u8>> = Vec::with_capacity(num_moves);
+
         if all_moves == 0 {
-            moves.insert(None);
+            moves.push(None);
         } else {
-            let mut mask = 0x80_00_00_00_00_00_00_00;
-            for i in 0..64 {
-                if mask & all_moves != 0 {
-                    moves.insert(Some(i));
-                }
-                mask >>= 1;
+            let mask = 0x80_00_00_00_00_00_00_00;
+            for _i in 0..num_moves {
+                let index = all_moves.leading_zeros();
+                moves.push(Some(index as u8));
+                all_moves ^= mask >> index;
             }
         }
 

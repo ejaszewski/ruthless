@@ -4,7 +4,6 @@ pub mod search;
 pub mod properties;
 
 use std::collections::HashMap;
-use std::collections::HashSet;
 use ::board;
 
 // A B C D D C B A
@@ -60,7 +59,7 @@ pub fn do_search(board: &mut board::Board, props: &properties::Properties) -> Op
 
     eprintln!("Current board score: {}", get_score_with_props(board, props));
 
-    let mut moves: HashSet<Option<u8>> = board.get_moves();
+    let mut moves: Vec<Option<u8>> = board.get_moves();
     if moves.len() == 0 {
         return None
     }
@@ -68,8 +67,8 @@ pub fn do_search(board: &mut board::Board, props: &properties::Properties) -> Op
     let mut searched = 0;
     let start_time = time::now();
 
-    let mut best_move: Option<u8>;
-    let mut best_score: f32;
+    let best_move: Option<u8>;
+    let best_score: f32;
 
     let depth = props.max_depth;
 
