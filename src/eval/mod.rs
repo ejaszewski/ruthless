@@ -55,6 +55,10 @@ pub fn get_score_with_props(board: &board::Board, properties: &properties::Prope
     }
 }
 
+pub fn get_score_endgame_solve(board: &board::Board) -> i8 {
+    (board.dark_disks.count_ones() as i8 - board.light_disks.count_ones() as i8).signum()
+}
+
 pub fn do_search(board: &mut board::Board, props: &properties::Properties) -> Option<u8> {
 
     eprintln!("Current board score: {}", get_score_with_props(board, props));
@@ -106,5 +110,52 @@ pub fn do_search(board: &mut board::Board, props: &properties::Properties) -> Op
 
     eprintln!("Searched {} nodes in {} millis. ({} knodes/sec)", searched, time_taken, nps);
     eprintln!("Found best move {:?} with score {}.", best_move, best_score);
+    return best_move
+}
+
+pub fn endgame_solve(board: &mut board::Board) -> Option<u8> {
+    let mut moves: Vec<Option<u8>> = board.get_moves();
+    if moves.len() == 0 {
+        return None
+    }
+
+    let mut searched = 0;
+    let start_time = time::now();
+
+    let best_move: Option<u8>;
+    let best_score: i8;
+
+    eprintln!("Running endgame solve.");
+
+    let mut move_map: HashMap<Option<u8>, i8> = HashMap::new();
+
+    for m in &moves {
+        let undo = board.make_move(*m);
+        let (mut score, leaves) = search::negamax_endgame(board, -2, 2);
+        board.undo_move(undo, *m);
+
+        score = -score;
+        searched += leaves;
+
+        move_map.insert(*m, score);
+    }
+
+    let mut sorted_moves: Vec<(&Option<u8>, &i8)> = move_map.iter().collect();
+    sorted_moves.sort_by(|a, b| b.1.partial_cmp(a.1).unwrap());
+
+    best_move = *sorted_moves[0].0;
+    best_score = *sorted_moves[0].1;
+
+    moves.clear();
+    moves = sorted_moves.iter().map(|&x| *x.0).collect();
+
+    let result_str = ["LOSS", "DRAW", "WIN"][(best_score + 1) as usize];
+    eprintln!("Guaranteed {}.", result_str);
+
+    let end_time = time::now();
+    let time_taken = (end_time - start_time).num_milliseconds();
+    let nps = searched as f32 / time_taken as f32;
+    eprintln!("Searched {} nodes in {} millis. ({} knodes/sec)", searched, time_taken, nps);
+
     return best_move
 }

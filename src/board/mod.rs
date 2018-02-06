@@ -64,6 +64,29 @@ impl Board {
         moves
     }
 
+    pub fn moves_exist(&self) -> bool {
+        let (dark, light) = (self.dark_disks, self.light_disks);
+
+        let mask_dark = light & 0x7E_7E_7E_7E_7E_7E_7E_7E;
+        let mask_light = dark & 0x7E_7E_7E_7E_7E_7E_7E_7E;
+
+        let mut all_moves: u64 = 0;
+        for shift in &constants::SHIFT_DIRS {
+            let shift = *shift;
+            if shift == 8 || shift == -8 {
+                all_moves |= util::directional_moves(dark, light, shift);
+                all_moves |= util::directional_moves(light, dark, shift);
+            } else {
+                all_moves |= util::directional_moves(dark, mask_dark, shift);
+                all_moves |= util::directional_moves(light, mask_light, shift);
+            }
+        }
+
+        all_moves &= !self.all_disks();
+
+        all_moves != 0
+    }
+
     pub fn make_move(&mut self, move_option: Option<u8>) -> u64 {
         match move_option {
             Some(m) => {
@@ -133,6 +156,10 @@ impl Board {
     #[inline]
     pub fn all_disks(&self) -> u64 {
         self.light_disks | self.dark_disks
+    }
+
+    pub fn is_game_over(&mut self) -> bool {
+        self.all_disks() == 0xFF_FF_FF_FF_FF_FF_FF_FF || !self.moves_exist()
     }
 }
 
