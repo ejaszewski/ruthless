@@ -20,7 +20,7 @@ const SCORE_FUNC: [(u64, f32); 7] = [
     (0x00_00_24_00_00_24_00_00,  2.0)  // G
 ];
 
-const MATERIAL_WEIGHT: f32 = 0.5;
+const MATERIAL_WEIGHT: f32 = 0.2;
 const MOBILITY_WEIGHT: f32 = 1.0;
 
 fn disk_count(x: u64, mask: u64) -> f32 {
@@ -56,7 +56,24 @@ pub fn get_score_with_props(board: &board::Board, properties: &properties::Prope
 }
 
 pub fn get_score_endgame_solve(board: &board::Board) -> i8 {
-    (board.dark_disks.count_ones() as i8 - board.light_disks.count_ones() as i8).signum()
+    let modifier = if board.dark_move { 1 } else { -1 };
+    (board.dark_disks.count_ones() as i8 - board.light_disks.count_ones() as i8).signum() * modifier
+}
+
+pub fn get_move_map(board: &mut board::Board, moves: &mut Vec<Option<u8>>, props: &properties::Properties, depth: u8) -> HashMap<Option<u8>, f32> {
+    let mut move_map: HashMap<Option<u8>, f32> = HashMap::new();
+
+    for m in moves {
+        let undo = board.make_move(*m);
+        let (mut score, _leaves) = search::negamax(board, props, -10000., 10000., depth);
+        board.undo_move(undo, *m);
+
+        score = -score;
+
+        move_map.insert(*m, score);
+    }
+
+    move_map
 }
 
 pub fn do_search(board: &mut board::Board, props: &properties::Properties) -> Option<u8> {
@@ -76,7 +93,7 @@ pub fn do_search(board: &mut board::Board, props: &properties::Properties) -> Op
 
     let depth = props.max_depth;
 
-    eprint!("Evaluating moves with depth {}.", depth);
+    eprintln!("Evaluating moves with depth {}.", depth);
 
     let mut move_map: HashMap<Option<u8>, f32> = HashMap::new();
 
@@ -91,17 +108,14 @@ pub fn do_search(board: &mut board::Board, props: &properties::Properties) -> Op
         move_map.insert(*m, score);
     }
 
-    let mut sorted_moves: Vec<(&Option<u8>, &f32)> = move_map.iter().collect();
-    sorted_moves.sort_by(|a, b| b.1.partial_cmp(a.1).unwrap());
+    moves.sort_by(|a, b| move_map.get(b).partial_cmp(&move_map.get(a)).unwrap());
 
-    best_move = *sorted_moves[0].0;
-    best_score = *sorted_moves[0].1;
+    best_move = moves[0];
+    best_score = *move_map.get(&moves[0]).unwrap();
 
     moves.clear();
-    moves = sorted_moves.iter().map(|&x| *x.0).collect();
 
-    eprintln!(" Move ordering: {:?}", moves);
-    eprintln!("\tBest Move was {:?} with score {}.", sorted_moves[0].0, sorted_moves[0].1);
+    eprintln!("\tBest Move was {:?} with score {}.", best_move, best_score);
     eprintln!("\tSearched {} nodes.", searched);
 
     let end_time = time::now();
@@ -140,14 +154,10 @@ pub fn endgame_solve(board: &mut board::Board) -> Option<u8> {
         move_map.insert(*m, score);
     }
 
-    let mut sorted_moves: Vec<(&Option<u8>, &i8)> = move_map.iter().collect();
-    sorted_moves.sort_by(|a, b| b.1.partial_cmp(a.1).unwrap());
+    moves.sort_by(|a, b| move_map.get(b).partial_cmp(&move_map.get(a)).unwrap());
 
-    best_move = *sorted_moves[0].0;
-    best_score = *sorted_moves[0].1;
-
-    moves.clear();
-    moves = sorted_moves.iter().map(|&x| *x.0).collect();
+    best_move = moves[0];
+    best_score = *move_map.get(&moves[0]).unwrap();
 
     let result_str = ["LOSS", "DRAW", "WIN"][(best_score + 1) as usize];
     eprintln!("Guaranteed {}.", result_str);

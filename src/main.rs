@@ -56,7 +56,7 @@ fn play_stdin(mut board: board::Board, properties: properties::Properties, black
         let x: i32;
         let y: i32;
         let best_move;
-        if board.all_disks().count_zeros() > 20 {
+        if board.all_disks().count_zeros() > 16 {
             best_move = ruthless::eval::do_search(&mut board, &properties);
         } else {
             best_move = ruthless::eval::endgame_solve(&mut board);
