@@ -33,7 +33,7 @@ pub fn get_score(board: &mut board::Board) -> f32 {
         eval += (disk_count(board.dark_disks, sc.0) - disk_count(board.light_disks, sc.0)) * sc.1;
     }
     eval *= MATERIAL_WEIGHT;
-    eval += board.get_moves().len() as f32 * MOBILITY_WEIGHT;
+    eval += board.move_count() as f32 * MOBILITY_WEIGHT;
     if board.dark_move {
         eval
     } else {
