@@ -27,7 +27,7 @@ fn disk_count(x: u64, mask: u64) -> f32 {
     return (x & mask).count_ones() as f32
 }
 
-pub fn get_score(board: &board::Board) -> f32 {
+pub fn get_score(board: &mut board::Board) -> f32 {
     let mut eval: f32 = 0.0;
     for sc in SCORE_FUNC.iter() {
         eval += (disk_count(board.dark_disks, sc.0) - disk_count(board.light_disks, sc.0)) * sc.1;
@@ -41,12 +41,12 @@ pub fn get_score(board: &board::Board) -> f32 {
     }
 }
 
-pub fn get_score_with_props(board: &board::Board, properties: &properties::Properties) -> f32 {
+pub fn get_score_with_props(board: &mut board::Board, properties: &properties::Properties) -> f32 {
     let mut material_score = 0.0;
     for &(mask, score) in SCORE_FUNC.iter() {
         material_score += (disk_count(board.dark_disks, mask) - disk_count(board.light_disks, mask)) * score;
     }
-    let mobility_score = board.get_moves().len() as f32;
+    let mobility_score = board.move_count() as f32;
     let score = material_score * properties.material_weight + mobility_score * properties.mobility_weight;
     if board.dark_move {
         score

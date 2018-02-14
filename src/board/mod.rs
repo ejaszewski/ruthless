@@ -5,7 +5,11 @@ use std::fmt;
 
 pub struct Board {
     pub light_disks: u64,
+    light_moves: u64,
+    light_moves_gen: bool,
     pub dark_disks: u64,
+    dark_moves: u64,
+    dark_moves_gen: bool,
     pub dark_move: bool
 }
 
@@ -20,32 +24,42 @@ impl Board {
         dark_disks |= util::coord_to_bitmask(String::from("d5")).unwrap();
 
         let dark_move = true;
-        Board {
-            light_disks, dark_disks, dark_move
-        }
+
+        let mut board = Board {
+            light_disks,
+            dark_disks,
+            dark_move,
+            light_moves: 0, light_moves_gen: false,
+            dark_moves: 0, dark_moves_gen: false
+        };
+        board.gen_dark_moves();
+
+        board
     }
 
-    pub fn get_moves(&self) -> Vec<Option<u8>> {
-        let (player, opponent) =
+    pub fn gen_dark_moves(&mut self) {
+        self.dark_moves = util::all_moves(self.dark_disks, self.light_disks);
+        self.dark_moves_gen = true;
+    }
+
+    pub fn gen_light_moves(&mut self) {
+        self.light_moves = util::all_moves(self.light_disks, self.dark_disks);
+        self.light_moves_gen = true;
+    }
+
+    pub fn get_moves(&mut self) -> Vec<Option<u8>> {
+        let mut all_moves =
             if self.dark_move {
-                (self.dark_disks, self.light_disks)
+                if !self.dark_moves_gen {
+                    self.gen_dark_moves();
+                }
+                self.dark_moves
             } else {
-                (self.light_disks, self.dark_disks)
+                if !self.light_moves_gen {
+                    self.gen_light_moves();
+                }
+                self.light_moves
             };
-
-        let mask = opponent & 0x7E_7E_7E_7E_7E_7E_7E_7E;
-
-        let mut all_moves: u64 = 0;
-        for shift in &constants::SHIFT_DIRS {
-            let shift = *shift;
-            if shift == 8 || shift == -8 {
-                all_moves |= util::directional_moves(player, opponent, shift);
-            } else {
-                all_moves |= util::directional_moves(player, mask, shift);
-            }
-        }
-
-        all_moves &= !self.all_disks();
 
         let num_moves = all_moves.count_ones() as usize;
         let mut moves: Vec<Option<u8>> = Vec::with_capacity(num_moves);
@@ -64,27 +78,28 @@ impl Board {
         moves
     }
 
-    pub fn moves_exist(&self) -> bool {
-        let (dark, light) = (self.dark_disks, self.light_disks);
-
-        let mask_dark = light & 0x7E_7E_7E_7E_7E_7E_7E_7E;
-        let mask_light = dark & 0x7E_7E_7E_7E_7E_7E_7E_7E;
-
-        let mut all_moves: u64 = 0;
-        for shift in &constants::SHIFT_DIRS {
-            let shift = *shift;
-            if shift == 8 || shift == -8 {
-                all_moves |= util::directional_moves(dark, light, shift);
-                all_moves |= util::directional_moves(light, dark, shift);
-            } else {
-                all_moves |= util::directional_moves(dark, mask_dark, shift);
-                all_moves |= util::directional_moves(light, mask_light, shift);
+    pub fn move_count(&mut self) -> u32 {
+        if self.dark_move {
+            if !self.dark_moves_gen {
+                self.gen_dark_moves();
             }
+            self.dark_moves.count_ones()
+        } else {
+            if !self.light_moves_gen {
+                self.gen_light_moves();
+            }
+            self.light_moves.count_ones()
         }
+    }
 
-        all_moves &= !self.all_disks();
-
-        all_moves != 0
+    pub fn moves_exist(&mut self) -> bool {
+        if !self.dark_moves_gen {
+            self.gen_dark_moves();
+        }
+        if !self.light_moves_gen {
+            self.gen_light_moves();
+        }
+        (self.light_moves | self.dark_moves) != 0
     }
 
     pub fn make_move(&mut self, move_option: Option<u8>) -> u64 {
@@ -124,6 +139,9 @@ impl Board {
                 self.dark_disks ^= flood;
                 self.dark_move = !self.dark_move;
 
+                self.dark_moves_gen = false;
+                self.light_moves_gen = false;
+
                 flood
             },
             None => {
@@ -146,6 +164,9 @@ impl Board {
                 } else {
                     self.light_disks &= !disk;
                 }
+
+                // self.gen_dark_moves();
+                // self.gen_light_moves();
             },
             None => {
                 self.dark_move = !self.dark_move;

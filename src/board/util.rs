@@ -55,3 +55,19 @@ pub fn directional_moves(player: u64, mask: u64, dir: i8) -> u64 {
 
     directional_shift(flip & mask, dir)
 }
+
+pub fn all_moves(player: u64, opponent: u64) -> u64 {
+    let mask = opponent & 0x7E_7E_7E_7E_7E_7E_7E_7E;
+
+    let mut all_moves: u64 = 0;
+    for shift in &constants::SHIFT_DIRS {
+        let shift = *shift;
+        if shift == 8 || shift == -8 {
+            all_moves |= directional_moves(player, opponent, shift);
+        } else {
+            all_moves |= directional_moves(player, mask, shift);
+        }
+    }
+
+    all_moves & !(player | opponent)
+}
