@@ -36,7 +36,11 @@ fn play_stdin(mut board: board::Board, properties: properties::Properties, black
     for line in stdin.lock().lines() {
         let line = line.unwrap();
         eprintln!("Line: {}", line);
-        eprintln!("\nRuthless: Making {} Move", if !board.dark_move { "Dark" } else { "Light" });
+
+        eprintln!(
+            "\nRuthless: Making {} Move",
+            if !board.dark_move { "Dark" } else { "Light" }
+        );
 
         let line_split: Vec<&str> = line.split(" ").collect();
 
@@ -51,8 +55,6 @@ fn play_stdin(mut board: board::Board, properties: properties::Properties, black
             board.make_move(None);
         }
 
-        let moves = board.get_moves();
-        eprintln!("Found Moves: {:?}", moves);
         let x: i32;
         let y: i32;
         let best_move;
@@ -66,7 +68,7 @@ fn play_stdin(mut board: board::Board, properties: properties::Properties, black
             Some(m) => {
                 x = (m % 8) as i32;
                 y = (m / 8) as i32;
-            },
+            }
             None => {
                 x = -1;
                 y = -1;
@@ -95,10 +97,9 @@ fn run_perft(depth: u64) {
     println!("  Nodes      : {} nodes", nodes);
     println!("  Time Taken : {} millis", time_taken);
     println!("  Nodes/Sec  : {} knodes/sec", nps);
-
 }
 
-fn perft_impl(depth: u64, board: &mut board::Board)-> u64 {
+fn perft_impl(depth: u64, board: &mut board::Board) -> u64 {
     if depth == 0 {
         return 1;
     }

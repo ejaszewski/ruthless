@@ -1,8 +1,10 @@
-use ::board::Board;
-use ::eval::properties::Properties;
+use board::Board;
+use eval::properties::Properties;
 
 pub fn negamax(board: &mut Board, props: &Properties, mut alpha: f32, beta: f32, depth: u8) -> (f32, u64) {
-    if depth == 0 { return (super::get_score(board), 1) }
+    if depth == 0 {
+        return (super::get_score(board), 1);
+    }
     let mut count = 0;
 
     let mut moves = board.get_moves();
@@ -13,7 +15,6 @@ pub fn negamax(board: &mut Board, props: &Properties, mut alpha: f32, beta: f32,
     }
 
     for m in &moves {
-
         let undo = board.make_move(*m);
         let result = negamax(board, props, -beta, -alpha, depth - 1);
         let score = -result.0;

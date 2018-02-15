@@ -31,7 +31,7 @@ pub struct Properties {
     pub max_depth: u8,
     pub material_weight: f32,
     pub mobility_weight: f32,
-    pub material_eval: [(u64, f32); 10]
+    pub material_eval: [(u64, f32); 10],
 }
 
 impl Properties {
@@ -44,21 +44,21 @@ impl Properties {
         match matches.value_of("depth") {
             Some(depth) => {
                 max_depth = str::parse::<u8>(depth).unwrap_or(1);
-            },
+            }
             None => {}
         }
 
         match matches.value_of("mat_weight") {
             Some(weight) => {
                 material_weight = str::parse::<f32>(weight).unwrap_or(1.0);
-            },
+            }
             None => {}
         }
 
         match matches.value_of("mob_weight") {
             Some(weight) => {
                 mobility_weight = str::parse::<f32>(weight).unwrap_or(1.0);
-            },
+            }
             None => {}
         }
 
@@ -66,10 +66,11 @@ impl Properties {
             Some(weights) => {
                 let mut i = 0;
                 for weight in weights {
-                    material_eval[i] = (MATERIAL_MASKS[i], str::parse::<f32>(weight).unwrap_or(1.0));
+                    material_eval[i] =
+                        (MATERIAL_MASKS[i], str::parse::<f32>(weight).unwrap_or(1.0));
                     i += 1;
                 }
-            },
+            }
             None => {}
         }
 
@@ -77,7 +78,7 @@ impl Properties {
             max_depth,
             material_weight,
             mobility_weight,
-            material_eval
+            material_eval,
         }
     }
 }

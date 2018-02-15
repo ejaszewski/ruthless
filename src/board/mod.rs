@@ -10,7 +10,7 @@ pub struct Board {
     pub dark_disks: u64,
     dark_moves: u64,
     dark_moves_gen: bool,
-    pub dark_move: bool
+    pub dark_move: bool,
 }
 
 impl Board {
@@ -29,8 +29,10 @@ impl Board {
             light_disks,
             dark_disks,
             dark_move,
-            light_moves: 0, light_moves_gen: false,
-            dark_moves: 0, dark_moves_gen: false
+            light_moves: 0,
+            light_moves_gen: false,
+            dark_moves: 0,
+            dark_moves_gen: false,
         };
         board.gen_dark_moves();
 
@@ -48,18 +50,17 @@ impl Board {
     }
 
     pub fn get_moves(&mut self) -> Vec<Option<u8>> {
-        let mut all_moves =
-            if self.dark_move {
-                if !self.dark_moves_gen {
-                    self.gen_dark_moves();
-                }
-                self.dark_moves
-            } else {
-                if !self.light_moves_gen {
-                    self.gen_light_moves();
-                }
-                self.light_moves
-            };
+        let mut all_moves = if self.dark_move {
+            if !self.dark_moves_gen {
+                self.gen_dark_moves();
+            }
+            self.dark_moves
+        } else {
+            if !self.light_moves_gen {
+                self.gen_light_moves();
+            }
+            self.light_moves
+        };
 
         let num_moves = all_moves.count_ones() as usize;
         let mut moves: Vec<Option<u8>> = Vec::with_capacity(num_moves);
@@ -119,7 +120,8 @@ impl Board {
                 let mut flood = 0;
                 for i in 0..num_directions {
                     let shift = constants::SHIFT_DIRS[i];
-                    let prop = opponent & constants::SHIFT_MASKS[i] & constants::MASKS[m as usize][i];
+                    let prop =
+                        opponent & constants::SHIFT_MASKS[i] & constants::MASKS[m as usize][i];
                     let mut temp_flood = 0;
 
                     let mut gen = disk;
@@ -143,7 +145,7 @@ impl Board {
                 self.light_moves_gen = false;
 
                 flood
-            },
+            }
             None => {
                 self.dark_move = !self.dark_move;
                 0
@@ -167,7 +169,7 @@ impl Board {
 
                 // self.gen_dark_moves();
                 // self.gen_light_moves();
-            },
+            }
             None => {
                 self.dark_move = !self.dark_move;
             }
