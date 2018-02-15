@@ -35,6 +35,19 @@ pub fn coord_to_bitmask(pos: String) -> Option<u64> {
     Some(pos)
 }
 
+pub fn move_string(m: Option<u8>) -> String {
+    match m {
+        Some(pos) => pos_to_coord(pos),
+        None => "PASS".to_string()
+    }
+}
+
+pub fn pos_to_coord(pos: u8) -> String {
+    let letter = ["a", "b", "c", "d", "e", "f", "g", "h"][(pos % 8) as usize];
+    let number = pos / 8;
+    format!("{}{}", letter, number)
+}
+
 #[inline]
 pub fn directional_shift(x: u64, shift: i8) -> u64 {
     if shift < 0 {

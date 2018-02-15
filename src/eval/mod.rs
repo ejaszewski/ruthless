@@ -4,7 +4,9 @@ pub mod search;
 pub mod properties;
 
 use std::collections::HashMap;
+use std::f32;
 use ::board;
+use ::board::util;
 
 // A B C D D C B A
 // B B E F F E B B
@@ -81,49 +83,46 @@ pub fn do_search(board: &mut board::Board, props: &properties::Properties) -> Op
     eprintln!("Current board score: {}", get_score_with_props(board, props));
 
     let mut moves: Vec<Option<u8>> = board.get_moves();
-    if moves.len() == 0 {
-        return None
-    }
 
     let mut searched = 0;
     let start_time = time::now();
-
-    let best_move: Option<u8>;
-    let best_score: f32;
 
     let depth = props.max_depth;
 
     eprintln!("Evaluating moves with depth {}.", depth);
 
-    let mut move_map: HashMap<Option<u8>, f32> = HashMap::new();
+    let move_map = get_move_map(board, &mut moves, props, 3);
+    moves.sort_unstable_by(|a, b| move_map.get(b).partial_cmp(&move_map.get(a)).unwrap());
+
+    eprintln!("Current move ordering: {:?}", moves);
+
+    let beta = f32::INFINITY;
+    let mut best_score = f32::NEG_INFINITY;
+    let mut best_move = moves[0];
 
     for m in &moves {
         let undo = board.make_move(*m);
-        let (mut score, leaves) = search::negamax(board, props, -10000., 10000., depth);
+        let (mut score, leaves) = search::negamax(board, props, -beta, -best_score, depth);
         board.undo_move(undo, *m);
 
         score = -score;
         searched += leaves;
 
-        move_map.insert(*m, score);
+        if score >= beta {
+            break;
+        }
+        if score > best_score {
+            best_move = *m;
+            best_score = score;
+        }
     }
-
-    moves.sort_by(|a, b| move_map.get(b).partial_cmp(&move_map.get(a)).unwrap());
-
-    best_move = moves[0];
-    best_score = *move_map.get(&moves[0]).unwrap();
-
-    moves.clear();
-
-    eprintln!("\tBest Move was {:?} with score {}.", best_move, best_score);
-    eprintln!("\tSearched {} nodes.", searched);
 
     let end_time = time::now();
     let time_taken = (end_time - start_time).num_milliseconds();
     let nps = searched as f32 / time_taken as f32;
 
     eprintln!("Searched {} nodes in {} millis. ({} knodes/sec)", searched, time_taken, nps);
-    eprintln!("Found best move {:?} with score {}.", best_move, best_score);
+    eprintln!("Found best move {} with score {}.", util::move_string(best_move), best_score);
     return best_move
 }
 
