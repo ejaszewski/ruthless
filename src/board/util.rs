@@ -44,7 +44,7 @@ pub fn move_string(m: Option<u8>) -> String {
 
 pub fn pos_to_coord(pos: u8) -> String {
     let letter = ["a", "b", "c", "d", "e", "f", "g", "h"][(pos % 8) as usize];
-    let number = pos / 8;
+    let number = pos / 8 + 1;
     format!("{}{}", letter, number)
 }
 
