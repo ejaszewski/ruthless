@@ -1,10 +1,12 @@
 #[macro_use]
 extern crate clap;
-extern crate time;
 
+extern crate time;
 extern crate ruthless;
 
+use std::fs::File;
 use std::io;
+use std::io::Read;
 use std::io::BufRead;
 use std::str;
 use clap::App;
@@ -14,15 +16,21 @@ use ruthless::eval::properties;
 fn main() {
     let cli_yaml = load_yaml!("cli_spec.yml");
     let matches = App::from_yaml(cli_yaml).get_matches();
-    let eval_properties = properties::Properties::from_args(&matches);
 
     if matches.is_present("perft") {
         let depth = str::parse::<u64>(matches.value_of("depth").unwrap()).unwrap_or(1);
         run_perft(depth);
     } else {
+        let props_file = matches.value_of("props").unwrap();
+        let mut props_file = File::open(props_file).unwrap();
+        let mut props_json = String::new();
+        props_file.read_to_string(&mut props_json);
+
         let board = board::Board::new();
         let black = matches.value_of("color").unwrap() == "Black";
-        play_stdin(board, eval_properties, black);
+        let props = properties::Properties::from_json(props_json.as_str());
+        eprintln!("{:?}", props);
+        play_stdin(board, props, black);
     }
 }
 

@@ -1,7 +1,10 @@
 extern crate clap;
+extern crate serde;
+extern crate serde_json;
 
 use std::str;
 use self::clap::ArgMatches;
+use self::serde_json::Error;
 
 /*
 Layout of these constants:
@@ -27,58 +30,26 @@ const MATERIAL_MASKS: [u64; 10] = [
     0x00_00_00_18_18_00_00_00, // J
 ];
 
-pub struct Properties {
-    pub max_depth: u8,
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Heuristic {
+    pub min_squares: u8,
+    pub max_squares: u8,
+    pub depth: u8,
+    pub bias: f32,
     pub material_weight: f32,
     pub mobility_weight: f32,
-    pub material_eval: [(u64, f32); 10],
+    pub square_values: [f32; 10],
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Properties {
+    pub id: String,
+    pub heuristics: Vec<Heuristic>,
 }
 
 impl Properties {
-    pub fn from_args(matches: &ArgMatches) -> Properties {
-        let mut max_depth: u8 = 1;
-        let mut material_weight: f32 = 0.0;
-        let mut mobility_weight: f32 = 0.0;
-        let mut material_eval: [(u64, f32); 10] = [(0, 0.0); 10];
-
-        match matches.value_of("depth") {
-            Some(depth) => {
-                max_depth = str::parse::<u8>(depth).unwrap_or(1);
-            }
-            None => {}
-        }
-
-        match matches.value_of("mat_weight") {
-            Some(weight) => {
-                material_weight = str::parse::<f32>(weight).unwrap_or(1.0);
-            }
-            None => {}
-        }
-
-        match matches.value_of("mob_weight") {
-            Some(weight) => {
-                mobility_weight = str::parse::<f32>(weight).unwrap_or(1.0);
-            }
-            None => {}
-        }
-
-        match matches.values_of("tile_weights") {
-            Some(weights) => {
-                let mut i = 0;
-                for weight in weights {
-                    material_eval[i] =
-                        (MATERIAL_MASKS[i], str::parse::<f32>(weight).unwrap_or(1.0));
-                    i += 1;
-                }
-            }
-            None => {}
-        }
-
-        Properties {
-            max_depth,
-            material_weight,
-            mobility_weight,
-            material_eval,
-        }
+    pub fn from_json(json: &str) -> Properties {
+        let props: Properties = serde_json::from_str(json).unwrap();
+        return props;
     }
 }
