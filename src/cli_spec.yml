@@ -15,21 +15,11 @@ args:
         value_name: MAX_DEPTH
         help: Sets the max recursion depth.
         takes_value: true
-    - mat_weight:
-        long: mat_weight
-        value_name: MATERIAL_WEIGHT
-        help: Sets the material weight for evaluation.
-        takes_value: true
-    - mob_weight:
-        long: mob_weight
-        value_name: MOBILITY_WEIGHT
-        help: Sets the mobility weight for evaluation.
-        takes_value: true
-    - tile_weights:
-        long: tile_weights
-        help: Sets the weights for all of the tiles.
-        number_of_values: 10
-        value_names: [A, B, C, D, E, F, G, H, I, J]
+    - props:
+        short: p
+        long: props
+        value_name: PROPS_FILE
+        help: Sets the file to load from.
         takes_value: true
     - color:
         long: color
