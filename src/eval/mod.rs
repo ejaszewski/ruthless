@@ -143,36 +143,33 @@ pub fn do_search(board: &mut board::Board, props: &properties::Properties) -> Op
 }
 
 pub fn endgame_solve(board: &mut board::Board) -> Option<u8> {
-    let mut moves: Vec<Option<u8>> = board.get_moves();
-    if moves.len() == 0 {
-        return None;
-    }
+    let moves: Vec<Option<u8>> = board.get_moves();
 
     let mut searched = 0;
     let start_time = time::now();
 
-    let best_move: Option<u8>;
-    let best_score: i8;
-
     eprintln!("Running endgame solve.");
 
-    let mut move_map: HashMap<Option<u8>, i8> = HashMap::new();
+    let beta = 2;
+    let mut best_score = -2;
+    let mut best_move = moves[0];
 
     for m in &moves {
         let undo = board.make_move(*m);
-        let (mut score, leaves) = search::negamax_endgame(board, -2, 2);
+        let (mut score, leaves) = search::negamax_endgame(board, -beta, -best_score);
         board.undo_move(undo, *m);
 
         score = -score;
         searched += leaves;
 
-        move_map.insert(*m, score);
+        if score >= beta {
+            break;
+        }
+        if score > best_score {
+            best_move = *m;
+            best_score = score;
+        }
     }
-
-    moves.sort_by(|a, b| move_map.get(b).partial_cmp(&move_map.get(a)).unwrap());
-
-    best_move = moves[0];
-    best_score = *move_map.get(&moves[0]).unwrap();
 
     let result_str = ["LOSS", "DRAW", "WIN"][(best_score + 1) as usize];
     eprintln!("Guaranteed {}.", result_str);
@@ -180,7 +177,7 @@ pub fn endgame_solve(board: &mut board::Board) -> Option<u8> {
     let end_time = time::now();
     let time_taken = (end_time - start_time).num_milliseconds();
     let nps = searched as f32 / time_taken as f32;
-    
+
     eprintln!(
         "Searched {} nodes in {} millis. ({} knodes/sec)",
         searched, time_taken, nps
