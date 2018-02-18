@@ -26,6 +26,7 @@ args:
         help: Tells the bot whether to play as Black or White.
         value_name: COLOR
         takes_value: true
+        requires: props
     - perft:
         long: perft
         help: Runs a perft test at the provided depth.

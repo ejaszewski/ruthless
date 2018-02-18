@@ -43,21 +43,21 @@ pub fn get_score(board: &mut board::Board) -> f32 {
     }
 }
 
-// pub fn get_score_with_props(board: &mut board::Board, properties: &properties::Properties) -> f32 {
-//     let mut material_score = 0.0;
-//     for &(mask, score) in SCORE_FUNC.iter() {
-//         material_score +=
-//             (disk_count(board.dark_disks, mask) - disk_count(board.light_disks, mask)) * score;
-//     }
-//     let mobility_score = board.move_count() as f32;
-//     let score =
-//         material_score * properties.material_weight + mobility_score * properties.mobility_weight;
-//     if board.dark_move {
-//         score
-//     } else {
-//         -score
-//     }
-// }
+pub fn get_score_heuristic(board: &mut board::Board, heuristic: &properties::Heuristic) -> f32 {
+    let mut material_score = 0.0;
+    for &(mask, score) in SCORE_FUNC.iter() {
+        material_score +=
+            (disk_count(board.dark_disks, mask) - disk_count(board.light_disks, mask)) * score;
+    }
+    let mobility_score = board.move_count() as f32;
+    let score =
+        material_score * heuristic.material_weight + mobility_score * heuristic.mobility_weight;
+    if board.dark_move {
+        score + heuristic.bias
+    } else {
+        -score + heuristic.bias
+    }
+}
 
 pub fn get_score_endgame_solve(board: &board::Board) -> i8 {
     let modifier = if board.dark_move { 1 } else { -1 };
@@ -67,14 +67,14 @@ pub fn get_score_endgame_solve(board: &board::Board) -> i8 {
 pub fn get_move_map(
     board: &mut board::Board,
     moves: &mut Vec<Option<u8>>,
-    props: &properties::Properties,
+    heuristic: &properties::Heuristic,
     depth: u8,
 ) -> HashMap<Option<u8>, f32> {
     let mut move_map: HashMap<Option<u8>, f32> = HashMap::new();
 
     for m in moves {
         let undo = board.make_move(*m);
-        let (mut score, _leaves) = search::negamax(board, props, -10000., 10000., depth);
+        let (mut score, _leaves) = search::negamax(board, heuristic, -10000., 10000., depth);
         board.undo_move(undo, *m);
 
         score = -score;
@@ -86,21 +86,24 @@ pub fn get_move_map(
 }
 
 pub fn do_search(board: &mut board::Board, props: &properties::Properties) -> Option<u8> {
-    eprintln!(
-        "Current board score: {}", 0
-        // get_score_with_props(board, props)
-    );
 
     let mut moves: Vec<Option<u8>> = board.get_moves();
 
     let mut searched = 0;
     let start_time = time::now();
 
-    let depth = 9;//props.max_depth;
+    eprintln!("{} moves", board.all_disks().count_ones());
 
+    let heuristic = props.get_heuristic(board.all_disks().count_ones());
+    let depth = heuristic.depth;
+
+    eprintln!(
+        "Current board score: {}",
+        get_score_heuristic(board, heuristic)
+    );
     eprintln!("Evaluating moves with depth {}.", depth);
 
-    let move_map = get_move_map(board, &mut moves, props, 3);
+    let move_map = get_move_map(board, &mut moves, heuristic, 3);
     moves.sort_unstable_by(|a, b| move_map.get(b).partial_cmp(&move_map.get(a)).unwrap());
 
     eprintln!("Current move ordering: {:?}", moves);
@@ -111,7 +114,7 @@ pub fn do_search(board: &mut board::Board, props: &properties::Properties) -> Op
 
     for m in &moves {
         let undo = board.make_move(*m);
-        let (mut score, leaves) = search::negamax(board, props, -beta, -best_score, depth);
+        let (mut score, leaves) = search::negamax(board, heuristic, -beta, -best_score, depth);
         board.undo_move(undo, *m);
 
         score = -score;

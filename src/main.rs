@@ -24,11 +24,15 @@ fn main() {
         let props_file = matches.value_of("props").unwrap();
         let mut props_file = File::open(props_file).unwrap();
         let mut props_json = String::new();
-        props_file.read_to_string(&mut props_json);
+        let pr = props_file.read_to_string(&mut props_json);
+        match pr {
+            Ok(_) => {}
+            Err(_) => {}
+        }
 
         let board = board::Board::new();
         let black = matches.value_of("color").unwrap() == "Black";
-        let props = properties::Properties::from_json(props_json.as_str());
+        let props = properties::Properties::from_json(props_json.as_str()).expect("Invalid JSON file.");
         eprintln!("{:?}", props);
         play_stdin(board, props, black);
     }

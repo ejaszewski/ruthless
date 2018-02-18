@@ -1,22 +1,22 @@
 use board::Board;
-use eval::properties::Properties;
+use eval::properties::Heuristic;
 
-pub fn negamax(board: &mut Board, props: &Properties, mut alpha: f32, beta: f32, depth: u8) -> (f32, u64) {
+pub fn negamax(board: &mut Board, heuristic: &Heuristic, mut alpha: f32, beta: f32, depth: u8) -> (f32, u64) {
     if depth == 0 {
-        return (super::get_score(board), 1);
+        return (super::get_score_heuristic(board, heuristic), 1);
     }
     let mut count = 0;
 
     let mut moves = board.get_moves();
 
     if depth > 3 {
-        let move_map = super::get_move_map(board, &mut moves, props, 1);
+        let move_map = super::get_move_map(board, &mut moves, heuristic, 1);
         moves.sort_unstable_by(|a, b| move_map.get(b).partial_cmp(&move_map.get(a)).unwrap());
     }
 
     for m in &moves {
         let undo = board.make_move(*m);
-        let result = negamax(board, props, -beta, -alpha, depth - 1);
+        let result = negamax(board, heuristic, -beta, -alpha, depth - 1);
         let score = -result.0;
         count += result.1;
         board.undo_move(undo, *m);
