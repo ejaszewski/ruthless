@@ -45,9 +45,11 @@ pub fn get_score(board: &mut board::Board) -> f32 {
 
 pub fn get_score_heuristic(board: &mut board::Board, heuristic: &properties::Heuristic) -> f32 {
     let mut material_score = 0.0;
-    for &(mask, score) in SCORE_FUNC.iter() {
+    let mut index = 0;
+    for &mask in properties::MATERIAL_MASKS.iter() {
         material_score +=
-            (disk_count(board.dark_disks, mask) - disk_count(board.light_disks, mask)) * score;
+            (disk_count(board.dark_disks, mask) - disk_count(board.light_disks, mask)) * heuristic.square_values[index];
+        index += 1;
     }
     let mobility_score = board.move_count() as f32;
     let score =

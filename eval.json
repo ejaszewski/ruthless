@@ -4,7 +4,7 @@
     {
       "min_squares": 0,
       "max_squares": 32,
-      "depth": 11,
+      "depth": 9,
       "bias": 10,
       "material_weight": 0.2,
       "mobility_weight": 1.0,
@@ -15,7 +15,7 @@
     {
       "min_squares": 32,
       "max_squares": 64,
-      "depth": 13,
+      "depth": 11,
       "bias": 0,
       "material_weight": 0.4,
       "mobility_weight": 0.8,
