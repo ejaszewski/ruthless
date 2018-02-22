@@ -57,10 +57,6 @@ pub fn get_move_map(
 }
 
 pub fn do_search(board: &mut board::Board, props: &properties::Properties) -> Option<u8> {
-
-    let mut moves: Vec<Option<u8>> = board.get_moves();
-
-    let mut searched = 0;
     let start_time = time::now();
 
     eprintln!("{} moves", board.all_disks().count_ones());
@@ -73,6 +69,36 @@ pub fn do_search(board: &mut board::Board, props: &properties::Properties) -> Op
         get_score_heuristic(board, heuristic)
     );
     eprintln!("Evaluating moves with depth {}.", depth);
+
+    // Standard negamax search.
+    let (best_move, best_score, searched) = do_negamax(board, heuristic);
+
+    // Best Node Search
+    // let (best_move, searched) = do_best_node_search(board, heuristic);
+    // let best_score = -1;
+
+    eprintln!("Avg. Branching Factor: {}", (searched as f32).powf(1. / depth as f32));
+
+    let end_time = time::now();
+    let time_taken = (end_time - start_time).num_milliseconds();
+    let nps = searched as f32 / time_taken as f32;
+
+    eprintln!(
+        "Searched {} nodes in {} millis. ({} knodes/sec)",
+        searched, time_taken, nps
+    );
+    eprintln!(
+        "Found best move {} with score {}.",
+        util::move_string(best_move),
+        best_score
+    );
+    return best_move;
+}
+
+fn do_negamax(board: &mut board::Board, heuristic: &properties::Heuristic) -> (Option<u8>, f32, u64) {
+    let mut moves: Vec<Option<u8>> = board.get_moves();
+    let mut searched = 0;
+    let depth = heuristic.depth;
 
     let move_map = get_move_map(board, &mut moves, heuristic, 3);
     moves.sort_unstable_by(|a, b| move_map.get(b).partial_cmp(&move_map.get(a)).unwrap());
@@ -100,20 +126,55 @@ pub fn do_search(board: &mut board::Board, props: &properties::Properties) -> Op
         }
     }
 
-    let end_time = time::now();
-    let time_taken = (end_time - start_time).num_milliseconds();
-    let nps = searched as f32 / time_taken as f32;
+    (best_move, best_score, searched)
+}
 
-    eprintln!(
-        "Searched {} nodes in {} millis. ({} knodes/sec)",
-        searched, time_taken, nps
-    );
-    eprintln!(
-        "Found best move {} with score {}.",
-        util::move_string(best_move),
-        best_score
-    );
-    return best_move;
+fn do_best_node_search(board: &mut board::Board, heuristic: &properties::Heuristic) -> (Option<u8>, u64) {
+    let mut moves: Vec<Option<u8>> = board.get_moves();
+    let mut searched = 0;
+    let depth = heuristic.depth;
+
+    let move_map = get_move_map(board, &mut moves, heuristic, 3);
+    moves.sort_unstable_by(|a, b| move_map.get(b).partial_cmp(&move_map.get(a)).unwrap());
+
+    eprintln!("Current move ordering: {:?}", moves);
+
+    let mut alpha = get_score_heuristic(board, heuristic) - 20.;
+    let mut beta = get_score_heuristic(board, heuristic) + 20.;
+    let mut better_count = 0;
+    let mut subtree_count = moves.len() as u32;
+
+    // let mut best_score = f32::NEG_INFINITY;
+    let mut best_move = moves[0];
+
+    while !((beta - alpha < 2.0) || (better_count == 1)) {
+
+        better_count = 0;
+        let guess = alpha + (beta - alpha) * (subtree_count as f32 - 1.) / subtree_count as f32;
+
+        for m in &moves {
+            let undo = board.make_move(*m);
+            let (mut score, leaves) = search::negamax(board, heuristic, -guess, -(guess - 1.), depth);
+            board.undo_move(undo, *m);
+
+            score = -score;
+            searched += leaves;
+
+            if score >= guess {
+                better_count += 1;
+                best_move = *m;
+            }
+        }
+
+        if better_count > 0 {
+            alpha = guess;
+            subtree_count = better_count;
+        } else {
+            beta -= 5.;
+        }
+    }
+
+    (best_move, searched)
 }
 
 pub fn endgame_solve(board: &mut board::Board) -> Option<u8> {
