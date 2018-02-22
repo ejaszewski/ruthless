@@ -8,39 +8,8 @@ use std::f32;
 use board;
 use board::util;
 
-// A B C D D C B A
-// B B E F F E B B
-// C E G F F G E C
-// D F F E E F F D
-const SCORE_FUNC: [(u64, f32); 7] = [
-    (0x81_00_00_00_00_00_00_81, 20.0), // A
-    (0x42_C3_00_00_00_00_C3_42, -5.0), // B
-    (0x24_00_81_00_00_81_00_24, 5.0),  // C
-    (0x18_00_00_81_81_00_00_18, 5.0),  // D
-    (0x00_24_42_00_00_42_24_00, 2.0),  // E
-    (0x00_18_18_66_66_18_18_00, 2.0),  // F
-    (0x00_00_24_00_00_24_00_00, 2.0),  // G
-];
-
-const MATERIAL_WEIGHT: f32 = 0.2;
-const MOBILITY_WEIGHT: f32 = 1.0;
-
 fn disk_count(x: u64, mask: u64) -> f32 {
     return (x & mask).count_ones() as f32;
-}
-
-pub fn get_score(board: &mut board::Board) -> f32 {
-    let mut eval: f32 = 0.0;
-    for sc in SCORE_FUNC.iter() {
-        eval += (disk_count(board.dark_disks, sc.0) - disk_count(board.light_disks, sc.0)) * sc.1;
-    }
-    eval *= MATERIAL_WEIGHT;
-    eval += board.move_count() as f32 * MOBILITY_WEIGHT;
-    if board.dark_move {
-        eval
-    } else {
-        -eval
-    }
 }
 
 pub fn get_score_heuristic(board: &mut board::Board, heuristic: &properties::Heuristic) -> f32 {
