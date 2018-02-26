@@ -2,6 +2,26 @@ pub mod util;
 pub mod constants;
 
 use std::fmt;
+use std::hash::{Hash, Hasher};
+
+pub enum NodeType {
+    AllNode(f32),
+    CutNode(f32),
+    ScoreNode(f32)
+}
+
+#[derive(PartialEq, Eq)]
+pub struct Position {
+    dark_disks: u64,
+    light_disks: u64
+}
+
+impl Hash for Position {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        let hash = self.dark_disks | self.light_disks;
+        hash.hash(state);
+    }
+}
 
 pub struct Board {
     pub light_disks: u64,
@@ -174,6 +194,15 @@ impl Board {
                 self.dark_move = !self.dark_move;
             }
         }
+    }
+
+    pub fn get_position(&self) -> Position {
+        return Position { light_disks: self.light_disks, dark_disks: self.dark_disks };
+    }
+
+    pub fn clear_moves(&mut self) {
+        self.dark_moves_gen = false;
+        self.light_moves_gen = false;
     }
 
     #[inline]
