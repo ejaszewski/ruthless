@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate clap;
 
+extern crate rand;
 extern crate time;
 extern crate ruthless;
 
@@ -10,7 +11,7 @@ use std::io::Read;
 use std::io::BufRead;
 use std::str;
 use clap::App;
-use ruthless::board;
+use ruthless::{board, eval};
 use ruthless::eval::properties;
 
 fn main() {
@@ -35,6 +36,37 @@ fn main() {
         let props = properties::Properties::from_json(props_json.as_str()).expect("Invalid JSON file.");
         eprintln!("{:?}", props);
         play_stdin(board, props, black);
+    } else if matches.is_present("train") {
+        match matches.values_of("train") {
+           Some(mut train) => {
+                let iterations = str::parse::<u8>(train.next().unwrap()).unwrap();
+                let train_start = str::parse::<u8>(train.next().unwrap()).unwrap();
+                let train_end = str::parse::<u8>(train.next().unwrap()).unwrap();
+
+                let props_file = train.next().unwrap();
+                let mut props_file = File::open(props_file).unwrap();
+                let mut props_json = String::new();
+                let pr = props_file.read_to_string(&mut props_json);
+                match pr {
+                    Ok(_) => {}
+                    Err(_) => {}
+                }
+                let training = properties::Properties::from_json(props_json.as_str()).expect("Invalid JSON file.");
+
+                let props_file = train.next().unwrap();
+                let mut props_file = File::open(props_file).unwrap();
+                let mut props_json = String::new();
+                let pr = props_file.read_to_string(&mut props_json);
+                match pr {
+                    Ok(_) => {}
+                    Err(_) => {}
+                }
+                let baseline = properties::Properties::from_json(props_json.as_str()).expect("Invalid JSON file.");
+
+                self_play_train(train_start, train_end, training, baseline);
+           },
+           None => {}
+       }
     } else {
         App::from_yaml(cli_yaml).print_help().unwrap();
         println!();
@@ -96,6 +128,46 @@ fn play_stdin(mut board: board::Board, properties: properties::Properties, black
         eprintln!("");
         println!("{} {}", x, y);
     }
+}
+
+fn self_play_train(train_start: u8, train_end: u8, train: properties::Properties, baseline: properties::Properties) {
+    let mut board = board::Board::new();
+    let mut train_heuristic = train.get_heuristic(train_start as u32);
+    let mut baseline_heuristic = baseline.get_heuristic(train_start as u32);
+
+    println!("Making {} random moves.", train_start);
+    for _ in 0..train_start {
+        let moves = board.get_moves();
+        board.make_move(moves[rand::random::<usize>() % moves.len()]);
+    }
+
+    println!("Board state after random moves: \n{}", board);
+
+    let mut loss_tot = 0.0;
+    
+    while !board.is_game_over() {
+        let mut moves = board.get_moves();
+        let train_map = eval::score::get_move_map(&mut board, &mut moves, train_heuristic, train_heuristic.depth);
+        let baseline_map = eval::score::get_move_map(&mut board, &mut moves, baseline_heuristic, baseline_heuristic.depth);
+        let mut best_move = moves[0];
+        let mut best_score = train_map.get(&best_move).unwrap();
+        for m in &moves {
+            let train_score = train_map.get(m).unwrap();
+            let baseline_score = baseline_map.get(m).unwrap();
+            let loss = (baseline_score - train_score).abs();
+            if train_score > best_score {
+                best_move = *m;
+                best_score = train_score;
+            }
+            println!("Loss: {}", loss);
+            loss_tot += loss;
+        }
+        board.make_move(best_move);
+    }
+
+    println!("Total Loss: {}", loss_tot);
+    println!("Board state after game done: \n{}", board);
+
 }
 
 fn run_perft(depth: u64) {
