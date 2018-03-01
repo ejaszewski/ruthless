@@ -31,3 +31,10 @@ args:
         long: perft
         help: Runs a perft test at the provided depth.
         requires: depth
+    - train:
+        long: train
+        short: t
+        help: Self-plays the bot the provided number of iterations. Modifies the training properties file and compares against the baseline properties file. Will only modify values between training start and training stop moves, and will not modify eval depth. Random-plays up to training start.
+        number_of_values: 5
+        value_names: [ITERATIONS, DEPTH_MIN, DEPTH_MAX, TRAINING, BASELINE]
+        takes_value: true

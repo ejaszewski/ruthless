@@ -20,7 +20,7 @@ fn main() {
     if matches.is_present("perft") {
         let depth = str::parse::<u64>(matches.value_of("depth").unwrap()).unwrap_or(1);
         run_perft(depth);
-    } else {
+    } else if matches.is_present("color") {
         let props_file = matches.value_of("props").unwrap();
         let mut props_file = File::open(props_file).unwrap();
         let mut props_json = String::new();
@@ -35,6 +35,9 @@ fn main() {
         let props = properties::Properties::from_json(props_json.as_str()).expect("Invalid JSON file.");
         eprintln!("{:?}", props);
         play_stdin(board, props, black);
+    } else {
+        App::from_yaml(cli_yaml).print_help().unwrap();
+        println!();
     }
 }
 
