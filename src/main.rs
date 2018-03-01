@@ -73,7 +73,7 @@ fn play_stdin(mut board: board::Board, properties: properties::Properties, black
         if board.all_disks().count_zeros() > 18 {
             best_move = ruthless::eval::do_search(&mut board, &properties);
         } else {
-            best_move = ruthless::eval::endgame_solve(&mut board);
+            best_move = ruthless::eval::search::endgame_solve(&mut board);
         }
 
         match best_move {
