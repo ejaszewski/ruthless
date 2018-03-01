@@ -48,8 +48,8 @@ pub fn endgame_solve(board: &mut board::Board) -> Option<u8> {
 
     eprintln!("Running endgame solve.");
 
-    let beta = 2;
-    let mut best_score = -2;
+    let beta = 1;
+    let mut best_score = -1;
     let mut best_move = moves[0];
 
     for m in &moves {
@@ -61,6 +61,8 @@ pub fn endgame_solve(board: &mut board::Board) -> Option<u8> {
         searched += leaves;
 
         if score >= beta {
+            best_move = *m;
+            best_score = beta;
             break;
         }
         if score > best_score {
