@@ -39,6 +39,36 @@ pub fn negamax(board: &mut board::Board, heuristic: &properties::Heuristic) -> (
     (best_move, best_score, searched)
 }
 
+pub fn endgame_solve_result(board: &mut board::Board) -> board::GameResult {
+    let moves: Vec<Option<u8>> = board.get_moves();
+
+    let beta = 1;
+    let mut best_score = -1;
+
+    for m in &moves {
+        let undo = board.make_move(*m);
+        let (mut score, leaves) = negamax::negamax_endgame(board, -beta, -best_score);
+        board.undo_move(undo, *m);
+
+        score = -score;
+
+        if score >= beta {
+            best_score = beta;
+            break;
+        }
+        if score > best_score {
+            best_score = score;
+        }
+    }
+
+    let result = [
+        board::GameResult::LightWin,
+        board::GameResult::Draw,
+        board::GameResult::DarkWin
+    ][(if board.dark_move { -best_score } else { best_score } + 1) as usize];
+
+    return result;
+}
 
 pub fn endgame_solve(board: &mut board::Board) -> Option<u8> {
     let moves: Vec<Option<u8>> = board.get_moves();

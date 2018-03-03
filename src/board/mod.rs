@@ -10,10 +10,23 @@ pub enum NodeType {
     ScoreNode(f32)
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Serialize, Deserialize, Clone, Copy)]
+pub enum GameResult {
+    DarkWin, LightWin, Draw, Unknown
+}
+
+#[derive(PartialEq, Eq, Serialize, Deserialize)]
 pub struct Position {
     dark_disks: u64,
-    light_disks: u64
+    light_disks: u64,
+}
+
+#[derive(PartialEq, Eq, Serialize, Deserialize)]
+pub struct TrainPosition {
+    dark_disks: u64,
+    light_disks: u64,
+    dark_move: bool,
+    pub result: GameResult
 }
 
 impl Hash for Position {
@@ -55,6 +68,26 @@ impl Board {
             dark_moves_gen: false,
         };
         board.gen_dark_moves();
+
+        board
+    }
+
+    pub fn from_train_pos(train_pos: &TrainPosition) -> Board {
+        let mut board = Board {
+            light_disks: train_pos.light_disks,
+            dark_disks: train_pos.dark_disks,
+            dark_move: train_pos.dark_move,
+            light_moves: 0,
+            light_moves_gen: false,
+            dark_moves: 0,
+            dark_moves_gen: false
+        };
+
+        if train_pos.dark_move {
+            board.gen_dark_moves();
+        } else {
+            board.gen_light_moves();
+        }
 
         board
     }
@@ -198,6 +231,27 @@ impl Board {
 
     pub fn get_position(&self) -> Position {
         return Position { light_disks: self.light_disks, dark_disks: self.dark_disks };
+    }
+
+    pub fn get_train_position(&mut self) -> TrainPosition {
+        let result = if self.is_game_over() {
+            if self.dark_disks > self.light_disks {
+                GameResult::DarkWin
+            } else if self.dark_disks < self.light_disks {
+                GameResult::LightWin
+            } else {
+                GameResult::Draw
+            }
+        } else {
+            GameResult::Unknown
+        };
+
+        TrainPosition {
+            light_disks: self.light_disks,
+            dark_disks: self.dark_disks,
+            dark_move: self.dark_move,
+            result
+        }
     }
 
     pub fn clear_moves(&mut self) {
