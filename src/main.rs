@@ -1,18 +1,39 @@
 #[macro_use]
 extern crate clap;
+#[macro_use]
+extern crate serde_derive;
 
 extern crate rand;
 extern crate time;
+extern crate serde_json;
 extern crate ruthless;
 
 use std::fs::File;
 use std::io;
 use std::io::Read;
 use std::io::BufRead;
+use std::io::prelude::*;
 use std::str;
 use clap::App;
 use ruthless::{board, eval};
 use ruthless::eval::properties;
+use serde_json::Error;
+
+#[derive(Serialize, Deserialize)]
+struct PosgenOut {
+    pub num_positions: usize,
+    pub positions: Vec<board::TrainPosition>
+}
+
+impl PosgenOut {
+    pub fn from_json(json: &str) -> Option<PosgenOut> {
+        let props: Result<PosgenOut, Error> = serde_json::from_str(json);
+        match props {
+            Ok(properties) => Some(properties),
+            Err(_) => None
+        }
+    }
+}
 
 fn main() {
     let cli_yaml = load_yaml!("cli_spec.yml");
@@ -36,37 +57,73 @@ fn main() {
         let props = properties::Properties::from_json(props_json.as_str()).expect("Invalid JSON file.");
         eprintln!("{:?}", props);
         play_stdin(board, props, black);
-    } else if matches.is_present("train") {
-        match matches.values_of("train") {
-           Some(mut train) => {
-                let iterations = str::parse::<u8>(train.next().unwrap()).unwrap();
-                let train_start = str::parse::<u8>(train.next().unwrap()).unwrap();
-                let train_end = str::parse::<u8>(train.next().unwrap()).unwrap();
+    } else if matches.is_present("posgen") {
+        match matches.values_of("posgen") {
+           Some(mut posgen) => {
+                let num_positions = str::parse::<usize>(posgen.next().unwrap()).unwrap_or(0);
+                let num_random = str::parse::<u8>(posgen.next().unwrap()).unwrap_or(0);
+                let output_file = posgen.next().unwrap_or("out.json");
 
-                let props_file = train.next().unwrap();
-                let mut props_file = File::open(props_file).unwrap();
-                let mut props_json = String::new();
-                let pr = props_file.read_to_string(&mut props_json);
-                match pr {
-                    Ok(_) => {}
-                    Err(_) => {}
+                let mut output = PosgenOut {
+                    num_positions,
+                    positions: Vec::new()
+                };
+
+                for i in 0..num_positions {
+                    output.positions.push(get_random_position(num_random));
+                    if i % 1000 == 0 && i > 0 {
+                        println!("Generated {} random positions.", i);
+                    }
                 }
-                let training = properties::Properties::from_json(props_json.as_str()).expect("Invalid JSON file.");
 
-                let props_file = train.next().unwrap();
-                let mut props_file = File::open(props_file).unwrap();
-                let mut props_json = String::new();
-                let pr = props_file.read_to_string(&mut props_json);
-                match pr {
-                    Ok(_) => {}
-                    Err(_) => {}
-                }
-                let baseline = properties::Properties::from_json(props_json.as_str()).expect("Invalid JSON file.");
+                println!("Serializing position data...");
+                let json_out = serde_json::to_string(&output).unwrap_or(String::new());
+                println!("Writing output to file...");
+                let mut file = File::create(output_file).unwrap();
 
-                self_play_train(train_start, train_end, training, baseline);
+                file.write_all(json_out.as_bytes());
+                println!("Done.");
            },
            None => {}
        }
+   } else if matches.is_present("fullsolve") {
+        match matches.values_of("fullsolve") {
+            Some(mut fullsolve) => {
+                let pos_file = fullsolve.next().unwrap();
+                let mut pos_file = File::open(pos_file).unwrap();
+                let mut pos_json = String::new();
+
+                let pr = pos_file.read_to_string(&mut pos_json);
+                match pr {
+                    Ok(_) => {}
+                    Err(_) => {}
+                }
+
+                let mut pgo = PosgenOut::from_json(pos_json.as_str()).unwrap();
+
+                for i in 0 .. pgo.num_positions {
+                    let mut pos = &mut pgo.positions[i];
+                    if let board::GameResult::Unknown = pos.result {
+                        let mut board = board::Board::from_train_pos(pos);
+                        pos.result = eval::search::endgame_solve_result(&mut board);
+                    }
+                    if i % 1000 == 0 && i > 0 {
+                        println!("Solved {} random positions.", i);
+                    }
+                }
+
+                let output_file = fullsolve.next().unwrap_or("out.json");
+
+                println!("Serializing position data...");
+                let json_out = serde_json::to_string(&pgo).unwrap_or(String::new());
+                println!("Writing output to file...");
+                let mut file = File::create(output_file).unwrap();
+
+                file.write_all(json_out.as_bytes());
+                println!("Done.");
+            },
+            None => {}
+        }
     } else {
         App::from_yaml(cli_yaml).print_help().unwrap();
         println!();
@@ -130,44 +187,15 @@ fn play_stdin(mut board: board::Board, properties: properties::Properties, black
     }
 }
 
-fn self_play_train(train_start: u8, train_end: u8, train: properties::Properties, baseline: properties::Properties) {
+fn get_random_position(num_random: u8) -> board::TrainPosition {
     let mut board = board::Board::new();
-    let mut train_heuristic = train.get_heuristic(train_start as u32);
-    let mut baseline_heuristic = baseline.get_heuristic(train_start as u32);
 
-    println!("Making {} random moves.", train_start);
-    for _ in 0..train_start {
+    for _ in 0..num_random {
         let moves = board.get_moves();
         board.make_move(moves[rand::random::<usize>() % moves.len()]);
     }
 
-    println!("Board state after random moves: \n{}", board);
-
-    let mut loss_tot = 0.0;
-    
-    while !board.is_game_over() {
-        let mut moves = board.get_moves();
-        let train_map = eval::score::get_move_map(&mut board, &mut moves, train_heuristic, train_heuristic.depth);
-        let baseline_map = eval::score::get_move_map(&mut board, &mut moves, baseline_heuristic, baseline_heuristic.depth);
-        let mut best_move = moves[0];
-        let mut best_score = train_map.get(&best_move).unwrap();
-        for m in &moves {
-            let train_score = train_map.get(m).unwrap();
-            let baseline_score = baseline_map.get(m).unwrap();
-            let loss = (baseline_score - train_score).abs();
-            if train_score > best_score {
-                best_move = *m;
-                best_score = train_score;
-            }
-            println!("Loss: {}", loss);
-            loss_tot += loss;
-        }
-        board.make_move(best_move);
-    }
-
-    println!("Total Loss: {}", loss_tot);
-    println!("Board state after game done: \n{}", board);
-
+    return board.get_train_position();
 }
 
 fn run_perft(depth: u64) {
