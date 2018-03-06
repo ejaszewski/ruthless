@@ -98,17 +98,52 @@ pub fn negamax_tpt(board: &mut Board, heuristic: &Heuristic, tpt: &mut HashMap<P
 }
 
 pub fn negamax_endgame(board: &mut Board, mut alpha: i8, beta: i8) -> (i8, u64) {
-    let moves = &board.get_moves();
+    let mut moves = board.get_moves();
     if board.is_game_over() {
         return (score::get_score_endgame_solve(board), 1);
     }
+
+    if board.all_disks().count_zeros() > 8 {
+        let move_map = score::get_fastest_first_map(board, &mut moves);
+        moves.sort_unstable_by(|a, b| move_map.get(a).partial_cmp(&move_map.get(b)).unwrap());
+    }
+
     let mut count = 0;
     for m in moves {
-        let undo = board.make_move(*m);
+        let undo = board.make_move(m);
         let result = negamax_endgame(board, -beta, -alpha);
         let score = -result.0;
         count += result.1;
-        board.undo_move(undo, *m);
+        board.undo_move(undo, m);
+
+        if score >= beta {
+            return (beta, count);
+        }
+        if score > alpha {
+            alpha = score;
+        }
+    }
+    return (alpha, count);
+}
+
+pub fn negamax_endgame_full(board: &mut Board, mut alpha: i8, beta: i8) -> (i8, u64) {
+    let mut moves = board.get_moves();
+    if board.is_game_over() {
+        return (score::get_parity(board), 1);
+    }
+
+    if board.all_disks().count_zeros() < 5 {
+        let move_map = score::get_fastest_first_map(board, &mut moves);
+        moves.sort_unstable_by(|a, b| move_map.get(a).partial_cmp(&move_map.get(b)).unwrap());
+    }
+
+    let mut count = 0;
+    for m in moves {
+        let undo = board.make_move(m);
+        let result = negamax_endgame_full(board, -beta, -alpha);
+        let score = -result.0;
+        count += result.1;
+        board.undo_move(undo, m);
 
         if score >= beta {
             return (beta, count);

@@ -70,39 +70,96 @@ pub fn endgame_solve_result(board: &mut board::Board) -> board::GameResult {
     return result;
 }
 
-pub fn endgame_solve(board: &mut board::Board) -> Option<u8> {
-    let moves: Vec<Option<u8>> = board.get_moves();
+pub fn endgame_solve_fast(board: &mut board::Board) -> (Option<u8>, i8) {
+    let mut moves: Vec<Option<u8>> = board.get_moves();
+
+    eprintln!("{} moves on board.", moves.len());
 
     let mut searched = 0;
     let start_time = time::now();
 
     eprintln!("Running endgame solve.");
 
+    let move_map = score::get_fastest_first_map(board, &mut moves);
+    moves.sort_unstable_by(|a, b| move_map.get(a).cmp(&move_map.get(b)));
+
     let beta = 1;
     let mut best_score = -1;
     let mut best_move = moves[0];
 
-    for m in &moves {
-        let undo = board.make_move(*m);
+    for m in moves {
+        let undo = board.make_move(m);
         let (mut score, leaves) = negamax::negamax_endgame(board, -beta, -best_score);
-        board.undo_move(undo, *m);
+        board.undo_move(undo, m);
 
         score = -score;
         searched += leaves;
 
         if score >= beta {
-            best_move = *m;
+            best_move = m;
             best_score = beta;
             break;
         }
         if score > best_score {
-            best_move = *m;
+            best_move = m;
             best_score = score;
         }
     }
 
     let result_str = ["LOSS", "DRAW", "WIN"][(best_score + 1) as usize];
     eprintln!("Guaranteed {}.", result_str);
+
+    let end_time = time::now();
+    let time_taken = (end_time - start_time).num_milliseconds();
+    let nps = searched as f32 / time_taken as f32;
+
+    eprintln!(
+        "Searched {} nodes in {} millis. ({} knodes/sec)",
+        searched, time_taken, nps
+    );
+
+    return (best_move, best_score);
+}
+
+pub fn endgame_solve_full(board: &mut board::Board) -> Option<u8> {
+    let mut moves: Vec<Option<u8>> = board.get_moves();
+
+    let mut searched = 0;
+    let start_time = time::now();
+
+    eprintln!("Running endgame solve.");
+
+    let move_map = score::get_fastest_first_map(board, &mut moves);
+    moves.sort_unstable_by(|a, b| move_map.get(a).cmp(&move_map.get(b)));
+
+    let beta = 64;
+    let mut best_score = -64;
+    let mut best_move = moves[0];
+
+    for m in moves {
+        let undo = board.make_move(m);
+        let (mut score, leaves) = negamax::negamax_endgame_full(board, -beta, -best_score);
+        board.undo_move(undo, m);
+
+        score = -score;
+        searched += leaves;
+
+        if score >= beta {
+            best_move = m;
+            best_score = beta;
+            break;
+        }
+        if score > best_score {
+            best_move = m;
+            best_score = score;
+        }
+    }
+
+    eprintln!("Best score: {}", best_score);
+
+    let dark_disks = if board.dark_move { 32 + (best_score / 2) } else { 32 - (best_score / 2) };
+    let result_str = ["LOSS", "DRAW", "WIN"][(best_score.signum() + 1) as usize];
+    eprintln!("Guaranteed {} with disk count {}/{}", result_str, dark_disks, 64 - dark_disks);
 
     let end_time = time::now();
     let time_taken = (end_time - start_time).num_milliseconds();

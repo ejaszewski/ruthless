@@ -24,9 +24,13 @@ pub fn get_score_heuristic(board: &mut board::Board, heuristic: &properties::Heu
     }
 }
 
-pub fn get_score_endgame_solve(board: &board::Board) -> i8 {
+pub fn get_parity(board: &board::Board) -> i8 {
     let modifier = if board.dark_move { 1 } else { -1 };
-    (board.dark_disks.count_ones() as i8 - board.light_disks.count_ones() as i8).signum() * modifier
+    (board.dark_disks.count_ones() as i8 - board.light_disks.count_ones() as i8) * modifier
+}
+
+pub fn get_score_endgame_solve(board: &board::Board) -> i8 {
+    get_parity(board).signum()
 }
 
 pub fn get_move_map(board: &mut board::Board, moves: &mut Vec<Option<u8>>,
@@ -40,6 +44,19 @@ pub fn get_move_map(board: &mut board::Board, moves: &mut Vec<Option<u8>>,
 
         score = -score;
 
+        move_map.insert(*m, score);
+    }
+
+    move_map
+}
+
+pub fn get_fastest_first_map(board: &mut board::Board, moves: &mut Vec<Option<u8>>) -> HashMap<Option<u8>, u32> {
+    let mut move_map: HashMap<Option<u8>, u32> = HashMap::new();
+
+    for m in moves {
+        let undo = board.make_move(*m);
+        let score = board.move_count();
+        board.undo_move(undo, *m);
         move_map.insert(*m, score);
     }
 
