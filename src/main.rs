@@ -173,6 +173,7 @@ fn play_stdin(mut board: board::Board, properties: properties::Properties, black
         } else if board.all_disks().count_zeros() > 12 {
             let (best, score) = ruthless::eval::search::endgame_solve_fast(&mut board);
             if score == -1 {
+                board.clear_moves();
                 let (best, bf) = ruthless::eval::do_search(&mut board, &properties);
                 best_move = best;
                 last_bf = bf;
