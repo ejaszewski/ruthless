@@ -1,22 +1,32 @@
 use board;
 use eval::{properties, negamax};
 use std::collections::HashMap;
+use std::f32;
 
 fn disk_count(x: u64, mask: u64) -> f32 {
     return (x & mask).count_ones() as f32;
 }
 
 pub fn get_score_heuristic(board: &mut board::Board, heuristic: &properties::Heuristic) -> f32 {
-    let mut material_score = 0.0;
-    let mut index = 0;
-    for &mask in properties::MATERIAL_MASKS.iter() {
-        material_score +=
+    let score;
+    if board.is_game_over() {
+        if board.dark_disks.count_ones() > board.light_disks.count_ones() {
+            score = f32::INFINITY;
+        } else {
+            score = f32::NEG_INFINITY;
+        }
+    } else {
+        let mut material_score = 0.0;
+        let mut index = 0;
+        for &mask in properties::MATERIAL_MASKS.iter() {
+            material_score +=
             (disk_count(board.dark_disks, mask) - disk_count(board.light_disks, mask)) * heuristic.square_values[index];
-        index += 1;
+            index += 1;
+        }
+        let mobility_score = board.move_count() as f32;
+        score = material_score * heuristic.material_weight * (1.0 + mobility_score * heuristic.mobility_weight).log10();
     }
-    let mobility_score = board.move_count() as f32;
-    let score =
-        material_score * heuristic.material_weight + mobility_score * heuristic.mobility_weight;
+
     if board.dark_move {
         score + heuristic.bias
     } else {
