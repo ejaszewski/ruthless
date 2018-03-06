@@ -9,7 +9,7 @@ use std::f32;
 use board;
 use board::util;
 
-pub fn do_search(board: &mut board::Board, props: &properties::Properties) -> Option<u8> {
+pub fn do_search(board: &mut board::Board, props: &properties::Properties) -> (Option<u8>, f32) {
     let start_time = time::now();
 
     eprintln!("{} moves", board.all_disks().count_ones());
@@ -25,7 +25,8 @@ pub fn do_search(board: &mut board::Board, props: &properties::Properties) -> Op
 
     // Standard negamax search.
     let (best_move, best_score, searched) = search::negamax(board, heuristic);
-    eprintln!("Avg. Branching Factor: {}", (searched as f32).powf(1. / depth as f32));
+    let branching_factor = (searched as f32).powf(1. / depth as f32);
+    eprintln!("Avg. Branching Factor: {}", branching_factor);
 
     // board.clear_moves();
     //
@@ -47,5 +48,5 @@ pub fn do_search(board: &mut board::Board, props: &properties::Properties) -> Op
         util::move_string(best_move),
         best_score
     );
-    return best_move;
+    return (best_move, branching_factor);
 }

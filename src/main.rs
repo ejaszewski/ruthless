@@ -133,6 +133,7 @@ fn main() {
 fn play_stdin(mut board: board::Board, properties: properties::Properties, black: bool) {
     let stdin = io::stdin();
     let mut first_move = true;
+    let mut last_bf = 10.0;
 
     eprintln!("Initialized...");
     println!("");
@@ -162,10 +163,26 @@ fn play_stdin(mut board: board::Board, properties: properties::Properties, black
         let x: i32;
         let y: i32;
         let best_move;
-        if board.all_disks().count_zeros() > 20 {
-            best_move = ruthless::eval::do_search(&mut board, &properties);
+
+        let heuristic = properties.get_heuristic(board.all_disks().count_ones());
+
+        if board.all_disks().count_zeros() > 18 && !(board.all_disks().count_zeros() < 24 && last_bf < 4.0) {
+            let (best, bf) = ruthless::eval::do_search(&mut board, &properties);
+            best_move = best;
+            last_bf = bf;
+        } else if board.all_disks().count_zeros() > 12 {
+            let (best, score) = ruthless::eval::search::endgame_solve_fast(&mut board);
+            if score == -1 {
+                let (best, bf) = ruthless::eval::do_search(&mut board, &properties);
+                best_move = best;
+                last_bf = bf;
+            } else {
+                best_move = best;
+                last_bf = 0.0;
+            }
         } else {
-            best_move = ruthless::eval::search::endgame_solve(&mut board);
+            last_bf = 0.0;
+            best_move = ruthless::eval::search::endgame_solve_full(&mut board);
         }
 
         match best_move {
