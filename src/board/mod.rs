@@ -23,9 +23,9 @@ pub struct Position {
 
 #[derive(PartialEq, Eq, Serialize, Deserialize)]
 pub struct TrainPosition {
-    dark_disks: u64,
-    light_disks: u64,
-    dark_move: bool,
+    pub dark_disks: u64,
+    pub light_disks: u64,
+    pub dark_move: bool,
     pub result: GameResult
 }
 

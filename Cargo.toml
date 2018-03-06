@@ -13,3 +13,8 @@ clap = {version = "~2.27.0", features = ["yaml"]}
 
 [profile.release]
 debug = true
+
+[[bin]]
+name = "rusty"
+path = "./src/rusty.rs"
+include = "eval.json"
