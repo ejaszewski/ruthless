@@ -26,14 +26,16 @@ pub fn do_search(board: &mut board::Board, props: &properties::Properties) -> (O
     // Standard negamax search.
     let (best_move, best_score, searched) = search::negamax(board, heuristic);
     let branching_factor = (searched as f32).powf(1. / depth as f32);
-    eprintln!("Avg. Branching Factor: {}", branching_factor);
-
+    eprintln!("Avg. Branching Factor ABP : {}", branching_factor);
+    
     // board.clear_moves();
-    //
-    // // Best Node Search
+
+    // Best Node Search
     // let (best_move, searched) = search::best_node_search(board, heuristic);
     // let best_score = "?";
-    // eprintln!("Avg. Branching Factor: {}", (searched as f32).powf(1. / depth as f32));
+
+    // let branching_factor = (searched as f32).powf(1. / depth as f32);
+    // eprintln!("Avg. Branching Factor BNS : {}", branching_factor);
 
     let end_time = time::now();
     let time_taken = (end_time - start_time).num_milliseconds();

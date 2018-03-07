@@ -78,8 +78,8 @@ pub fn negamax_tpt(board: &mut Board, heuristic: &Heuristic, tpt: &mut HashMap<P
         board.undo_move(undo, *m);
 
         if depth == 1 {
-            tpt.insert(sub_node, NodeType::ScoreNode(score));
-        } else {
+            // tpt.insert(sub_node, NodeType::ScoreNode(score));
+        } else if depth > 2 {
             if score < alpha {
                 tpt.insert(sub_node, NodeType::CutNode(score));
             } else if score >= beta {
@@ -98,14 +98,15 @@ pub fn negamax_tpt(board: &mut Board, heuristic: &Heuristic, tpt: &mut HashMap<P
 }
 
 pub fn negamax_endgame(board: &mut Board, mut alpha: i8, beta: i8) -> (i8, u64) {
-    let mut moves = board.get_moves();
     if board.is_game_over() {
-        return (score::get_score_endgame_solve(board), 1);
+        return (score::get_endgame_score(board), 1);
     }
 
-    if board.all_disks().count_zeros() > 8 {
-        let move_map = score::get_fastest_first_map(board, &mut moves);
-        moves.sort_unstable_by(|a, b| move_map.get(a).partial_cmp(&move_map.get(b)).unwrap());
+    let mut moves = board.get_moves();
+
+    if board.move_count() > 1 && board.all_disks().count_zeros() > 3 {
+        let ff = score::get_fastest_first_arr(board, &mut moves);
+        moves.sort_unstable_by(|a, b| ff[a.unwrap() as usize].cmp(&ff[b.unwrap() as usize]));
     }
 
     let mut count = 0;
@@ -127,14 +128,15 @@ pub fn negamax_endgame(board: &mut Board, mut alpha: i8, beta: i8) -> (i8, u64) 
 }
 
 pub fn negamax_endgame_full(board: &mut Board, mut alpha: i8, beta: i8) -> (i8, u64) {
-    let mut moves = board.get_moves();
     if board.is_game_over() {
         return (score::get_parity(board), 1);
     }
 
-    if board.all_disks().count_zeros() < 5 {
-        let move_map = score::get_fastest_first_map(board, &mut moves);
-        moves.sort_unstable_by(|a, b| move_map.get(a).partial_cmp(&move_map.get(b)).unwrap());
+    let mut moves = board.get_moves();
+
+    if board.move_count() > 1 && (board.move_count() > 4 || board.all_disks().count_zeros() > 3) {
+        let ff = score::get_fastest_first_arr(board, &mut moves);
+        moves.sort_unstable_by(|a, b| ff[a.unwrap() as usize].cmp(&ff[b.unwrap() as usize]));
     }
 
     let mut count = 0;

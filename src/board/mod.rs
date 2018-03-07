@@ -83,11 +83,8 @@ impl Board {
             dark_moves_gen: false
         };
 
-        if train_pos.dark_move {
-            board.gen_dark_moves();
-        } else {
-            board.gen_light_moves();
-        }
+        board.gen_dark_moves();
+        board.gen_light_moves();
 
         board
     }

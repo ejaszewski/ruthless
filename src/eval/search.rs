@@ -121,7 +121,7 @@ pub fn endgame_solve_fast(board: &mut board::Board) -> (Option<u8>, i8) {
     return (best_move, best_score);
 }
 
-pub fn endgame_solve_full(board: &mut board::Board) -> Option<u8> {
+pub fn endgame_solve_full(board: &mut board::Board) -> (Option<u8>, i8) {
     let mut moves: Vec<Option<u8>> = board.get_moves();
 
     let mut searched = 0;
@@ -141,6 +141,8 @@ pub fn endgame_solve_full(board: &mut board::Board) -> Option<u8> {
         let (mut score, leaves) = negamax::negamax_endgame_full(board, -beta, -best_score);
         board.undo_move(undo, m);
 
+        eprintln!("Evaluated: {:?}, α: {}, β: {}", m, best_score, beta);
+
         score = -score;
         searched += leaves;
 
@@ -157,7 +159,8 @@ pub fn endgame_solve_full(board: &mut board::Board) -> Option<u8> {
 
     eprintln!("Best score: {}", best_score);
 
-    let dark_disks = if board.dark_move { 32 + (best_score / 2) } else { 32 - (best_score / 2) };
+    let dark_disks = 32 + if board.dark_move { best_score / 2 } else { -best_score / 2 };
+
     let result_str = ["LOSS", "DRAW", "WIN"][(best_score.signum() + 1) as usize];
     eprintln!("Guaranteed {} with disk count {}/{}", result_str, dark_disks, 64 - dark_disks);
 
@@ -170,7 +173,7 @@ pub fn endgame_solve_full(board: &mut board::Board) -> Option<u8> {
         searched, time_taken, nps
     );
 
-    return best_move;
+    return (best_move, best_score);
 }
 
 pub fn best_node_search(board: &mut board::Board, heuristic: &properties::Heuristic) -> (Option<u8>, u64) {
@@ -184,8 +187,8 @@ pub fn best_node_search(board: &mut board::Board, heuristic: &properties::Heuris
 
     eprintln!("Current move ordering: {:?}", moves);
 
-    let mut alpha = score::get_score_heuristic(board, heuristic) - 10.;
-    let mut beta = score::get_score_heuristic(board, heuristic) + 10.;
+    let mut alpha = score::get_score_heuristic(board, heuristic) - 5.;
+    let mut beta = score::get_score_heuristic(board, heuristic) + 5.;
     let mut better_count = 0;
     let mut subtree_count = moves.len() as u32;
 
@@ -217,12 +220,23 @@ pub fn best_node_search(board: &mut board::Board, heuristic: &properties::Heuris
 
         eprintln!("Results: {} of {} above", better_count, subtree_count);
 
+
         if better_count > 0 {
             alpha = guess;
             subtree_count = better_count;
         } else {
             beta = guess;
         }
+
+        let trim_before = hash_table.len();
+        hash_table.retain(|_, nt| {
+            match *nt {
+                board::NodeType::AllNode(lower) => { lower < alpha },
+                _ => { true }
+            }
+        });
+        let trim_after = hash_table.len();
+        eprintln!("Trimmed {} entries from HT.", trim_before - trim_after);
     }
 
     eprintln!("{} Nodes Searched\n{} Table Hits\n{} Table Entries", searched, table_hits, hash_table.len());

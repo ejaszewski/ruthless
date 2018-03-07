@@ -35,12 +35,19 @@ pub fn get_score_heuristic(board: &mut board::Board, heuristic: &properties::Heu
 }
 
 pub fn get_parity(board: &board::Board) -> i8 {
-    let modifier = if board.dark_move { 1 } else { -1 };
-    (board.dark_disks.count_ones() as i8 - board.light_disks.count_ones() as i8) * modifier
+    if board.dark_move {
+        (board.dark_disks.count_ones() as i8 - board.light_disks.count_ones() as i8)
+    } else {
+        (board.light_disks.count_ones() as i8 - board.dark_disks.count_ones() as i8)
+    }
 }
 
-pub fn get_score_endgame_solve(board: &board::Board) -> i8 {
-    get_parity(board).signum()
+pub fn get_endgame_score(board: &board::Board) -> i8 {
+    if board.dark_move {
+        (board.dark_disks.count_ones() as i8 - board.light_disks.count_ones() as i8).signum()
+    } else {
+        (board.light_disks.count_ones() as i8 - board.dark_disks.count_ones() as i8).signum()
+    }
 }
 
 pub fn get_move_map(board: &mut board::Board, moves: &mut Vec<Option<u8>>,
@@ -71,4 +78,21 @@ pub fn get_fastest_first_map(board: &mut board::Board, moves: &mut Vec<Option<u8
     }
 
     move_map
+}
+
+pub fn get_fastest_first_arr(board: &mut board::Board, moves: &mut Vec<Option<u8>>) -> [u32; 64] {
+    let mut ret = [0; 64];
+
+    for m in moves {
+        let undo = board.make_move(*m);
+        let score = board.move_count();
+        board.undo_move(undo, *m);
+
+        match *m {
+            Some(sq) => ret[sq as usize] = score,
+            _ => {}
+        }
+    }
+
+    ret
 }

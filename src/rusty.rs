@@ -89,7 +89,7 @@ fn play_stdin(mut board: board::Board, properties: properties::Properties, black
             }
         } else {
             last_bf = 0.0;
-            best_move = ruthless::eval::search::endgame_solve_full(&mut board);
+            best_move = ruthless::eval::search::endgame_solve_full(&mut board).0;
         }
 
         match best_move {
