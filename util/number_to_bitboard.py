@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 while True:
     dec = int(input("Decimal:").replace('_', ''), 0)
     bs = bin(dec)[2:].rjust(64, '0');

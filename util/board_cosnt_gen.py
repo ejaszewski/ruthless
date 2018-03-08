@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 def bs(pos):
     x = pos // 8
     y = pos % 8
