@@ -103,10 +103,12 @@ fn main() {
 
                 for i in 0 .. pgo.num_positions {
                     let mut pos = &mut pgo.positions[i];
-                    if let board::GameResult::Unknown = pos.result {
-                        let mut board = board::Board::from_train_pos(pos);
-                        pos.result = eval::search::endgame_solve_result(&mut board);
+                    let mut board = board::Board::from_train_pos(pos);
+                    let mut score = eval::negamax::negamax_endgame_full(&mut board, -64, 64).0 as f32;
+                    if !board.dark_move {
+                        score = -score;
                     }
+                    pos.score = score;
                     if i % 1000 == 0 && i > 0 {
                         println!("Solved {} random positions.", i);
                     }

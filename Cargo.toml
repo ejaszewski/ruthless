@@ -1,6 +1,6 @@
 [package]
 name = "ruthless"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Ethan Jaszewski <ethanjaszewski@yahoo.com>"]
 
 [dependencies]
@@ -15,6 +15,9 @@ clap = {version = "~2.27.0", features = ["yaml"]}
 debug = true
 
 [[bin]]
+name = "ruthless"
+path = "./src/main.rs"
+
+[[bin]]
 name = "rusty"
 path = "./src/rusty.rs"
-include = "eval.json"

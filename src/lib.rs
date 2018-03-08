@@ -26,7 +26,7 @@ mod tests {
         let pos = board::TrainPosition {
             light_disks, dark_disks,
             dark_move: false,
-            result: board::GameResult::Unknown
+            score: 0f32
         };
 
         let mut board = board::Board::from_train_pos(&pos);
@@ -41,7 +41,7 @@ mod tests {
         let pos = board::TrainPosition {
             light_disks, dark_disks,
             dark_move: true,
-            result: board::GameResult::Unknown
+            score: 0f32
         };
 
         let mut board = board::Board::from_train_pos(&pos);
@@ -59,7 +59,7 @@ mod tests {
         let pos = board::TrainPosition {
             light_disks, dark_disks,
             dark_move: true,
-            result: board::GameResult::Unknown
+            score: 0f32
         };
 
         let mut board = board::Board::from_train_pos(&pos);
@@ -78,7 +78,7 @@ mod tests {
         let pos = board::TrainPosition {
             light_disks, dark_disks,
             dark_move: true,
-            result: board::GameResult::Unknown
+            score: 0f32
         };
 
         let mut board = board::Board::from_train_pos(&pos);
@@ -97,7 +97,7 @@ mod tests {
         let pos = board::TrainPosition {
             light_disks, dark_disks,
             dark_move: true,
-            result: board::GameResult::Unknown
+            score: 0f32
         };
 
         let mut board = board::Board::from_train_pos(&pos);
@@ -115,7 +115,7 @@ mod tests {
         let pos = board::TrainPosition {
             light_disks, dark_disks,
             dark_move: false,
-            result: board::GameResult::Unknown
+            score: 0f32
         };
 
         let mut board = board::Board::from_train_pos(&pos);
@@ -134,7 +134,7 @@ mod tests {
         let pos = board::TrainPosition {
             light_disks, dark_disks,
             dark_move: false,
-            result: board::GameResult::Unknown
+            score: 0f32
         };
 
         let mut board = board::Board::from_train_pos(&pos);

@@ -21,12 +21,12 @@ pub struct Position {
     light_disks: u64,
 }
 
-#[derive(PartialEq, Eq, Serialize, Deserialize)]
+#[derive(PartialEq, Serialize, Deserialize)]
 pub struct TrainPosition {
     pub dark_disks: u64,
     pub light_disks: u64,
     pub dark_move: bool,
-    pub result: GameResult
+    pub score: f32
 }
 
 impl Hash for Position {
@@ -232,22 +232,16 @@ impl Board {
 
     pub fn get_train_position(&mut self) -> TrainPosition {
         let result = if self.is_game_over() {
-            if self.dark_disks > self.light_disks {
-                GameResult::DarkWin
-            } else if self.dark_disks < self.light_disks {
-                GameResult::LightWin
-            } else {
-                GameResult::Draw
-            }
+            (self.dark_disks - self.light_disks) as f32
         } else {
-            GameResult::Unknown
+            0f32
         };
 
         TrainPosition {
             light_disks: self.light_disks,
             dark_disks: self.dark_disks,
             dark_move: self.dark_move,
-            result
+            score: result
         }
     }
 
