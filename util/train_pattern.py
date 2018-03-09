@@ -166,21 +166,18 @@ def flip_vertical(x):
 def rotate_ccw(x):
     return flip_vertical(flip_diag_a1h8(x))
 
-training_data = []
-for i in range(48, 56):
-    for j in range(0, 8):
-        training_data.append('./training/{}_random_solved_{}.json'.format(i, j))
-
-diag5_weights = np.zeros(243)
-diag6_weights = np.zeros(729)
-diag7_weights = np.zeros(2187)
-diag8_weights = np.zeros(6561)
-horiz1_weights = np.zeros(6561)
-horiz2_weights = np.zeros(6561)
-horiz3_weights = np.zeros(6561)
-horiz4_weights = np.zeros(6561)
-edge2x_weights = np.zeros(59049)
-corner3x3_weights = np.zeros(19683)
+print('Initializing starting values (zeroed).', end='...')
+diag5_weights = np.ones(243)
+diag6_weights = np.ones(729)
+diag7_weights = np.ones(2187)
+diag8_weights = np.ones(6561)
+horiz1_weights = np.ones(6561)
+horiz2_weights = np.ones(6561)
+horiz3_weights = np.ones(6561)
+horiz4_weights = np.ones(6561)
+edge2x_weights = np.ones(59049)
+corner3x3_weights = np.ones(19683)
+print('Done.')
 
 def get_index(tup):
     i = 0
@@ -190,22 +187,112 @@ def get_index(tup):
         mul *= 3
     return i
 
-def get_score(dark, light):
-    score = 0
+def get_indices(dark, light):
+    indices = dict()
+    indices['diag5'] = np.zeros(4, dtype=int)
+    indices['diag6'] = np.zeros(4, dtype=int)
+    indices['diag7'] = np.zeros(4, dtype=int)
+    indices['diag8'] = np.zeros(4, dtype=int)
+    indices['horiz1'] = np.zeros(4, dtype=int)
+    indices['horiz2'] = np.zeros(4, dtype=int)
+    indices['horiz3'] = np.zeros(4, dtype=int)
+    indices['horiz4'] = np.zeros(4, dtype=int)
+    indices['edge2x'] = np.zeros(4, dtype=int)
+    indices['corner3x3'] = np.zeros(4, dtype=int)
+
     for i in range(0, 4):
-        score += diag5_weights[get_index(extract_diag5(dark, light))]
-        score += diag6_weights[get_index(extract_diag6(dark, light))]
-        score += diag7_weights[get_index(extract_diag7(dark, light))]
-        score += diag8_weights[get_index(extract_diag8(dark, light))]
-        score += horiz1_weights[get_index(extract_horiz1(dark, light))]
-        score += horiz2_weights[get_index(extract_horiz2(dark, light))]
-        score += horiz3_weights[get_index(extract_horiz3(dark, light))]
-        score += horiz4_weights[get_index(extract_horiz4(dark, light))]
-        score += edge2x_weights[get_index(extract_edge2x(dark, light))]
-        score += corner3x3_weights[get_index(extract_corner3x3(dark, light))]
+        indices['diag5'][i] = get_index(extract_diag5(dark, light))
+        indices['diag6'][i] = get_index(extract_diag6(dark, light))
+        indices['diag7'][i] = get_index(extract_diag7(dark, light))
+        indices['diag8'][i] = get_index(extract_diag8(dark, light))
+        indices['horiz1'][i] = get_index(extract_horiz1(dark, light))
+        indices['horiz2'][i] = get_index(extract_horiz2(dark, light))
+        indices['horiz3'][i] = get_index(extract_horiz3(dark, light))
+        indices['horiz4'][i] = get_index(extract_horiz4(dark, light))
+        indices['edge2x'][i] = get_index(extract_edge2x(dark, light))
+        indices['corner3x3'][i] = get_index(extract_corner3x3(dark, light))
 
         dark = rotate_ccw(dark)
         light = rotate_ccw(light)
-    return score
 
-def update(score, expected, )
+    return indices
+
+def get_score(indices):
+    score = 0
+    score += diag5_weights[indices['diag5']]
+    score += diag6_weights[indices['diag6']]
+    score += diag7_weights[indices['diag7']]
+    score += diag8_weights[indices['diag8']]
+    score += horiz1_weights[indices['horiz1']]
+    score += horiz2_weights[indices['horiz2']]
+    score += horiz3_weights[indices['horiz3']]
+    score += horiz4_weights[indices['horiz4']]
+    score += edge2x_weights[indices['edge2x']]
+    score += corner3x3_weights[indices['corner3x3']]
+    return np.sum(score)
+
+def update(err, alpha, indices):
+    for i in range(0, 4):
+        diag5_weights[indices['diag5'][i]] -= err * alpha * indices['diag5'][i]
+        diag6_weights[indices['diag6'][i]] -= err * alpha * indices['diag6'][i]
+        diag7_weights[indices['diag7'][i]] -= err * alpha * indices['diag7'][i]
+        diag8_weights[indices['diag8'][i]] -= err * alpha * indices['diag8'][i]
+        horiz1_weights[indices['horiz1'][i]] -= err * alpha * indices['horiz1'][i]
+        horiz2_weights[indices['horiz2'][i]] -= err * alpha * indices['horiz2'][i]
+        horiz3_weights[indices['horiz3'][i]] -= err * alpha * indices['horiz3'][i]
+        horiz4_weights[indices['horiz4'][i]] -= err * alpha * indices['horiz4'][i]
+        edge2x_weights[indices['edge2x'][i]] -= err * alpha * indices['edge2x'][i]
+        corner3x3_weights[indices['corner3x3'][i]] -= err * alpha * indices['corner3x3'][i]
+
+print('Loading training data...', end='...')
+training_data_files = []
+for i in range(48, 56):
+    for j in range(0, 1):
+        training_data_files.append('./training/{}_random_solved_{}.json'.format(i, j))
+
+training_data = []
+num_positions = 0
+for f in training_data_files:
+    with open(f) as df:
+        data = json.load(df)
+        num_positions += data['num_positions']
+        training_data += list(data['positions'])
+print('Done.')
+print('Loaded {} positions.'.format(num_positions))
+
+print('Randomizing data ordering...', end='...')
+import random
+random.shuffle(training_data)
+print('Done.')
+
+import time
+start = time.time()
+
+lossavg = 0
+count = 0
+for pos in training_data:
+    indices = get_indices(pos['dark_disks'], pos['light_disks'])
+    err = (1 / num_positions) * (get_score(indices) - pos['score'])
+    update(err, 0.01, indices)
+
+    lossavg += abs(get_score(indices) - pos['score']) / 64 / 10000
+    count += 1
+    if count % 10000 == 0:
+        print("Evaluated {}k Positions".format(count // 1000))
+        print("Loss over last 10k: {}".format(lossavg))
+        lossavg = 0
+
+end = time.time()
+
+print('Took: {}'.format(end - start))
+
+np.savetxt('./trained/diag5.txt', diag5_weights)
+np.savetxt('./trained/diag6.txt', diag6_weights)
+np.savetxt('./trained/diag7.txt', diag7_weights)
+np.savetxt('./trained/diag8.txt', diag8_weights)
+np.savetxt('./trained/horiz1.txt', horiz1_weights)
+np.savetxt('./trained/horiz2.txt', horiz2_weights)
+np.savetxt('./trained/horiz3.txt', horiz3_weights)
+np.savetxt('./trained/horiz4.txt', horiz4_weights)
+np.savetxt('./trained/edge2x.txt', edge2x_weights)
+np.savetxt('./trained/corner3x3.txt', corner3x3_weights)
