@@ -165,17 +165,17 @@ def flip_vertical(x):
 def rotate_ccw(x):
     return flip_vertical(flip_diag_a1h8(x))
 
-print('Initializing starting values (zeroed).', end='...')
-diag5_weights = np.ones(243)
-diag6_weights = np.ones(729)
-diag7_weights = np.ones(2187)
-diag8_weights = np.ones(6561)
-horiz1_weights = np.ones(6561)
-horiz2_weights = np.ones(6561)
-horiz3_weights = np.ones(6561)
-horiz4_weights = np.ones(6561)
-edge2x_weights = np.ones(59049)
-corner3x3_weights = np.ones(19683)
+print('Loading evaluation data', end='...')
+diag5_weights = np.loadtxt('./trained/diag5.txt')
+diag6_weights = np.loadtxt('./trained/diag6.txt')
+diag7_weights = np.loadtxt('./trained/diag7.txt')
+diag8_weights = np.loadtxt('./trained/diag8.txt')
+horiz1_weights = np.loadtxt('./trained/horiz1.txt')
+horiz2_weights = np.loadtxt('./trained/horiz1.txt')
+horiz3_weights = np.loadtxt('./trained/horiz1.txt')
+horiz4_weights = np.loadtxt('./trained/horiz1.txt')
+edge2x_weights = np.loadtxt('./trained/edge2x.txt')
+corner3x3_weights = np.loadtxt('./trained/corner3x3.txt')
 print('Done.')
 
 def get_index(tup):
@@ -230,67 +230,10 @@ def get_score(indices):
     score += corner3x3_weights[indices['corner3x3']]
     return np.sum(score)
 
-def update(err, alpha, indices):
-    for i in range(0, 4):
-        diag5_weights[indices['diag5'][i]] -= err * alpha * indices['diag5'][i]
-        diag6_weights[indices['diag6'][i]] -= err * alpha * indices['diag6'][i]
-        diag7_weights[indices['diag7'][i]] -= err * alpha * indices['diag7'][i]
-        diag8_weights[indices['diag8'][i]] -= err * alpha * indices['diag8'][i]
-        horiz1_weights[indices['horiz1'][i]] -= err * alpha * indices['horiz1'][i]
-        horiz2_weights[indices['horiz2'][i]] -= err * alpha * indices['horiz2'][i]
-        horiz3_weights[indices['horiz3'][i]] -= err * alpha * indices['horiz3'][i]
-        horiz4_weights[indices['horiz4'][i]] -= err * alpha * indices['horiz4'][i]
-        edge2x_weights[indices['edge2x'][i]] -= err * alpha * indices['edge2x'][i]
-        corner3x3_weights[indices['corner3x3'][i]] -= err * alpha * indices['corner3x3'][i]
-
-print('Loading training data...', end='...')
-training_data_files = []
-for i in range(48, 56):
-    for j in range(0, 7):
-        training_data_files.append('./training/{}_random_solved_{}.json'.format(i, j))
-
-training_data = []
-num_positions = 0
-for f in training_data_files:
-    with open(f) as df:
-        data = json.load(df)
-        num_positions += data['num_positions']
-        training_data += list(data['positions'])
-print('Done.')
-print('Loaded {} positions.'.format(num_positions))
-
-print('Randomizing data ordering...', end='...')
-import random
-random.shuffle(training_data)
-print('Done.')
-
-import time
-start = time.time()
-
-lossavg = 0
-count = 0
-learnrate = 5
-
-for pos in training_data:
-    indices = get_indices(pos['dark_disks'], pos['light_disks'])
-    err = (1 / num_positions) * (get_score(indices) - pos['score'])
-    update(err, learnrate, indices)
-
-    lossavg += abs(get_score(indices) - pos['score'])
-    count += 1
-    if count % 10000 == 0:
-        print("Evaluated {}k Positions".format(count // 1000))
-        print("Loss over last 10k: {}".format(lossavg / 10000))
-        lossavg = 0
-
-end = time.time()
-
-print('Took: {}'.format(end - start))
-
 print('Loading testing data...', end='...')
 testing_data_files = []
 for i in range(48, 56):
-    for j in range(7, 8):
+    for j in range(0, 1):
         testing_data_files.append('./training/{}_random_solved_{}.json'.format(i, j))
 
 testing_data = []
@@ -315,13 +258,4 @@ for pos in testing_data:
 lossavg /= num_positions
 print('Had average loss of {} disks over the testing set.'.format(lossavg))
 
-np.savetxt('./trained/diag5.txt', diag5_weights)
-np.savetxt('./trained/diag6.txt', diag6_weights)
-np.savetxt('./trained/diag7.txt', diag7_weights)
-np.savetxt('./trained/diag8.txt', diag8_weights)
-np.savetxt('./trained/horiz1.txt', horiz1_weights)
-np.savetxt('./trained/horiz2.txt', horiz2_weights)
-np.savetxt('./trained/horiz3.txt', horiz3_weights)
-np.savetxt('./trained/horiz4.txt', horiz4_weights)
-np.savetxt('./trained/edge2x.txt', edge2x_weights)
-np.savetxt('./trained/corner3x3.txt', corner3x3_weights)
+print(diag5_weights)
