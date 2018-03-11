@@ -81,7 +81,7 @@ fn main() {
                 println!("Writing output to file...");
                 let mut file = File::create(output_file).unwrap();
 
-                file.write_all(json_out.as_bytes());
+                file.write_all(json_out.as_bytes()).expect("Unable to write to output file.");
                 println!("Done.");
            },
            None => {}
@@ -121,7 +121,7 @@ fn main() {
                 println!("Writing output to file...");
                 let mut file = File::create(output_file).unwrap();
 
-                file.write_all(json_out.as_bytes());
+                file.write_all(json_out.as_bytes()).expect("Unable to write to output file.");
                 println!("Done.");
             },
             None => {}
@@ -165,8 +165,6 @@ fn play_stdin(mut board: board::Board, properties: properties::Properties, black
         let x: i32;
         let y: i32;
         let best_move;
-
-        let heuristic = properties.get_heuristic(board.all_disks().count_ones());
 
         if board.all_disks().count_zeros() > 18 && !(board.all_disks().count_zeros() < 24 && last_bf < 4.0) {
             let (best, bf) = ruthless::eval::do_search(&mut board, &properties);

@@ -47,7 +47,7 @@ pub fn endgame_solve_result(board: &mut board::Board) -> board::GameResult {
 
     for m in &moves {
         let undo = board.make_move(*m);
-        let (mut score, leaves) = negamax::negamax_endgame(board, -beta, -best_score);
+        let (mut score, _leaves) = negamax::negamax_endgame(board, -beta, -best_score);
         board.undo_move(undo, *m);
 
         score = -score;
