@@ -52,8 +52,9 @@ pub fn get_score(board: &mut board::Board, heuristic: &properties::Heuristic) ->
         }
     } else {
         let material_score = material::get_material_weighted(board, heuristic);
-        let mobility_score = board.move_count() as f32;
-        score = material_score * heuristic.material_weight * (1.0 + mobility_score * heuristic.mobility_weight).log10();
+        let mobility_score = mobility::get_mobility_weighted(board, heuristic);
+        score = material_score * heuristic.material_weight +
+                mobility_score * heuristic.mobility_weight;
     }
 
     if board.dark_move {

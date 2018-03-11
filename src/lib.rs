@@ -15,9 +15,10 @@ mod tests {
             max_squares: 64,
             depth: 2,
             bias: 0.0,
-            material_weight: 1.0,
             mobility_weight: 0.0,
-            square_values: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+            material_weight: 1.0,
+            mobility_values: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+            material_values: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
         };
 
         let light_disks = 0x0000004000000000;

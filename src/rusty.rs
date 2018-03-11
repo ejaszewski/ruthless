@@ -22,7 +22,7 @@ fn main() {
                               "<COLOR> 'Tells Rusty what color to play.'")
                           .get_matches();
 
-    let mut props_file = File::open("eval.json").unwrap();
+    let mut props_file = File::open("eval_new.json").unwrap();
     let mut props_json = String::new();
     let pr = props_file.read_to_string(&mut props_json);
     match pr {

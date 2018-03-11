@@ -13,7 +13,8 @@ pub struct Heuristic {
     pub bias: f32,
     pub material_weight: f32,
     pub mobility_weight: f32,
-    pub square_values: [f32; 10],
+    pub material_values: [f32; 10],
+    pub mobility_values: [f32; 10],
 }
 
 #[derive(Serialize, Deserialize, Debug)]

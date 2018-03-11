@@ -16,7 +16,7 @@ pub fn get_material_weighted(board: &board::Board, heuristic: &properties::Heuri
         material_score += (
             score::disk_count(board.dark_disks, mask) -
             score::disk_count(board.light_disks, mask)
-        ) * heuristic.square_values[index];
+        ) * heuristic.material_values[index];
         index += 1;
     }
     return material_score;
