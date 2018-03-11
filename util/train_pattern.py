@@ -21,6 +21,9 @@ def print_board(dark, light):
             print(line)
             line = ''
 
+mul = [3**n for n in range(0, 10)]
+print(mul)
+
 # 3^5 = 243 patterns
 def extract_diag5(dark, light):
     a = xor_shift(dark, 0x0800000000000000, 59) + 2 * xor_shift(light, 0x0800000000000000, 59)
@@ -28,7 +31,7 @@ def extract_diag5(dark, light):
     c = xor_shift(dark, 0x0000200000000000, 45) + 2 * xor_shift(light, 0x0000200000000000, 45)
     d = xor_shift(dark, 0x0000004000000000, 38) + 2 * xor_shift(light, 0x0000004000000000, 38)
     e = xor_shift(dark, 0x0000000080000000, 31) + 2 * xor_shift(light, 0x0000000080000000, 31)
-    return (a, b, c, d, e)
+    return a * mul[0] + b * mul[1] + c * mul[2] + d * mul[3] + e * mul[4]
 
 # 3^6 = 729 patterns
 def extract_diag6(dark, light):
@@ -38,7 +41,7 @@ def extract_diag6(dark, light):
     d = xor_shift(dark, 0x0000002000000000, 37) + 2 * xor_shift(light, 0x0000002000000000, 37)
     e = xor_shift(dark, 0x0000000040000000, 30) + 2 * xor_shift(light, 0x0000000040000000, 30)
     f = xor_shift(dark, 0x0000000000800000, 23) + 2 * xor_shift(light, 0x0000000000800000, 23)
-    return (a, b, c, d, e, f)
+    return a * mul[0] + b * mul[1] + c * mul[2] + d * mul[3] + e * mul[4] + f * mul[5]
 
 # 3^7 = 2187 patterns
 def extract_diag7(dark, light):
@@ -49,7 +52,7 @@ def extract_diag7(dark, light):
     e = xor_shift(dark, 0x0000000020000000, 29) + 2 * xor_shift(light, 0x0000000020000000, 29)
     f = xor_shift(dark, 0x0000000000400000, 22) + 2 * xor_shift(light, 0x0000000000400000, 22)
     g = xor_shift(dark, 0x0000000000008000, 15) + 2 * xor_shift(light, 0x0000000000008000, 15)
-    return (a, b, c, d, e, f, g)
+    return a * mul[0] + b * mul[1] + c * mul[2] + d * mul[3] + e * mul[4] + f * mul[5] + g * mul[6]
 
 # 3^8 = 6561 patterns
 def extract_diag8(dark, light):
@@ -61,7 +64,7 @@ def extract_diag8(dark, light):
     f = xor_shift(dark, 0x0000000000200000, 21) + 2 * xor_shift(light, 0x0000000000200000, 21)
     g = xor_shift(dark, 0x0000000000004000, 14) + 2 * xor_shift(light, 0x0000000000004000, 14)
     h = xor_shift(dark, 0x0000000000000080, 7) + 2 * xor_shift(light, 0x0000000000000080, 7)
-    return (a, b, c, d, e, f, g, h)
+    return a * mul[0] + b * mul[1] + c * mul[2] + d * mul[3] + e * mul[4] + f * mul[5] + g * mul[6] + h * mul[7]
 
 # 3^8 = 6561 patterns
 def extract_horiz1(dark, light):
@@ -73,7 +76,7 @@ def extract_horiz1(dark, light):
     f = xor_shift(dark, 0x0400000000000000, 58) + 2 * xor_shift(light, 0x0400000000000000, 58)
     g = xor_shift(dark, 0x0200000000000000, 57) + 2 * xor_shift(light, 0x0200000000000000, 57)
     h = xor_shift(dark, 0x0100000000000000, 56) + 2 * xor_shift(light, 0x0100000000000000, 56)
-    return (a, b, c, d, e, f, g, h)
+    return a * mul[0] + b * mul[1] + c * mul[2] + d * mul[3] + e * mul[4] + f * mul[5] + g * mul[6] + h * mul[7]
 
 # 3^8 = 6561 patterns
 def extract_horiz2(dark, light):
@@ -85,7 +88,7 @@ def extract_horiz2(dark, light):
     f = xor_shift(dark, 0x04000000000000, 50) + 2 * xor_shift(light, 0x04000000000000, 50)
     g = xor_shift(dark, 0x02000000000000, 49) + 2 * xor_shift(light, 0x02000000000000, 49)
     h = xor_shift(dark, 0x01000000000000, 48) + 2 * xor_shift(light, 0x01000000000000, 48)
-    return (a, b, c, d, e, f, g, h)
+    return a * mul[0] + b * mul[1] + c * mul[2] + d * mul[3] + e * mul[4] + f * mul[5] + g * mul[6] + h * mul[7]
 
 # 3^8 = 6561 patterns
 def extract_horiz3(dark, light):
@@ -97,7 +100,7 @@ def extract_horiz3(dark, light):
     f = xor_shift(dark, 0x040000000000, 42) + 2 * xor_shift(light, 0x040000000000, 42)
     g = xor_shift(dark, 0x020000000000, 41) + 2 * xor_shift(light, 0x020000000000, 41)
     h = xor_shift(dark, 0x010000000000, 40) + 2 * xor_shift(light, 0x010000000000, 40)
-    return (a, b, c, d, e, f, g, h)
+    return a * mul[0] + b * mul[1] + c * mul[2] + d * mul[3] + e * mul[4] + f * mul[5] + g * mul[6] + h * mul[7]
 
 # 3^8 = 6561 patterns
 def extract_horiz4(dark, light):
@@ -109,7 +112,7 @@ def extract_horiz4(dark, light):
     f = xor_shift(dark, 0x0400000000, 34) + 2 * xor_shift(light, 0x0400000000, 34)
     g = xor_shift(dark, 0x0200000000, 33) + 2 * xor_shift(light, 0x0200000000, 33)
     h = xor_shift(dark, 0x0100000000, 32) + 2 * xor_shift(light, 0x0100000000, 32)
-    return (a, b, c, d, e, f, g, h)
+    return a * mul[0] + b * mul[1] + c * mul[2] + d * mul[3] + e * mul[4] + f * mul[5] + g * mul[6] + h * mul[7]
 
 # 3^10 = 59049 patterns
 def extract_edge2x(dark, light):
@@ -123,7 +126,7 @@ def extract_edge2x(dark, light):
     h = xor_shift(dark, 0x0100000000000000, 56) + 2 * xor_shift(light, 0x0100000000000000, 56)
     i = xor_shift(dark, 0x40000000000000, 54) + 2 * xor_shift(light, 0x40000000000000, 54)
     j = xor_shift(dark, 0x02000000000000, 49) + 2 * xor_shift(light, 0x02000000000000, 49)
-    return (a, b, c, d, e, f, g, h, i, j)
+    return a * mul[0] + b * mul[1] + c * mul[2] + d * mul[3] + e * mul[4] + f * mul[5] + g * mul[6] + h * mul[7] + i * mul[8] + j * mul[9]
 
 # 3^9 = 19683 patterns
 def extract_corner3x3(dark, light):
@@ -136,7 +139,7 @@ def extract_corner3x3(dark, light):
     g = xor_shift(dark, 0x800000000000, 47) + 2 * xor_shift(light, 0x800000000000, 47)
     h = xor_shift(dark, 0x400000000000, 46) + 2 * xor_shift(light, 0x400000000000, 46)
     i = xor_shift(dark, 0x200000000000, 45) + 2 * xor_shift(light, 0x200000000000, 45)
-    return (a, b, c, d, e, f, g, h, i)
+    return a * mul[0] + b * mul[1] + c * mul[2] + d * mul[3] + e * mul[4] + f * mul[5] + g * mul[6] + h * mul[7] + i * mul[8]
 
 def flip_diag_a1h8(x):
     k1 = 0x5500550055005500
@@ -166,16 +169,27 @@ def rotate_ccw(x):
     return flip_vertical(flip_diag_a1h8(x))
 
 print('Initializing starting values (zeroed).', end='...')
-diag5_weights = np.ones(243)
-diag6_weights = np.ones(729)
-diag7_weights = np.ones(2187)
-diag8_weights = np.ones(6561)
-horiz1_weights = np.ones(6561)
-horiz2_weights = np.ones(6561)
-horiz3_weights = np.ones(6561)
-horiz4_weights = np.ones(6561)
-edge2x_weights = np.ones(59049)
-corner3x3_weights = np.ones(19683)
+# diag5_weights = np.zeros(243)
+# diag6_weights = np.zeros(729)
+# diag7_weights = np.zeros(2187)
+# diag8_weights = np.zeros(6561)
+# horiz1_weights = np.zeros(6561)
+# horiz2_weights = np.zeros(6561)
+# horiz3_weights = np.zeros(6561)
+# horiz4_weights = np.zeros(6561)
+# edge2x_weights = np.zeros(59049)
+# corner3x3_weights = np.zeros(19683)
+
+diag5_weights = np.loadtxt('./trained/diag5.txt')
+diag6_weights = np.loadtxt('./trained/diag6.txt')
+diag7_weights = np.loadtxt('./trained/diag7.txt')
+diag8_weights = np.loadtxt('./trained/diag8.txt')
+horiz1_weights = np.loadtxt('./trained/horiz1.txt')
+horiz2_weights = np.loadtxt('./trained/horiz1.txt')
+horiz3_weights = np.loadtxt('./trained/horiz1.txt')
+horiz4_weights = np.loadtxt('./trained/horiz1.txt')
+edge2x_weights = np.loadtxt('./trained/edge2x.txt')
+corner3x3_weights = np.loadtxt('./trained/corner3x3.txt')
 print('Done.')
 
 def get_index(tup):
@@ -187,63 +201,53 @@ def get_index(tup):
     return i
 
 def get_indices(dark, light):
-    indices = dict()
-    indices['diag5'] = np.zeros(4, dtype=int)
-    indices['diag6'] = np.zeros(4, dtype=int)
-    indices['diag7'] = np.zeros(4, dtype=int)
-    indices['diag8'] = np.zeros(4, dtype=int)
-    indices['horiz1'] = np.zeros(4, dtype=int)
-    indices['horiz2'] = np.zeros(4, dtype=int)
-    indices['horiz3'] = np.zeros(4, dtype=int)
-    indices['horiz4'] = np.zeros(4, dtype=int)
-    indices['edge2x'] = np.zeros(4, dtype=int)
-    indices['corner3x3'] = np.zeros(4, dtype=int)
+    indices = np.zeros((10,4), dtype=int)
 
     for i in range(0, 4):
-        indices['diag5'][i] = get_index(extract_diag5(dark, light))
-        indices['diag6'][i] = get_index(extract_diag6(dark, light))
-        indices['diag7'][i] = get_index(extract_diag7(dark, light))
-        indices['diag8'][i] = get_index(extract_diag8(dark, light))
-        indices['horiz1'][i] = get_index(extract_horiz1(dark, light))
-        indices['horiz2'][i] = get_index(extract_horiz2(dark, light))
-        indices['horiz3'][i] = get_index(extract_horiz3(dark, light))
-        indices['horiz4'][i] = get_index(extract_horiz4(dark, light))
-        indices['edge2x'][i] = get_index(extract_edge2x(dark, light))
-        indices['corner3x3'][i] = get_index(extract_corner3x3(dark, light))
+        indices[0][i] = extract_diag5(dark, light)
+        indices[1][i] = extract_diag6(dark, light)
+        indices[2][i] = extract_diag7(dark, light)
+        indices[3][i] = extract_diag8(dark, light)
+        indices[4][i] = extract_horiz1(dark, light)
+        indices[5][i] = extract_horiz2(dark, light)
+        indices[6][i] = extract_horiz3(dark, light)
+        indices[7][i] = extract_horiz4(dark, light)
+        indices[8][i] = extract_edge2x(dark, light)
+        indices[9][i] = extract_corner3x3(dark, light)
 
         dark = rotate_ccw(dark)
         light = rotate_ccw(light)
-
     return indices
 
 def get_score(indices):
     score = 0
-    score += diag5_weights[indices['diag5']]
-    score += diag6_weights[indices['diag6']]
-    score += diag7_weights[indices['diag7']]
-    score += diag8_weights[indices['diag8']]
-    score += horiz1_weights[indices['horiz1']]
-    score += horiz2_weights[indices['horiz2']]
-    score += horiz3_weights[indices['horiz3']]
-    score += horiz4_weights[indices['horiz4']]
-    score += edge2x_weights[indices['edge2x']]
-    score += corner3x3_weights[indices['corner3x3']]
-    return np.sum(score)
-
-def update(err, alpha, indices):
     for i in range(0, 4):
-        diag5_weights[indices['diag5'][i]] -= err * alpha * indices['diag5'][i]
-        diag6_weights[indices['diag6'][i]] -= err * alpha * indices['diag6'][i]
-        diag7_weights[indices['diag7'][i]] -= err * alpha * indices['diag7'][i]
-        diag8_weights[indices['diag8'][i]] -= err * alpha * indices['diag8'][i]
-        horiz1_weights[indices['horiz1'][i]] -= err * alpha * indices['horiz1'][i]
-        horiz2_weights[indices['horiz2'][i]] -= err * alpha * indices['horiz2'][i]
-        horiz3_weights[indices['horiz3'][i]] -= err * alpha * indices['horiz3'][i]
-        horiz4_weights[indices['horiz4'][i]] -= err * alpha * indices['horiz4'][i]
-        edge2x_weights[indices['edge2x'][i]] -= err * alpha * indices['edge2x'][i]
-        corner3x3_weights[indices['corner3x3'][i]] -= err * alpha * indices['corner3x3'][i]
+        score += diag5_weights[indices[0][i]]
+        score += diag6_weights[indices[1][i]]
+        score += diag7_weights[indices[2][i]]
+        score += diag8_weights[indices[3][i]]
+        score += horiz1_weights[indices[4][i]]
+        score += horiz2_weights[indices[5][i]]
+        score += horiz3_weights[indices[6][i]]
+        score += horiz4_weights[indices[7][i]]
+        score += edge2x_weights[indices[8][i]]
+        score += corner3x3_weights[indices[9][i]]
+    return score
 
-print('Loading training data...', end='...')
+def update(err, alpha, bias, indices):
+    for i in range(0, 4):
+        diag5_weights[indices[0][i]] -= err * alpha * (diag5_weights[indices[0][i]] + bias)
+        diag6_weights[indices[1][i]] -= err * alpha * (diag6_weights[indices[1][i]] + bias)
+        diag7_weights[indices[2][i]] -= err * alpha * (diag7_weights[indices[2][i]] + bias)
+        diag8_weights[indices[3][i]] -= err * alpha * (diag8_weights[indices[3][i]] + bias)
+        horiz1_weights[indices[4][i]] -= err * alpha * (horiz1_weights[indices[4][i]] + bias)
+        horiz2_weights[indices[5][i]] -= err * alpha * (horiz2_weights[indices[5][i]] + bias)
+        horiz3_weights[indices[6][i]] -= err * alpha * (horiz3_weights[indices[6][i]] + bias)
+        horiz4_weights[indices[7][i]] -= err * alpha * (horiz4_weights[indices[7][i]] + bias)
+        edge2x_weights[indices[8][i]] -= err * alpha * (edge2x_weights[indices[8][i]] + bias)
+        corner3x3_weights[indices[9][i]] -= err * alpha * (corner3x3_weights[indices[9][i]] + bias)
+
+print('Loading training data...')
 training_data_files = []
 for i in range(48, 56):
     for j in range(0, 7):
@@ -252,40 +256,92 @@ for i in range(48, 56):
 training_data = []
 num_positions = 0
 for f in training_data_files:
+    print('Loading data in file: {}'.format(f), end='...', flush=True)
     with open(f) as df:
         data = json.load(df)
         num_positions += data['num_positions']
-        training_data += list(data['positions'])
+        training_data += [(pos, get_indices(pos['dark_disks'], pos['light_disks'])) for pos in data['positions']]
+    print(' Done.')
 print('Done.')
 print('Loaded {} positions.'.format(num_positions))
 
-print('Randomizing data ordering...', end='...')
+print('Randomizing data ordering', end='...', flush=True)
 import random
 random.shuffle(training_data)
 print('Done.')
 
 import time
+import sys
 start = time.time()
 
-lossavg = 0
-count = 0
-learnrate = 5
+loss = 0
+last_loss = 10000000000000
+learnrate = 0.001
+bias = 0
+num_epochs = 10
+epoch_size = num_positions
 
-for pos in training_data:
-    indices = get_indices(pos['dark_disks'], pos['light_disks'])
-    err = (1 / num_positions) * (get_score(indices) - pos['score'])
-    update(err, learnrate, indices)
+for i in range(0, num_epochs):
+    iterstart = time.time()
 
-    lossavg += abs(get_score(indices) - pos['score'])
-    count += 1
-    if count % 10000 == 0:
-        print("Evaluated {}k Positions".format(count // 1000))
-        print("Loss over last 10k: {}".format(lossavg / 10000))
-        lossavg = 0
+    pre_epoch = [
+        np.array(diag5_weights),
+        np.array(diag6_weights),
+        np.array(diag7_weights),
+        np.array(diag8_weights),
+        np.array(horiz1_weights),
+        np.array(horiz2_weights),
+        np.array(horiz3_weights),
+        np.array(horiz4_weights),
+        np.array(edge2x_weights),
+        np.array(corner3x3_weights)
+    ]
+
+    print('Epoch {}, Learnrate {}:'.format(i, learnrate))
+    for sample in range(0, epoch_size):
+        pos, indices = training_data[sample]
+        err = (get_score(indices) - pos['score'])
+        update(err, learnrate, bias, indices)
+
+        loss += abs(get_score(indices) - pos['score'])
+
+        if sample % (epoch_size // 1000) == 0 and sample > 0:
+            completion = sample / epoch_size
+            progress_string = '\rProgress: [{0:50s}] {1:.1f}% {2:.1f} sec remaining'.format(
+                  '=' * int(completion * 50),
+                  completion * 100,
+                  ((time.time() - iterstart) / completion) * (1 - completion))
+            print('{:100s}'.format(progress_string), end='', flush=True)
+
+    done_string = '\rCompleted epoch {} with avg. loss {:.1f} in {:.1f} sec.'.format(
+          i, loss / epoch_size, time.time() - iterstart)
+    print('{:100s}'.format(done_string))
+
+    if loss < last_loss:
+        learnrate *= 1.05
+        last_loss = loss
+    elif loss > last_loss:
+        print('Loss increased. Reducing learn rate and reverting.')
+        learnrate /= 2
+        diag5_weights = pre_epoch[0]
+        diag6_weights = pre_epoch[1]
+        diag7_weights = pre_epoch[2]
+        diag8_weights = pre_epoch[3]
+        horiz1_weights = pre_epoch[4]
+        horiz2_weights = pre_epoch[5]
+        horiz3_weights = pre_epoch[6]
+        horiz4_weights = pre_epoch[7]
+        edge2x_weights = pre_epoch[8]
+        corner3x3_weights = pre_epoch[9]
+
+    loss = 0
+    bias = 0
+
+    random.shuffle(training_data)
 
 end = time.time()
 
-print('Took: {}'.format(end - start))
+print('Ran {} epochs in: {} sec'.format(num_epochs, end - start))
 
 print('Loading testing data...', end='...')
 testing_data_files = []
