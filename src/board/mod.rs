@@ -198,6 +198,8 @@ impl Board {
             }
             None => {
                 self.dark_move = !self.dark_move;
+                self.dark_moves_gen = false;
+                self.light_moves_gen = false;
                 0
             }
         }
@@ -217,11 +219,14 @@ impl Board {
                     self.light_disks &= !disk;
                 }
 
-                // self.gen_dark_moves();
-                // self.gen_light_moves();
+                self.dark_moves_gen = false;
+                self.light_moves_gen = false;
             }
             None => {
                 self.dark_move = !self.dark_move;
+
+                self.dark_moves_gen = false;
+                self.light_moves_gen = false;
             }
         }
     }
