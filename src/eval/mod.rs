@@ -19,7 +19,7 @@ pub fn do_search(board: &mut board::Board, props: &properties::Properties) -> (O
 
     eprintln!(
         "Current board score: {}",
-        score::get_score_heuristic(board, heuristic)
+        score::get_score(board, heuristic)
     );
     eprintln!("Evaluating moves with depth {}.", depth);
 
@@ -27,7 +27,7 @@ pub fn do_search(board: &mut board::Board, props: &properties::Properties) -> (O
     let (best_move, best_score, searched) = search::negamax(board, heuristic);
     let branching_factor = (searched as f32).powf(1. / depth as f32);
     eprintln!("Avg. Branching Factor ABP : {}", branching_factor);
-    
+
     // board.clear_moves();
 
     // Best Node Search

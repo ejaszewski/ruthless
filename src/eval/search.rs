@@ -39,37 +39,6 @@ pub fn negamax(board: &mut board::Board, heuristic: &properties::Heuristic) -> (
     (best_move, best_score, searched)
 }
 
-pub fn endgame_solve_result(board: &mut board::Board) -> board::GameResult {
-    let moves: Vec<Option<u8>> = board.get_moves();
-
-    let beta = 1;
-    let mut best_score = -1;
-
-    for m in &moves {
-        let undo = board.make_move(*m);
-        let (mut score, _leaves) = negamax::negamax_endgame(board, -beta, -best_score);
-        board.undo_move(undo, *m);
-
-        score = -score;
-
-        if score >= beta {
-            best_score = beta;
-            break;
-        }
-        if score > best_score {
-            best_score = score;
-        }
-    }
-
-    let result = [
-        board::GameResult::LightWin,
-        board::GameResult::Draw,
-        board::GameResult::DarkWin
-    ][(if board.dark_move { -best_score } else { best_score } + 1) as usize];
-
-    return result;
-}
-
 pub fn endgame_solve_fast(board: &mut board::Board) -> (Option<u8>, i8) {
     let mut moves: Vec<Option<u8>> = board.get_moves();
 
@@ -80,8 +49,8 @@ pub fn endgame_solve_fast(board: &mut board::Board) -> (Option<u8>, i8) {
 
     eprintln!("Running endgame solve.");
 
-    let move_map = score::get_fastest_first_map(board, &mut moves);
-    moves.sort_unstable_by(|a, b| move_map.get(a).cmp(&move_map.get(b)));
+    let ff = score::get_fastest_first_arr(board, &mut moves);
+    moves.sort_unstable_by(|a, b| ff[a.unwrap() as usize].cmp(&ff[b.unwrap() as usize]));
 
     let beta = 1;
     let mut best_score = -1;
@@ -129,8 +98,8 @@ pub fn endgame_solve_full(board: &mut board::Board) -> (Option<u8>, i8) {
 
     eprintln!("Running endgame solve.");
 
-    let move_map = score::get_fastest_first_map(board, &mut moves);
-    moves.sort_unstable_by(|a, b| move_map.get(a).cmp(&move_map.get(b)));
+    let ff = score::get_fastest_first_arr(board, &mut moves);
+    moves.sort_unstable_by(|a, b| ff[a.unwrap() as usize].cmp(&ff[b.unwrap() as usize]));
 
     let beta = 64;
     let mut best_score = -64;
@@ -187,8 +156,8 @@ pub fn best_node_search(board: &mut board::Board, heuristic: &properties::Heuris
 
     eprintln!("Current move ordering: {:?}", moves);
 
-    let mut alpha = score::get_score_heuristic(board, heuristic) - 5.;
-    let mut beta = score::get_score_heuristic(board, heuristic) + 5.;
+    let mut alpha = score::get_score(board, heuristic) - 5.;
+    let mut beta = score::get_score(board, heuristic) + 5.;
     let mut better_count = 0;
     let mut subtree_count = moves.len() as u32;
 
