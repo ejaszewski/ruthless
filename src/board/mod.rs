@@ -89,12 +89,26 @@ impl Board {
         board
     }
 
-    pub fn gen_dark_moves(&mut self) {
+    pub fn get_dark_moves(&mut self) -> u64 {
+        if !self.dark_moves_gen {
+            self.gen_dark_moves();
+        }
+        return self.dark_moves;
+    }
+
+    pub fn get_light_moves(&mut self) -> u64 {
+        if !self.light_moves_gen {
+            self.gen_light_moves();
+        }
+        return self.light_moves;
+    }
+
+    fn gen_dark_moves(&mut self) {
         self.dark_moves = util::all_moves(self.dark_disks, self.light_disks);
         self.dark_moves_gen = true;
     }
 
-    pub fn gen_light_moves(&mut self) {
+    fn gen_light_moves(&mut self) {
         self.light_moves = util::all_moves(self.light_disks, self.dark_disks);
         self.light_moves_gen = true;
     }

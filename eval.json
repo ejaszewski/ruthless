@@ -8,7 +8,10 @@
       "bias": 0,
       "material_weight": 0.5,
       "mobility_weight": 2.0,
-      "square_values": [
+      "mobility_values": [
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+      ],
+      "material_values": [
         20, -5, 5, 5, -6, 1, 1, 1, 0.5, 0.5
       ]
     },
@@ -19,7 +22,10 @@
       "bias": 0,
       "material_weight": 0.5,
       "mobility_weight": 1.5,
-      "square_values": [
+      "mobility_values": [
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+      ],
+      "material_values": [
         20, -5, 5, 5, -6, 2, 2, 2, 1.5, 1
       ]
     },
@@ -30,7 +36,10 @@
       "bias": 0,
       "material_weight": 0.5,
       "mobility_weight": 1.0,
-      "square_values": [
+      "mobility_values": [
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+      ],
+      "material_values": [
         60, -8, 10, 10, -20, 2, 2, 2, 1.5, 1
       ]
     }

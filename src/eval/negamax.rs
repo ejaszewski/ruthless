@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 use board::{Board, Position, NodeType};
 use eval::properties::Heuristic;
-use eval::{score};
+use eval::score;
 
 pub fn negamax(board: &mut Board, heuristic: &Heuristic, mut alpha: f32, beta: f32, depth: u8) -> (f32, u64) {
     if depth == 0 {
-        return (score::get_score_heuristic(board, heuristic), 1);
+        return (score::get_score(board, heuristic), 1);
     }
     let mut count = 0;
 
@@ -56,7 +56,7 @@ pub fn negamax_tpt(board: &mut Board, heuristic: &Heuristic, tpt: &mut HashMap<P
     }
 
     if depth == 0 {
-        let score = score::get_score_heuristic(board, heuristic);
+        let score = score::get_score(board, heuristic);
         return (score, 1, 0);
     }
     let mut count = 0;
@@ -129,7 +129,7 @@ pub fn negamax_endgame(board: &mut Board, mut alpha: i8, beta: i8) -> (i8, u64) 
 
 pub fn negamax_endgame_full(board: &mut Board, mut alpha: i8, beta: i8) -> (i8, u64) {
     if board.is_game_over() {
-        return (score::get_parity(board), 1);
+        return (score::get_endgame_score_full(board), 1);
     }
 
     let mut moves = board.get_moves();
