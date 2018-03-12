@@ -28,6 +28,8 @@ pub fn negamax(board: &mut board::Board, heuristic: &properties::Heuristic) -> (
         searched += leaves;
 
         if score >= beta {
+            best_move = *m;
+            best_score = score;
             break;
         }
         if score > best_score {
@@ -37,6 +39,67 @@ pub fn negamax(board: &mut board::Board, heuristic: &properties::Heuristic) -> (
     }
 
     (best_move, best_score, searched)
+}
+
+pub fn iterative_deepening(board: &mut board::Board, props: &properties::Properties, initial_depth: u8, time_allocated: f32) -> (Option<u8>, f32, u64) {
+    let mut depth = initial_depth;
+    let mut time_prediction = 0.0;
+    let mut time_spent = 0.0;
+
+    let disk_count = board.all_disks().count_ones();
+    let mut heuristic = props.get_heuristic(disk_count + depth as u32);
+
+    let mut moves = board.get_moves();
+    let mut move_map = score::get_move_map(board, &mut moves, heuristic, initial_depth / 2);
+
+    let mut searched_total = 0;
+
+    let mut best_move = moves[0];
+
+    while time_prediction < time_allocated {
+        eprint!("Evaluating at depth {}. Expecting {:.1} sec.", depth, time_prediction / 1000.);
+        let start_time = time::now();
+
+        heuristic = props.get_heuristic(disk_count + depth as u32);
+        moves.sort_unstable_by(|a, b| move_map.get(b).partial_cmp(&move_map.get(a)).unwrap());
+
+        let beta = f32::INFINITY;
+        let mut best_score = f32::NEG_INFINITY;
+        let mut searched = 0;
+
+        for m in &moves {
+            let undo = board.make_move(*m);
+            let (mut score, leaves) = negamax::negamax(board, heuristic, -beta, -best_score, depth);
+            board.undo_move(undo, *m);
+
+            score = -score;
+            searched += leaves;
+
+            move_map.insert(*m, score);
+
+            if score >= beta {
+                best_move = *m;
+                break;
+            }
+            if score > best_score {
+                best_move = *m;
+                best_score = score;
+            }
+        }
+
+        searched_total += searched;
+
+        let branching_factor = (searched as f32).powf(1.0 / depth as f32);
+        let search_time = (time::now() - start_time).num_milliseconds() as f32;
+        time_prediction = search_time * branching_factor + time_spent;
+
+        eprintln!("Done. Best Move: {}, Time Spent: {:.1}", board::util::move_string(best_move), (search_time + time_spent) / 1000.);
+
+        depth += 1;
+        time_spent += search_time;
+    }
+
+    (best_move, *(move_map.get(&best_move).unwrap()), searched_total)
 }
 
 pub fn endgame_solve_fast(board: &mut board::Board) -> (Option<u8>, i8) {

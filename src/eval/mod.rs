@@ -9,10 +9,8 @@ use std::f32;
 use board;
 use board::util;
 
-pub fn do_search(board: &mut board::Board, props: &properties::Properties) -> (Option<u8>, f32) {
+pub fn do_search(board: &mut board::Board, props: &properties::Properties, time_allocated: f32) -> (Option<u8>, f32) {
     let start_time = time::now();
-
-    eprintln!("{} moves", board.all_disks().count_ones());
 
     let heuristic = props.get_heuristic(board.all_disks().count_ones());
     let depth = heuristic.depth;
@@ -21,10 +19,10 @@ pub fn do_search(board: &mut board::Board, props: &properties::Properties) -> (O
         "Current board score: {}",
         score::get_score(board, heuristic)
     );
-    eprintln!("Evaluating moves with depth {}.", depth);
+    eprintln!("{} ms allocated for search.", time_allocated);
 
     // Standard negamax search.
-    let (best_move, best_score, searched) = search::negamax(board, heuristic);
+    let (best_move, best_score, searched) = search::iterative_deepening(board, props, 7, time_allocated);
     let branching_factor = (searched as f32).powf(1. / depth as f32);
     eprintln!("Avg. Branching Factor ABP : {}", branching_factor);
 
