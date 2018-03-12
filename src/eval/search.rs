@@ -47,9 +47,9 @@ pub fn iterative_deepening(board: &mut board::Board, props: &properties::Propert
     let mut time_spent = 0.0;
 
     let disk_count = board.all_disks().count_ones();
+    let mut heuristic = props.get_heuristic(disk_count + depth as u32);
 
     let mut moves = board.get_moves();
-    let mut heuristic = props.get_heuristic(disk_count + depth as u32);
     let mut move_map = score::get_move_map(board, &mut moves, heuristic, initial_depth / 2);
 
     let mut searched_total = 0;
@@ -57,9 +57,10 @@ pub fn iterative_deepening(board: &mut board::Board, props: &properties::Propert
     let mut best_move = moves[0];
 
     while time_prediction < time_allocated {
-        eprintln!("Evaluating at depth {}.", depth);
+        eprint!("Evaluating at depth {}. Expecting {:.1} sec.", depth, time_prediction / 1000.);
         let start_time = time::now();
 
+        heuristic = props.get_heuristic(disk_count + depth as u32);
         moves.sort_unstable_by(|a, b| move_map.get(b).partial_cmp(&move_map.get(a)).unwrap());
 
         let beta = f32::INFINITY;
@@ -88,15 +89,14 @@ pub fn iterative_deepening(board: &mut board::Board, props: &properties::Propert
 
         searched_total += searched;
 
-        eprintln!("Actual BF of {}, time of {}", (searched as f32).powf(1.0 / depth as f32), (time::now() - start_time).num_milliseconds());
+        let branching_factor = (searched as f32).powf(1.0 / depth as f32);
+        let search_time = (time::now() - start_time).num_milliseconds() as f32;
+        time_prediction = search_time * branching_factor + time_spent;
 
-        let predicted_bf = (searched as f32).powf(1.0 / depth as f32);
-        time_prediction = (time::now() - start_time).num_milliseconds() as f32 * predicted_bf + time_spent;
+        eprintln!("Done. Best Move: {}, Time Spent: {:.1}", board::util::move_string(best_move), (search_time + time_spent) / 1000.);
 
         depth += 1;
-        time_spent += (time::now() - start_time).num_milliseconds() as f32;
-
-        eprintln!("Predicting BF of {} and time of {}", predicted_bf, time_prediction);
+        time_spent += search_time;
     }
 
     (best_move, *(move_map.get(&best_move).unwrap()), searched_total)
