@@ -153,6 +153,7 @@ fn play_stdin(mut board: board::Board, properties: properties::Properties, black
 
         let x: i8 = str::parse::<i8>(line_split[0]).unwrap();
         let y: i8 = str::parse::<i8>(line_split[1]).unwrap();
+        let ms_left: i64 = str::parse::<i64>(line_split[2]).unwrap();
         if x >= 0 && y >= 0 {
             let coord: u8 = (y * 8 + x) as u8;
             board.make_move(Some(coord));
@@ -166,15 +167,16 @@ fn play_stdin(mut board: board::Board, properties: properties::Properties, black
         let y: i32;
         let best_move;
 
-        if board.all_disks().count_zeros() > 18 && !(board.all_disks().count_zeros() < 24 && last_bf < 4.0) {
-            let (best, bf) = ruthless::eval::do_search(&mut board, &properties);
+        let time_allocated = 1. / (64. - board.all_disks().count_ones() as f32) * ms_left as f32;
+
+        if board.all_disks().count_zeros() > 18 && !(board.all_disks().count_zeros() < 24 && last_bf < 3.5) {
+            let (best, bf) = ruthless::eval::do_search(&mut board, &properties, time_allocated);
             best_move = best;
             last_bf = bf;
         } else if board.all_disks().count_zeros() > 12 {
             let (best, score) = ruthless::eval::search::endgame_solve_fast(&mut board);
             if score == -1 {
-                board.clear_moves();
-                let (best, bf) = ruthless::eval::do_search(&mut board, &properties);
+                let (best, bf) = ruthless::eval::do_search(&mut board, &properties, time_allocated);
                 best_move = best;
                 last_bf = bf;
             } else {
