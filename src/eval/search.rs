@@ -41,7 +41,7 @@ pub fn negamax(board: &mut board::Board, heuristic: &properties::Heuristic) -> (
     (best_move, best_score, searched)
 }
 
-pub fn iterative_deepening(board: &mut board::Board, props: &properties::Properties, initial_depth: u8, time_allocated: f32) -> (Option<u8>, f32, u64) {
+pub fn iterative_deepening(board: &mut board::Board, props: &properties::Properties, initial_depth: u8, max_depth: u8, time_allocated: f32) -> (Option<u8>, f32, u64) {
     let mut depth = initial_depth;
     let mut time_prediction = 0.0;
     let mut time_spent = 0.0;
@@ -56,7 +56,7 @@ pub fn iterative_deepening(board: &mut board::Board, props: &properties::Propert
 
     let mut best_move = moves[0];
 
-    while time_prediction < time_allocated {
+    while time_prediction < time_allocated && depth <= max_depth {
         eprint!("Evaluating at depth {} with {}. Expecting {:.1} sec. ", depth, heuristic.id, time_prediction / 1000.);
         let start_time = time::now();
 

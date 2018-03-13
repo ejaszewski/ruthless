@@ -14,7 +14,8 @@ pub struct Heuristic {
     pub bias: f32,
     pub material_weight: f32,
     pub mobility_weight: f32,
-    pub material_values: [f32; 10],
+    pub unstable_material_values: [f32; 10],
+    pub stable_material_values: [f32; 10],
     pub mobility_values: [f32; 10],
 }
 

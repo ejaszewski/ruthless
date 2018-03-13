@@ -15,6 +15,8 @@ pub fn do_search(board: &mut board::Board, props: &properties::Properties, time_
     let heuristic = props.get_heuristic(board.all_disks().count_ones());
     let depth = heuristic.depth;
 
+    let max_depth = board.all_disks().count_zeros() as u8;
+
     eprintln!(
         "Current board score: {}",
         score::get_score(board, heuristic)
@@ -22,7 +24,7 @@ pub fn do_search(board: &mut board::Board, props: &properties::Properties, time_
     eprintln!("{} ms allocated for search.", time_allocated);
 
     // Standard negamax search.
-    let (best_move, best_score, searched) = search::iterative_deepening(board, props, 7, time_allocated);
+    let (best_move, best_score, searched) = search::iterative_deepening(board, props, 7, max_depth, time_allocated);
     let branching_factor = (searched as f32).powf(1. / depth as f32);
     eprintln!("Avg. Branching Factor ABP : {}", branching_factor);
 

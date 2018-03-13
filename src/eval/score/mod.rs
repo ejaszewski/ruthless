@@ -5,6 +5,7 @@ use std::f32;
 
 mod material;
 mod mobility;
+mod stability;
 
 /*
 Layout of these constants:
@@ -54,7 +55,7 @@ pub fn get_score(board: &mut board::Board, heuristic: &properties::Heuristic) ->
         let material_score = material::get_material_weighted(board, heuristic);
         let mobility_score = mobility::get_mobility_weighted(board, heuristic);
         score = material_score * heuristic.material_weight +
-                mobility_score * heuristic.mobility_weight;
+                mobility_score * heuristic.mobility_weight
     }
 
     if board.dark_move {
