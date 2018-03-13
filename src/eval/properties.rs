@@ -7,6 +7,7 @@ use self::serde_json::Error;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Heuristic {
+    pub id: String,
     pub min_squares: u32,
     pub max_squares: u32,
     pub depth: u8,

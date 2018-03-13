@@ -11,6 +11,7 @@ mod tests {
     #[test]
     fn test_minimax() {
         let heuristic = eval::properties::Heuristic {
+            id: String::from("stupid"),
             min_squares: 0,
             max_squares: 64,
             depth: 2,

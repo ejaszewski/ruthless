@@ -57,7 +57,7 @@ pub fn iterative_deepening(board: &mut board::Board, props: &properties::Propert
     let mut best_move = moves[0];
 
     while time_prediction < time_allocated {
-        eprint!("Evaluating at depth {}. Expecting {:.1} sec.", depth, time_prediction / 1000.);
+        eprint!("Evaluating at depth {} with {}. Expecting {:.1} sec. ", depth, heuristic.id, time_prediction / 1000.);
         let start_time = time::now();
 
         heuristic = props.get_heuristic(disk_count + depth as u32);

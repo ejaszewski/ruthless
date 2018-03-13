@@ -2,6 +2,7 @@
   "id": "fuck_ml",
   "heuristics": [
     {
+      "id": "early_game",
       "min_squares": 0,
       "max_squares": 32,
       "depth": 9,
@@ -9,24 +10,25 @@
       "mobility_weight": 3.0,
       "material_weight": 1.0,
       "mobility_values": [
-        5, 1, 3, 3, 0, 1, 1, 1, 1, 1
+        7, 1, 4, 5, 2, 0, 3, 3, 1, 1
       ],
       "material_values": [
-        20, -5, 5, 5, -6, 1, 1, 1, 0.5, 0.5
+        20, -8, 2, 4, -10, 7, 1, 1, -0.5, -0.5
       ]
     },
     {
-      "min_squares": 0,
-      "max_squares": 32,
+      "id": "endgame",
+      "min_squares": 33,
+      "max_squares": 64,
       "depth": 9,
       "bias": 0,
       "mobility_weight": 2.0,
       "material_weight": 1.5,
       "mobility_values": [
-        5, 0, 3, 3, 0, 2, 2, 2, 2, 2
+        12, 2, 3, 3, -2, 2, 2, 2, 2, 2
       ],
       "material_values": [
-        20, -5, 5, 5, -6, 1, 1, 1, 1, 1
+        30, 2, 5, 5, -20, 1, 1, 2, 3, 3
       ]
     }
   ]

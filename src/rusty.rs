@@ -4,14 +4,14 @@ extern crate time;
 extern crate serde_json;
 extern crate ruthless;
 
-use std::fs::File;
 use std::io;
-use std::io::Read;
 use std::io::BufRead;
 use std::str;
 use clap::App;
 use ruthless::{board};
 use ruthless::eval::properties;
+
+static PROPERTIES: &'static str = include_str!("../eval_new.json");
 
 fn main() {
     let matches = App::new("Rusty")
@@ -22,17 +22,9 @@ fn main() {
                               "<COLOR> 'Tells Rusty what color to play.'")
                           .get_matches();
 
-    let mut props_file = File::open("eval_new.json").unwrap();
-    let mut props_json = String::new();
-    let pr = props_file.read_to_string(&mut props_json);
-    match pr {
-        Ok(_) => {}
-        Err(_) => {}
-    }
-
     let board = board::Board::new();
     let black = matches.value_of("COLOR").unwrap() == "Black";
-    let props = properties::Properties::from_json(props_json.as_str()).expect("Invalid JSON file.");
+    let props = properties::Properties::from_json(PROPERTIES).expect("Invalid JSON file.");
     eprintln!("{:?}", props);
 
     play_stdin(board, props, black);
