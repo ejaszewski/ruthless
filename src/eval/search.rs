@@ -41,7 +41,7 @@ pub fn negamax(board: &mut board::Board, heuristic: &properties::Heuristic) -> (
     (best_move, best_score, searched)
 }
 
-pub fn iterative_deepening(board: &mut board::Board, props: &properties::Properties, initial_depth: u8, max_depth: u8, time_allocated: f32) -> (Option<u8>, f32, u64) {
+pub fn iterative_deepening(board: &mut board::Board, props: &properties::Properties, initial_depth: u8, max_depth: u8, time_allocated: f32) -> (Option<u8>, f32, u64, f32) {
     let mut depth = initial_depth;
     let mut time_prediction = 0.0;
     let mut time_spent = 0.0;
@@ -55,6 +55,8 @@ pub fn iterative_deepening(board: &mut board::Board, props: &properties::Propert
     let mut searched_total = 0;
 
     let mut best_move = moves[0];
+
+    let mut branching_factor = 0.0;
 
     while time_prediction < time_allocated && depth <= max_depth {
         eprint!("Evaluating at depth {} with {}. Expecting {:.1} sec. ", depth, heuristic.id, time_prediction / 1000.);
@@ -89,7 +91,7 @@ pub fn iterative_deepening(board: &mut board::Board, props: &properties::Propert
 
         searched_total += searched;
 
-        let branching_factor = (searched as f32).powf(1.0 / depth as f32);
+        branching_factor = (searched as f32).powf(1.0 / depth as f32);
         let search_time = (time::now() - start_time).num_milliseconds() as f32;
         time_prediction = search_time * branching_factor + time_spent;
 
@@ -99,7 +101,7 @@ pub fn iterative_deepening(board: &mut board::Board, props: &properties::Propert
         time_spent += search_time;
     }
 
-    (best_move, *(move_map.get(&best_move).unwrap()), searched_total)
+    (best_move, *(move_map.get(&best_move).unwrap()), searched_total, branching_factor)
 }
 
 pub fn endgame_solve_fast(board: &mut board::Board) -> (Option<u8>, i8) {

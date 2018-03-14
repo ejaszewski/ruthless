@@ -11,11 +11,12 @@ pub fn get_stable_squares(player: u64) -> u64 {
 
     while new_stable != 0 {
         new_stable = 0;
-        let unknown = player & !stable;
+        let mut unknown = player & !stable;
         for _i in 0..unknown.count_ones() {
             let index = unknown.leading_zeros();
             let disk = first >> index;
             let mut stable_count = 0;
+
             for ind in 0..board::constants::SHIFT_DIRS.len() {
                 let shift = board::constants::SHIFT_DIRS[ind];
                 let shift_mask = board::constants::SHIFT_MASKS[ind];
@@ -27,6 +28,7 @@ pub fn get_stable_squares(player: u64) -> u64 {
                 }
             }
 
+            unknown ^= disk;
             if stable_count >= 4 {
                 new_stable |= disk;
             }

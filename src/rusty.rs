@@ -11,7 +11,7 @@ use clap::App;
 use ruthless::{board};
 use ruthless::eval::properties;
 
-static PROPERTIES: &'static str = include_str!("../eval_new.json");
+static PROPERTIES: &'static str = include_str!("../eval_new_new.json");
 
 fn main() {
     let matches = App::new("Rusty")

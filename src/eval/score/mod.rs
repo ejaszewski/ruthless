@@ -5,7 +5,7 @@ use std::f32;
 
 mod material;
 mod mobility;
-mod stability;
+pub mod stability;
 
 /*
 Layout of these constants:

@@ -17,16 +17,12 @@ pub fn get_material_weighted(board: &board::Board, heuristic: &properties::Heuri
     let unstable_dark = board.dark_disks & !stable_dark;
     let unstable_light = board.light_disks & !stable_light;
     for &mask in score::EVAL_MASKS.iter() {
-        material_score += (
-            score::disk_count(stable_dark, mask) -
-            score::disk_count(stable_light, mask)
-        ) * heuristic.stable_material_values[index];
+        material_score += score::disk_count(stable_dark, mask) * heuristic.stable_material_values[index];
+        material_score -= score::disk_count(stable_light, mask) * heuristic.stable_material_values[index];
 
-        material_score += (
-            score::disk_count(unstable_dark, mask) -
-            score::disk_count(unstable_light, mask)
-        ) * heuristic.unstable_material_values[index];
-        
+        material_score += score::disk_count(unstable_dark, mask) * heuristic.unstable_material_values[index];
+        material_score -= score::disk_count(unstable_light, mask) * heuristic.unstable_material_values[index];
+
         index += 1;
     }
     return material_score;

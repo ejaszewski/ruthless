@@ -24,8 +24,7 @@ pub fn do_search(board: &mut board::Board, props: &properties::Properties, time_
     eprintln!("{} ms allocated for search.", time_allocated);
 
     // Standard negamax search.
-    let (best_move, best_score, searched) = search::iterative_deepening(board, props, 7, max_depth, time_allocated);
-    let branching_factor = (searched as f32).powf(1. / depth as f32);
+    let (best_move, best_score, searched, branching_factor) = search::iterative_deepening(board, props, 7, max_depth, time_allocated);
     eprintln!("Avg. Branching Factor ABP : {}", branching_factor);
 
     // board.clear_moves();

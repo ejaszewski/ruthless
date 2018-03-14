@@ -37,7 +37,7 @@ mod tests {
     }
 
     #[test]
-    fn ffo_40_fast() {
+    fn test_stability() {
         let light_disks = 0x9E7ECEDCFC1E0800;
         let dark_disks = 0x0101312303010100;
 
@@ -49,102 +49,119 @@ mod tests {
 
         let mut board = board::Board::from_train_pos(&pos);
 
-        let (best_move, score) = eval::search::endgame_solve_fast(&mut board);
-
-        assert_eq!(score, 1);
+        assert_eq!(eval::score::stability::get_stable_squares(board.dark_disks), 0x0101010101010100);
+        assert_eq!(eval::score::stability::get_stable_squares(board.light_disks), 0x8000000000000000);
     }
 
-    #[test]
-    fn ffo_40_full() {
-        let light_disks = 0x9E7ECEDCFC1E0800;
-        let dark_disks = 0x0101312303010100;
-
-        let pos = board::TrainPosition {
-            light_disks, dark_disks,
-            dark_move: true,
-            score: 0f32
-        };
-
-        let mut board = board::Board::from_train_pos(&pos);
-
-        let (best_move, score) = eval::search::endgame_solve_full(&mut board);
-
-        assert_eq!(score, 38);
-        assert!(best_move == Some(8));
-    }
-
-    #[test]
-    fn ffo_41_full() {
-        let light_disks = 0x7C3C7E0618D02472;
-        let dark_disks = 0x000200F8642C1800;
-
-        let pos = board::TrainPosition {
-            light_disks, dark_disks,
-            dark_move: true,
-            score: 0f32
-        };
-
-        let mut board = board::Board::from_train_pos(&pos);
-
-        let (best_move, score) = eval::search::endgame_solve_full(&mut board);
-
-        assert_eq!(score, 0);
-        assert!(best_move == Some(31));
-    }
-
-    #[test]
-    fn ffo_41_fast() {
-        let light_disks = 0x7C3C7E0618D02472;
-        let dark_disks = 0x000200F8642C1800;
-
-        let pos = board::TrainPosition {
-            light_disks, dark_disks,
-            dark_move: true,
-            score: 0f32
-        };
-
-        let mut board = board::Board::from_train_pos(&pos);
-
-        let (best_move, score) = eval::search::endgame_solve_fast(&mut board);
-
-        assert_eq!(score, 0);
-    }
-
-    #[test]
-    fn ffo_44_full() {
-        let light_disks = 0x222563F1F0340000;
-        let dark_disks = 0x08081C0E0CC83C1C;
-
-        let pos = board::TrainPosition {
-            light_disks, dark_disks,
-            dark_move: false,
-            score: 0f32
-        };
-
-        let mut board = board::Board::from_train_pos(&pos);
-
-        let (best_move, score) = eval::search::endgame_solve_full(&mut board);
-
-        assert_eq!(score, -14);
-        assert!(best_move == Some(57) || best_move == Some(11));
-    }
-
-    #[test]
-    fn ffo_44_fast() {
-        let light_disks = 0x222563F1F0340000;
-        let dark_disks = 0x08081C0E0CC83C1C;
-
-        let pos = board::TrainPosition {
-            light_disks, dark_disks,
-            dark_move: false,
-            score: 0f32
-        };
-
-        let mut board = board::Board::from_train_pos(&pos);
-
-        let (best_move, score) = eval::search::endgame_solve_fast(&mut board);
-
-        assert_eq!(score, -1);
-    }
+    // #[test]
+    // fn ffo_40_fast() {
+    //     let light_disks = 0x9E7ECEDCFC1E0800;
+    //     let dark_disks = 0x0101312303010100;
+    //
+    //     let pos = board::TrainPosition {
+    //         light_disks, dark_disks,
+    //         dark_move: true,
+    //         score: 0f32
+    //     };
+    //
+    //     let mut board = board::Board::from_train_pos(&pos);
+    //
+    //     let (best_move, score) = eval::search::endgame_solve_fast(&mut board);
+    //
+    //     assert_eq!(score, 1);
+    // }
+    //
+    // #[test]
+    // fn ffo_40_full() {
+    //     let light_disks = 0x9E7ECEDCFC1E0800;
+    //     let dark_disks = 0x0101312303010100;
+    //
+    //     let pos = board::TrainPosition {
+    //         light_disks, dark_disks,
+    //         dark_move: true,
+    //         score: 0f32
+    //     };
+    //
+    //     let mut board = board::Board::from_train_pos(&pos);
+    //
+    //     let (best_move, score) = eval::search::endgame_solve_full(&mut board);
+    //
+    //     assert_eq!(score, 38);
+    //     assert!(best_move == Some(8));
+    // }
+    //
+    // #[test]
+    // fn ffo_41_full() {
+    //     let light_disks = 0x7C3C7E0618D02472;
+    //     let dark_disks = 0x000200F8642C1800;
+    //
+    //     let pos = board::TrainPosition {
+    //         light_disks, dark_disks,
+    //         dark_move: true,
+    //         score: 0f32
+    //     };
+    //
+    //     let mut board = board::Board::from_train_pos(&pos);
+    //
+    //     let (best_move, score) = eval::search::endgame_solve_full(&mut board);
+    //
+    //     assert_eq!(score, 0);
+    //     assert!(best_move == Some(31));
+    // }
+    //
+    // #[test]
+    // fn ffo_41_fast() {
+    //     let light_disks = 0x7C3C7E0618D02472;
+    //     let dark_disks = 0x000200F8642C1800;
+    //
+    //     let pos = board::TrainPosition {
+    //         light_disks, dark_disks,
+    //         dark_move: true,
+    //         score: 0f32
+    //     };
+    //
+    //     let mut board = board::Board::from_train_pos(&pos);
+    //
+    //     let (best_move, score) = eval::search::endgame_solve_fast(&mut board);
+    //
+    //     assert_eq!(score, 0);
+    // }
+    //
+    // #[test]
+    // fn ffo_44_full() {
+    //     let light_disks = 0x222563F1F0340000;
+    //     let dark_disks = 0x08081C0E0CC83C1C;
+    //
+    //     let pos = board::TrainPosition {
+    //         light_disks, dark_disks,
+    //         dark_move: false,
+    //         score: 0f32
+    //     };
+    //
+    //     let mut board = board::Board::from_train_pos(&pos);
+    //
+    //     let (best_move, score) = eval::search::endgame_solve_full(&mut board);
+    //
+    //     assert_eq!(score, -14);
+    //     assert!(best_move == Some(57) || best_move == Some(11));
+    // }
+    //
+    // #[test]
+    // fn ffo_44_fast() {
+    //     let light_disks = 0x222563F1F0340000;
+    //     let dark_disks = 0x08081C0E0CC83C1C;
+    //
+    //     let pos = board::TrainPosition {
+    //         light_disks, dark_disks,
+    //         dark_move: false,
+    //         score: 0f32
+    //     };
+    //
+    //     let mut board = board::Board::from_train_pos(&pos);
+    //
+    //     let (best_move, score) = eval::search::endgame_solve_fast(&mut board);
+    //
+    //     assert_eq!(score, -1);
+    // }
 
 }

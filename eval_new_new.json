@@ -8,15 +8,15 @@
       "depth": 9,
       "bias": 0,
       "mobility_weight": 3.0,
-      "material_weight": 0.5,
+      "material_weight": 1.0,
       "mobility_values": [
-        4, 3, 4, 5, 0, 2, 3, 3, 1, 1
+        5, 1, 2, 2, -1, 1, 1, 1, 1, 1
       ],
       "unstable_material_values": [
-        80, -80, 40, 60, -100, 5, 5, 1, 1, 1
+        10, -2, 3, 5, -5, 1, 1, -1, 1, -1
       ],
       "stable_material_values": [
-        200, 100, 50, 80, 10, 10, 20, 5, 2, 2
+        20, 12, 8, 10, 8, 2, 2, 2, 3, 5
       ]
     },
     {
@@ -25,16 +25,16 @@
       "max_squares": 64,
       "depth": 9,
       "bias": 0,
-      "mobility_weight": 3.0,
-      "material_weight": 0.15,
+      "mobility_weight": 3.5,
+      "material_weight": 0.7,
       "mobility_values": [
-        12, 2, 3, 3, -2, 2, 2, 2, 2, 2
+        5, 1, 2, 2, -1, 1, 1, 1, 1, 1
       ],
       "unstable_material_values": [
-        100, -100, 120, 100, -80, 1, 1, 2, 3, 3
+        20, -2, 3, 5, -5, 1, 1, 2, 1, 2
       ],
       "stable_material_values": [
-        500, 250, 200, 200, 50, 30, 20, 20, 20, 20
+        30, 20, 10, 12, 10, 4, 4, 4, 2, 1
       ]
     }
   ]
