@@ -112,4 +112,33 @@ mod test {
         assert_eq!(super::directional_shift(x,  1), x >> 1);
         assert_eq!(super::directional_shift(x, -1), x << 1);
     }
+
+    #[test]
+    fn test_directional_moves() {
+        let player = 0x00_0C_04_04_86_04_02_00;
+        let opponent = 0x38_01_FB_7B_39_1B_1D_3C;
+
+        let results: [u64; 8] = [
+            0x00_02_02_00_02_00_00_00, 0x00_00_00_08_08_08_0A_0C,
+            0x00_00_F0_F6_70_30_38_00, 0x00_00_01_01_00_01_00_00,
+            0x00_72_30_10_00_00_00_00, 0x00_11_21_00_00_00_00_00,
+            0x00_00_00_30_70_72_34_38, 0x00_00_00_01_01_00_01_00
+        ];
+
+        let tests: Vec<(i8, u64, u64)> = (0..8).map(|i| (
+            super::SHIFT_DIRS[i], super::SHIFT_MASKS[i], results[i])
+        ).collect();
+
+        for (shift, mask, result) in tests {
+            assert_eq!(super::directional_moves(player, opponent & mask, shift), result)
+        }
+    }
+
+    #[test]
+    fn test_all_moves() {
+        let player = 0x00_0C_04_04_86_04_02_00;
+        let opponent = 0x38_01_FB_7B_39_1B_1D_3C;
+
+        assert_eq!(super::all_moves(player, opponent), 0x00_72_00_80_40_60_20_00);
+    }
 }
