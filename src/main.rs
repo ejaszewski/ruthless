@@ -1,3 +1,6 @@
+extern crate ruthless;
+
 fn main() {
-    println!("Hello, world!");
+    let board = ruthless::board::Board::new();
+    println!("{}", board);
 }
