@@ -58,12 +58,12 @@ impl fmt::Display for Move {
 
 pub struct Board {
     pub white_disks: u64,
-    light_moves: u64,
-    light_moves_gen: bool,
+    white_moves: u64,
+    white_moves_gen: bool,
     pub black_disks: u64,
-    dark_moves: u64,
-    dark_moves_gen: bool,
-    pub dark_move: bool,
+    black_moves: u64,
+    black_moves_gen: bool,
+    pub black_move: bool,
 }
 
 impl Board {
@@ -76,69 +76,63 @@ impl Board {
         black_disks |= coord_to_bitmask(String::from("e4")).unwrap();
         black_disks |= coord_to_bitmask(String::from("d5")).unwrap();
 
-        let dark_move = true;
+        let black_move = true;
 
         let mut board = Board {
             white_disks,
             black_disks,
-            dark_move,
-            light_moves: 0,
-            light_moves_gen: false,
-            dark_moves: 0,
-            dark_moves_gen: false,
+            black_move,
+            white_moves: 0,
+            white_moves_gen: false,
+            black_moves: 0,
+            black_moves_gen: false,
         };
-        board.gen_dark_moves();
+        board.gen_black_moves();
 
         board
     }
 
-    pub fn get_dark_moves(&mut self) -> u64 {
-        if !self.dark_moves_gen {
-            self.gen_dark_moves();
+    pub fn get_black_moves(&mut self) -> u64 {
+        if !self.black_moves_gen {
+            self.gen_black_moves();
         }
-        return self.dark_moves;
+        return self.black_moves;
     }
 
-    pub fn get_light_moves(&mut self) -> u64 {
-        if !self.light_moves_gen {
-            self.gen_light_moves();
+    pub fn get_white_moves(&mut self) -> u64 {
+        if !self.white_moves_gen {
+            self.gen_white_moves();
         }
-        return self.light_moves;
+        return self.white_moves;
     }
 
-    fn gen_dark_moves(&mut self) {
-        self.dark_moves = bitboard::all_moves(self.black_disks, self.white_disks);
-        self.dark_moves_gen = true;
+    fn gen_black_moves(&mut self) {
+        self.black_moves = bitboard::all_moves(self.black_disks, self.white_disks);
+        self.black_moves_gen = true;
     }
 
-    fn gen_light_moves(&mut self) {
-        self.light_moves = bitboard::all_moves(self.white_disks, self.black_disks);
-        self.light_moves_gen = true;
+    fn gen_white_moves(&mut self) {
+        self.white_moves = bitboard::all_moves(self.white_disks, self.black_disks);
+        self.white_moves_gen = true;
     }
 
-    pub fn get_moves(&mut self) -> Vec<Option<u8>> {
-        let mut all_moves = if self.dark_move {
-            if !self.dark_moves_gen {
-                self.gen_dark_moves();
-            }
-            self.dark_moves
+    pub fn get_moves(&mut self) -> Vec<Move> {
+        let mut all_moves = if self.black_move {
+            self.get_black_moves()
         } else {
-            if !self.light_moves_gen {
-                self.gen_light_moves();
-            }
-            self.light_moves
+            self.get_white_moves()
         };
 
         let num_moves = all_moves.count_ones() as usize;
-        let mut moves: Vec<Option<u8>> = Vec::with_capacity(num_moves);
+        let mut moves: Vec<Move> = Vec::with_capacity(num_moves);
 
         if all_moves == 0 {
-            moves.push(None);
+            moves.push(Move::Pass);
         } else {
             let mask = 0x80_00_00_00_00_00_00_00;
             for _i in 0..num_moves {
                 let index = all_moves.leading_zeros();
-                moves.push(Some(index as u8));
+                moves.push(Move::Play(index as u8));
                 all_moves ^= mask >> index;
             }
         }
@@ -147,36 +141,24 @@ impl Board {
     }
 
     pub fn move_count(&mut self) -> u32 {
-        if self.dark_move {
-            if !self.dark_moves_gen {
-                self.gen_dark_moves();
-            }
-            self.dark_moves.count_ones()
+        if self.black_move {
+            self.get_black_moves()
         } else {
-            if !self.light_moves_gen {
-                self.gen_light_moves();
-            }
-            self.light_moves.count_ones()
-        }
+            self.get_white_moves()
+        }.count_ones()
     }
 
     pub fn moves_exist(&mut self) -> bool {
-        if !self.dark_moves_gen {
-            self.gen_dark_moves();
-        }
-        if !self.light_moves_gen {
-            self.gen_light_moves();
-        }
-        (self.light_moves | self.dark_moves) != 0
+        (self.get_white_moves() | self.get_black_moves()) != 0
     }
 
-    pub fn make_move(&mut self, move_option: Option<u8>) -> u64 {
+    pub fn make_move(&mut self, move_option: Move) -> u64 {
         match move_option {
-            Some(m) => {
+            Move::Play(m) => {
                 let num_directions = bitboard::SHIFT_DIRS.len();
                 let disk = 0x80_00_00_00_00_00_00_00 >> m;
 
-                let (player, opponent) = if self.dark_move {
+                let (player, opponent) = if self.black_move {
                     self.black_disks |= disk;
                     (self.black_disks, self.white_disks)
                 } else {
@@ -205,51 +187,46 @@ impl Board {
 
                 self.white_disks ^= flood;
                 self.black_disks ^= flood;
-                self.dark_move = !self.dark_move;
+                self.black_move = !self.black_move;
 
-                self.dark_moves_gen = false;
-                self.light_moves_gen = false;
+                self.black_moves_gen = false;
+                self.white_moves_gen = false;
 
                 flood
             }
-            None => {
-                self.dark_move = !self.dark_move;
-                self.dark_moves_gen = false;
-                self.light_moves_gen = false;
+            Move::Pass => {
+                self.black_move = !self.black_move;
+                self.black_moves_gen = false;
+                self.white_moves_gen = false;
                 0
             }
         }
     }
 
-    pub fn undo_move(&mut self, undo: u64, move_option: Option<u8>) {
+    pub fn undo_move(&mut self, undo: u64, move_option: Move) {
         match move_option {
-            Some(m) => {
+            Move::Play(m) => {
                 self.white_disks ^= undo;
                 self.black_disks ^= undo;
-                self.dark_move = !self.dark_move;
+                self.black_move = !self.black_move;
 
                 let disk = 0x80_00_00_00_00_00_00_00 >> m;
-                if self.dark_move {
+                if self.black_move {
                     self.black_disks &= !disk;
                 } else {
                     self.white_disks &= !disk;
                 }
 
-                self.dark_moves_gen = false;
-                self.light_moves_gen = false;
+                self.black_moves_gen = false;
+                self.white_moves_gen = false;
             }
-            None => {
-                self.dark_move = !self.dark_move;
+            Move::Pass => {
+                self.black_move = !self.black_move;
 
-                self.dark_moves_gen = false;
-                self.light_moves_gen = false;
+                self.black_moves_gen = false;
+                self.white_moves_gen = false;
             }
         }
-    }
-
-    pub fn clear_moves(&mut self) {
-        self.dark_moves_gen = false;
-        self.light_moves_gen = false;
     }
 
     #[inline]
@@ -258,7 +235,7 @@ impl Board {
     }
 
     pub fn is_game_over(&mut self) -> bool {
-        self.all_disks() == 0xFF_FF_FF_FF_FF_FF_FF_FF || !self.moves_exist()
+        self.black_disks == 0 || self.white_disks == 0 || !self.moves_exist()
     }
 }
 
@@ -286,9 +263,9 @@ impl fmt::Display for Board {
                    disk_char(rank, 6), disk_char(rank, 7)).unwrap();
 
             if rank == 7 {
-                write!(f, "\n  ╚═══╧═══╧═══╧═══╧═══╧═══╧═══╧═══╝  \n").unwrap();
+                write!(f, "\n  ╚═══╧═══╧═══╧═══╧═══╧═══╧═══╧═══╝\n").unwrap();
             } else {
-                write!(f, "\n  ╟───┼───┼───┼───┼───┼───┼───┼───╢  \n").unwrap();
+                write!(f, "\n  ╟───┼───┼───┼───┼───┼───┼───┼───╢\n").unwrap();
             }
         }
         write!(f, "    A   B   C   D   E   F   G   H  ")
