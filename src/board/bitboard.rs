@@ -17,8 +17,7 @@ pub const FILE_G: u64 = 0x02_02_02_02_02_02_02_02;
 /// The 'H' file of the board.
 pub const FILE_H: u64 = 0x01_01_01_01_01_01_01_01;
 /// An array containing all 8 board file masks in order.
-pub const FILES: [u64; 8] = [
-    FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H ];
+pub const FILES: [u64; 8] = [ FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H ];
 
 /// Rank 1 of the board.
 pub const RANK_1: u64 = 0xFF_00_00_00_00_00_00_00;
@@ -37,8 +36,7 @@ pub const RANK_7: u64 = 0x00_00_00_00_00_00_FF_00;
 /// Rank 8 of the board.
 pub const RANK_8: u64 = 0x00_00_00_00_00_00_00_FF;
 /// An array containing all 8 board rank masks in order.
-pub const RANKS: [u64; 8] = [
-    RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8 ];
+pub const RANKS: [u64; 8] = [ RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8 ];
 
 /// An array containing the 8 directions and their shifts.
 /// The order is up, down, left, right, up-left, up-right, down-left, down-right.
@@ -258,7 +256,7 @@ mod test {
         ).collect();
 
         for (shift, mask, result) in tests {
-            assert_eq!(super::directional_moves(player, opponent & mask, shift), result)
+            assert_eq!(super::directional_moves(player, opponent & mask, shift), result);
         }
     }
 

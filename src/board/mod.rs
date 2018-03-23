@@ -1,6 +1,7 @@
 use std::fmt;
 
 pub mod bitboard;
+pub mod test;
 
 pub fn coord_to_bitmask(coord: String) -> Option<u64> {
     let mut chars = coord.chars();
@@ -14,7 +15,7 @@ pub fn coord_to_bitmask(coord: String) -> Option<u64> {
             'E' => bitboard::FILE_E,
             'F' => bitboard::FILE_F,
             'G' => bitboard::FILE_G,
-            'H' => bitboard::FILE_G,
+            'H' => bitboard::FILE_H,
             _ => return None,
         },
         None => return None,
