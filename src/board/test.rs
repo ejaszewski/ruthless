@@ -1,4 +1,4 @@
-use super::*;
+use super::{coord_to_bitmask, Move, Board};
 
 #[test]
 fn test_coord_to_bitmask() {
@@ -89,6 +89,7 @@ fn test_board_1() {
     board.undo_move(m, Move::Play(19));
     assert_eq!(board.black_disks, 0x00_00_00_08_10_00_00_00);
     assert_eq!(board.white_disks, 0x00_00_00_10_08_00_00_00);
+    assert_eq!(board.all_disks(), 0x00_00_00_18_18_00_00_00);
     assert_eq!(board.get_black_moves(), 0x00_00_10_20_04_08_00_00);
     assert_eq!(board.get_white_moves(), 0x00_00_08_04_20_10_00_00);
 }
@@ -102,6 +103,7 @@ fn test_board_2() {
     let m = board.make_move(Move::Play(18));
     assert_eq!(board.black_disks, 0x00_00_10_08_10_00_00_00);
     assert_eq!(board.white_disks, 0x00_00_20_10_08_00_00_00);
+    assert_eq!(board.all_disks(), 0x00_00_30_18_18_00_00_00);
 
     board.undo_move(m, Move::Play(18));
 
@@ -131,6 +133,7 @@ fn test_board_3() {
     board.make_move(Move::Play(30));
     assert_eq!(board.black_disks, 0x00_20_20_3E_38_38_00_00);
     assert_eq!(board.white_disks, 0x00_00_00_00_00_00_00_00);
+    assert_eq!(board.all_disks(), 0x00_20_20_3E_38_38_00_00);
     assert_eq!(board.get_black_moves(), 0x00_00_00_00_00_00_00_00);
     assert_eq!(board.get_white_moves(), 0x00_00_00_00_00_00_00_00);
 
@@ -179,5 +182,4 @@ fn test_board_display() {
 
     // Make sure the starting disks are correct.
     assert_eq!(format!("{}", board), display);
-
 }

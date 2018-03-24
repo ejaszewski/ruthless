@@ -1,6 +1,8 @@
 use std::fmt;
 
 pub mod bitboard;
+
+#[cfg(test)]
 pub mod test;
 
 pub fn coord_to_bitmask(coord: String) -> Option<u64> {

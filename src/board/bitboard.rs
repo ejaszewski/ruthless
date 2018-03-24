@@ -231,6 +231,7 @@ pub fn all_moves(player: u64, opponent: u64) -> u64 {
     all_moves & !(player | opponent)
 }
 
+#[cfg(test)]
 mod test {
     #[test]
     fn test_directional_shift() {
