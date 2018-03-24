@@ -1,0 +1,24 @@
+coverage:
+  precision: 2
+  round: down
+  range: "70...100"
+
+  status:
+    project:
+      default:
+        target: auto
+        threshhold: 25%
+        base: auto
+    patch:
+      default:
+        target: 90%
+        only_pulls: true
+    changes:
+      default: off
+
+comment:
+  layout: "header, reach, diff, flags, files, footer"
+  behavior: default
+  require_changes: no
+  require_base: no
+  require_head: yes
