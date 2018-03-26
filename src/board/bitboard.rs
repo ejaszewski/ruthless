@@ -45,14 +45,15 @@ pub const SHIFT_DIRS: [i8; 8] = [-8, 8, -1, 1, -9, -7, 7, 9];
 /// An array containing the 8 directions and their shift masks, used to avoid overflow or wrapping.
 /// The order is up, down, left, right, up-left, up-right, down-left, down-right.
 pub const SHIFT_MASKS: [u64; 8] = [
-    !RANK_8,
     !RANK_1,
+    !RANK_8,
     !FILE_A,
     !FILE_H,
-    !(RANK_8 | FILE_A),
-    !(RANK_8 | FILE_H),
     !(RANK_1 | FILE_A),
-    !(RANK_1 | FILE_H), ];
+    !(RANK_1 | FILE_H),
+    !(RANK_8 | FILE_A),
+    !(RANK_8 | FILE_H)
+];
 
 // Pre-calculated rays extending in each shift direction from a given spot in the board.
 pub const SHIFT_RAYS: [[u64; 8]; 64] = [
@@ -207,6 +208,7 @@ pub fn directional_moves(player: u64, mask: u64, dir: i8) -> u64 {
     let mask_2 = mask & directional_shift(mask, dir);
     let mask_4 = mask_2 & directional_shift(mask_2, 2 * dir);
 
+
     let mut flip = player;
     flip |= mask & directional_shift(flip, dir);
     flip |= mask_2 & directional_shift(flip, dir * 2);
@@ -224,8 +226,8 @@ pub fn all_moves(player: u64, opponent: u64) -> u64 {
 
     for i in 0..SHIFT_DIRS.len() {
         let shift = SHIFT_DIRS[i];
-        let mask = SHIFT_MASKS[i];
-        all_moves |= directional_moves(player, opponent & mask, shift);
+        let mask = if shift == 8 || shift == -8 { 0 } else { FILE_A | FILE_H };
+        all_moves |= directional_moves(player, opponent & !mask, shift);
     }
 
     all_moves & !(player | opponent)
