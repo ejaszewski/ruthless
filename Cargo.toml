@@ -5,3 +5,4 @@ authors = ["Ethan Jaszewski <ethanjaszewski@yahoo.com>"]
 
 [dependencies]
 time = "0.1.0"
+bitintr = "0.1.18"
