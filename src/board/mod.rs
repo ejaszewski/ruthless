@@ -47,32 +47,6 @@ pub enum Move {
     Pass
 }
 
-impl Move {
-    fn x(&self) -> u8 {
-        if let &Move::Play(m) = self {
-            7 - (m % 8)
-        } else {
-            0
-        }
-    }
-
-    fn y(&self) -> u8 {
-        if let &Move::Play(m) = self {
-            7 - (m / 8)
-        } else {
-            0
-        }
-    }
-
-    fn data(&self) -> u8 {
-        if let &Move::Play(_) = self {
-            self.y() << 3 | self.x()
-        } else {
-            0b1_000_000
-        }
-    }
-}
-
 impl fmt::Display for Move {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if let &Move::Play(play) = self {
@@ -220,7 +194,7 @@ impl Board {
                     (self.white_disks, self.black_disks)
                 };
 
-                let flood = do_moves_fast::do_move_no_asm(move_option, player, opponent);
+                let flood = do_moves_fast::do_move_no_asm(m as usize, player, opponent);
 
                 self.white_disks ^= flood;
                 self.black_disks ^= flood;
