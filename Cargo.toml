@@ -5,3 +5,7 @@ authors = ["Ethan Jaszewski <ethanjaszewski@yahoo.com>"]
 
 [dependencies]
 time = "0.1.0"
+bitintr = { version = "0.1.18", optional = true }
+
+[features]
+bmi2 = [ "bitintr" ]

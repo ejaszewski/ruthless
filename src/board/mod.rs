@@ -157,44 +157,31 @@ impl Board {
     pub fn make_move(&mut self, move_option: Move) -> u64 {
         match move_option {
             Move::Play(m) => {
-                let num_directions = bitboard::SHIFT_DIRS.len();
                 let disk = 0x80_00_00_00_00_00_00_00 >> m;
 
                 let (player, opponent) = if self.black_move {
-                    self.black_disks |= disk;
                     (self.black_disks, self.white_disks)
                 } else {
-                    self.white_disks |= disk;
                     (self.white_disks, self.black_disks)
                 };
 
-                let mut flood = 0;
-                for i in 0..num_directions {
-                    let shift = bitboard::SHIFT_DIRS[i];
-                    let prop = opponent & bitboard::SHIFT_MASKS[i] & bitboard::SHIFT_RAYS[m as usize][i];
-                    let mut temp_flood = 0;
-
-                    let mut gen = disk;
-                    let mut next = gen;
-                    while gen != 0 {
-                        temp_flood |= gen;
-                        next = bitboard::directional_shift(gen, shift);
-                        gen = next & prop;
-                    }
-
-                    if next & player != 0 {
-                        flood |= temp_flood ^ disk;
-                    }
-                }
+                let flood = bitboard::get_flip(m as usize, player, opponent);
 
                 self.white_disks ^= flood;
                 self.black_disks ^= flood;
+                if self.black_move {
+                    self.white_disks ^= disk;
+                } else {
+                    self.black_disks ^= disk;
+                }
+
                 self.black_move = !self.black_move;
+
 
                 self.black_moves_gen = false;
                 self.white_moves_gen = false;
 
-                flood
+                flood ^ disk
             }
             Move::Pass => {
                 self.black_move = !self.black_move;
