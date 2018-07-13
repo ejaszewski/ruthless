@@ -58,7 +58,7 @@ pub const SHIFT_MASKS: [u64; 8] = [
     !(RANK_8 | FILE_H)
 ];
 
-// Pre-calculated rays extending in each shift direction from a given spot in the board.
+/// Pre-calculated rays extending in each shift direction from a given spot in the board.
 pub const SHIFT_RAYS: [[u64; 8]; 64] = [
     [ 0x0000000000000000, 0x0080808080808080, 0x0000000000000000, 0x7F00000000000000,
       0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0040201008040201 ],
@@ -528,6 +528,14 @@ pub fn all_moves(player: u64, opponent: u64) -> u64 {
 }
 
 #[cfg(all(feature="bmi2", target_arch="x86_64"))]
+/// A function which generates a mask representing all of the disks that will be flipped when the
+/// given move is made. Panics if pos > 63.
+/// # Arguments:
+/// * `pos`: The position of the move being made.
+/// * `player`: The bitboard representing the player's disks.
+/// * `opponent`: The bitboard representing the opponent's disks.
+/// # Returns:
+/// * A mask of the disks flipped when the given move is made.
 pub fn get_flip(pos: usize, player: u64, opponent: u64) -> u64 {
     let masks = EXTRACT_RAYS[pos];
     const NOT_EDGES_H : u64 = !0x8181818181818181;
@@ -560,6 +568,14 @@ pub fn get_flip(pos: usize, player: u64, opponent: u64) -> u64 {
 }
 
 #[cfg(all(feature="bmi2", target_arch="x86"))]
+/// A function which generates a mask representing all of the disks that will be flipped when the
+/// given move is made. Panics if pos > 63.
+/// # Arguments:
+/// * `pos`: The position of the move being made.
+/// * `player`: The bitboard representing the player's disks.
+/// * `opponent`: The bitboard representing the opponent's disks.
+/// # Returns:
+/// * A mask of the disks flipped when the given move is made.
 pub fn get_flip(pos: usize, player: u64, opponent: u64) -> u64 {
     let masks = EXTRACT_RAYS[pos];
     const NOT_EDGES_H: u64 = !0x8181818181818181;
@@ -620,6 +636,14 @@ pub fn get_flip(pos: usize, player: u64, opponent: u64) -> u64 {
 }
 
 #[cfg(not(feature="bmi2"))]
+/// A function which generates a mask representing all of the disks that will be flipped when the
+/// given move is made. Panics if pos > 63.
+/// # Arguments:
+/// * `pos`: The position of the move being made.
+/// * `player`: The bitboard representing the player's disks.
+/// * `opponent`: The bitboard representing the opponent's disks.
+/// # Returns:
+/// * A mask of the disks flipped when the given move is made.
 pub fn get_flip(pos: usize, player: u64, opponent: u64) -> u64 {
     let disk = 0x80_00_00_00_00_00_00_00 >> pos;
     let mut flood = 0;

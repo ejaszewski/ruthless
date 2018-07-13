@@ -5,6 +5,11 @@ pub mod bitboard;
 #[cfg(test)]
 pub mod test;
 
+/// A function which generates a bitmask corresponding to the given string coordinate.
+/// # Arguments:
+/// * `coord`: String coordinate of a square on the board.
+/// # Returns:
+/// * A bitmask representing the coordinate, or None if the coordinate was invalid.
 pub fn coord_to_bitmask(coord: String) -> Option<u64> {
     let mut chars = coord.chars();
 
@@ -69,6 +74,10 @@ pub struct Board {
 }
 
 impl Board {
+    /// Creates a new board in the starting position, with white disks on d4 and e5 and black disks
+    /// on e4 and d5.
+    /// # Returns:
+    /// * A mask of the disks flipped when the given move is made.
     pub fn new() -> Board {
         let mut white_disks = 0;
         white_disks |= coord_to_bitmask(String::from("d4")).unwrap();
@@ -94,6 +103,9 @@ impl Board {
         board
     }
 
+    /// A function which generates all of the moves that black can make in the current position.
+    /// # Returns:
+    /// * A mask of the disks where black can make a move.
     pub fn get_black_moves(&mut self) -> u64 {
         if !self.black_moves_gen {
             self.gen_black_moves();
@@ -101,6 +113,9 @@ impl Board {
         return self.black_moves;
     }
 
+    /// A function which generates all of the moves that white can make in the current position.
+    /// # Returns:
+    /// * A mask of the disks where white can make a move.
     pub fn get_white_moves(&mut self) -> u64 {
         if !self.white_moves_gen {
             self.gen_white_moves();
@@ -118,6 +133,9 @@ impl Board {
         self.white_moves_gen = true;
     }
 
+    /// A function which generates all of the moves that the current player can make.
+    /// # Returns:
+    /// * A list of moves that can be made by the current player.
     pub fn get_moves(&mut self) -> Vec<Move> {
         let mut all_moves = if self.black_move {
             self.get_black_moves()
@@ -142,6 +160,9 @@ impl Board {
         moves
     }
 
+    /// A function which counts the number of moves that the current player can make.
+    /// # Returns:
+    /// * The number of moves that can be made by the current player.
     pub fn move_count(&mut self) -> u32 {
         if self.black_move {
             self.get_black_moves()
@@ -150,10 +171,17 @@ impl Board {
         }.count_ones()
     }
 
+    /// A function which determines whether a player can make moves.
+    /// # Returns:
+    /// * true if either player has moves, false otherwise.
     pub fn moves_exist(&mut self) -> bool {
         (self.get_white_moves() | self.get_black_moves()) != 0
     }
 
+    /// A function makes a move for the current player. Does not check if the move is valid in the
+    /// current position.
+    /// # Arguments:
+    /// * `move_option`: The move to make
     pub fn make_move(&mut self, move_option: Move) -> u64 {
         match move_option {
             Move::Play(m) => {
@@ -192,6 +220,10 @@ impl Board {
         }
     }
 
+    /// A function undoes a move for the current player. Does not check if the move is valid in the
+    /// current position.
+    /// # Arguments:
+    /// * `move_option`: The move to undo
     pub fn undo_move(&mut self, undo: u64, move_option: Move) {
         match move_option {
             Move::Play(m) => {
@@ -219,10 +251,16 @@ impl Board {
     }
 
     #[inline]
+    /// A function that returns a bitmask of all of the disks on the board.
+    /// # Returns:
+    /// * A bitmask containing all of the disks.
     pub fn all_disks(&self) -> u64 {
         self.white_disks | self.black_disks
     }
 
+    /// A function that checks if the game is over.
+    /// # Returns:
+    /// * true if the game is over, false otherwise
     pub fn is_game_over(&mut self) -> bool {
         self.black_disks == 0 || self.white_disks == 0 || !self.moves_exist()
     }
