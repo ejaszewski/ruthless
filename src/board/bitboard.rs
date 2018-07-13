@@ -1,7 +1,9 @@
 //! Contains a number of utility functions and constants for bitboard operations.
+#[cfg(all(target_arch="x86", target_feature="bmi2"))]
+use std::arch::x86::{ _pext_u32, _pdep_u32 };
 
-#[cfg(feature="bmi2")]
-use bitintr::x86::bmi2::{pdep, pext};
+#[cfg(all(target_arch="x86_64", target_feature="bmi2"))]
+use std::arch::x86_64::{ _pext_u64, _pdep_u64 };
 
 /// The 'A' file of the board.
 pub const FILE_A: u64 = 0x80_80_80_80_80_80_80_80;
@@ -481,6 +483,7 @@ pub const INDEXING: [(usize, usize, usize, usize); 64] = [
     (0x06, 0x07, 0x07, 0x07), (0x07, 0x07, 0x07, 0x07)
 ];
 
+
 /// A function which allows shifting a negative number of spots to the right.
 /// # Arguments
 /// * `x`: The number to shift.
@@ -527,7 +530,7 @@ pub fn all_moves(player: u64, opponent: u64) -> u64 {
     all_moves & !(player | opponent)
 }
 
-#[cfg(all(feature="bmi2", target_arch="x86_64"))]
+#[cfg(all(target_arch="x86_64", target_feature="bmi2"))]
 /// A function which generates a mask representing all of the disks that will be flipped when the
 /// given move is made. Panics if pos > 63.
 /// # Arguments:
@@ -542,15 +545,15 @@ pub fn get_flip(pos: usize, player: u64, opponent: u64) -> u64 {
     const NOT_EDGES_V : u64 = !0xFF000000000000FF;
     const NOT_EDGES_D : u64 = !0xFF818181818181FF;
 
-    let ph: u64 = pext(player, masks[0]);
-    let pv: u64 = pext(player, masks[1]);
-    let pd: u64 = pext(player, masks[2]);
-    let pa: u64 = pext(player, masks[3]);
+    let ph: u64 = _pext_u64(player, masks[0]);
+    let pv: u64 = _pext_u64(player, masks[1]);
+    let pd: u64 = _pext_u64(player, masks[2]);
+    let pa: u64 = _pext_u64(player, masks[3]);
 
-    let oh: u64 = pext(opponent, masks[0] & NOT_EDGES_H);
-    let ov: u64 = pext(opponent, masks[1] & NOT_EDGES_V);
-    let od: u64 = pext(opponent, masks[2] & NOT_EDGES_D);
-    let oa: u64 = pext(opponent, masks[3] & NOT_EDGES_D);
+    let oh: u64 = _pext_u64(opponent, masks[0] & NOT_EDGES_H);
+    let ov: u64 = _pext_u64(opponent, masks[1] & NOT_EDGES_V);
+    let od: u64 = _pext_u64(opponent, masks[2] & NOT_EDGES_D);
+    let oa: u64 = _pext_u64(opponent, masks[3] & NOT_EDGES_D);
 
     let (x, y, x2, y2) = INDEXING[pos];
 
@@ -559,15 +562,15 @@ pub fn get_flip(pos: usize, player: u64, opponent: u64) -> u64 {
     let fd = FLIP[x2][(OUTFLANK[x2][od as usize] & pd as u8) as usize];
     let fa = FLIP[y2][(OUTFLANK[y2][oa as usize] & pa as u8) as usize];
 
-    let mh = pdep(fh as u64, masks[0]);
-    let mv = pdep(fv as u64, masks[1]);
-    let md = pdep(fd as u64, masks[2]);
-    let ma = pdep(fa as u64, masks[3]);
+    let mh = _pdep_u64(fh as u64, masks[0]);
+    let mv = _pdep_u64(fv as u64, masks[1]);
+    let md = _pdep_u64(fd as u64, masks[2]);
+    let ma = _pdep_u64(fa as u64, masks[3]);
 
     (mh | mv | md | ma) as u64
 }
 
-#[cfg(all(feature="bmi2", target_arch="x86"))]
+#[cfg(all(target_arch="x86", target_feature="bmi2"))]
 /// A function which generates a mask representing all of the disks that will be flipped when the
 /// given move is made. Panics if pos > 63.
 /// # Arguments:
@@ -582,25 +585,25 @@ pub fn get_flip(pos: usize, player: u64, opponent: u64) -> u64 {
     const NOT_EDGES_V: u64 = !0xFF000000000000FF;
     const NOT_EDGES_D: u64 = !0xFF818181818181FF;
 
-    let ph0 = pext(player as u32, masks[0] as u32) as u64;
-    let pv0 = pext(player as u32, masks[1] as u32) as u64;
-    let pd0 = pext(player as u32, masks[2] as u32) as u64;
-    let pa0 = pext(player as u32, masks[3] as u32) as u64;
+    let ph0 = _pext_u32(player as u32, masks[0] as u32) as u64;
+    let pv0 = _pext_u32(player as u32, masks[1] as u32) as u64;
+    let pd0 = _pext_u32(player as u32, masks[2] as u32) as u64;
+    let pa0 = _pext_u32(player as u32, masks[3] as u32) as u64;
 
-    let ph1 = pext((player >> 32) as u32, (masks[0] >> 32) as u32) as u64;
-    let pv1 = pext((player >> 32) as u32, (masks[1] >> 32) as u32) as u64;
-    let pd1 = pext((player >> 32) as u32, (masks[2] >> 32) as u32) as u64;
-    let pa1 = pext((player >> 32) as u32, (masks[3] >> 32) as u32) as u64;
+    let ph1 = _pext_u32((player >> 32) as u32, (masks[0] >> 32) as u32) as u64;
+    let pv1 = _pext_u32((player >> 32) as u32, (masks[1] >> 32) as u32) as u64;
+    let pd1 = _pext_u32((player >> 32) as u32, (masks[2] >> 32) as u32) as u64;
+    let pa1 = _pext_u32((player >> 32) as u32, (masks[3] >> 32) as u32) as u64;
 
-    let oh0 = pext(opponent as u32, (masks[0] & NOT_EDGES_H) as u32) as u64;
-    let ov0 = pext(opponent as u32, (masks[1] & NOT_EDGES_V) as u32) as u64;
-    let od0 = pext(opponent as u32, (masks[2] & NOT_EDGES_D) as u32) as u64;
-    let oa0 = pext(opponent as u32, (masks[3] & NOT_EDGES_D) as u32) as u64;
+    let oh0 = _pext_u32(opponent as u32, (masks[0] & NOT_EDGES_H) as u32) as u64;
+    let ov0 = _pext_u32(opponent as u32, (masks[1] & NOT_EDGES_V) as u32) as u64;
+    let od0 = _pext_u32(opponent as u32, (masks[2] & NOT_EDGES_D) as u32) as u64;
+    let oa0 = _pext_u32(opponent as u32, (masks[3] & NOT_EDGES_D) as u32) as u64;
 
-    let oh1 = pext((opponent >> 32) as u32, ((masks[0] & NOT_EDGES_H) >> 32) as u32) as u64;
-    let ov1 = pext((opponent >> 32) as u32, ((masks[1] & NOT_EDGES_V) >> 32) as u32) as u64;
-    let od1 = pext((opponent >> 32) as u32, ((masks[2] & NOT_EDGES_D) >> 32) as u32) as u64;
-    let oa1 = pext((opponent >> 32) as u32, ((masks[3] & NOT_EDGES_D) >> 32) as u32) as u64;
+    let oh1 = _pext_u32((opponent >> 32) as u32, ((masks[0] & NOT_EDGES_H) >> 32) as u32) as u64;
+    let ov1 = _pext_u32((opponent >> 32) as u32, ((masks[1] & NOT_EDGES_V) >> 32) as u32) as u64;
+    let od1 = _pext_u32((opponent >> 32) as u32, ((masks[2] & NOT_EDGES_D) >> 32) as u32) as u64;
+    let oa1 = _pext_u32((opponent >> 32) as u32, ((masks[3] & NOT_EDGES_D) >> 32) as u32) as u64;
 
     let (x, y, x2, y2) = INDEXING[pos];
 
@@ -622,20 +625,20 @@ pub fn get_flip(pos: usize, player: u64, opponent: u64) -> u64 {
     let fd = FLIP[x2][(OUTFLANK[x2][od as usize] & pd as u8) as usize];
     let fa = FLIP[y2][(OUTFLANK[y2][oa as usize] & pa as u8) as usize];
 
-    let mh0 = pdep(fh as u32, masks[0] as u32) as u64;
-    let mv0 = pdep(fv as u32, masks[1] as u32) as u64;
-    let md0 = pdep(fd as u32, masks[2] as u32) as u64;
-    let ma0 = pdep(fa as u32, masks[3] as u32) as u64;
+    let mh0 = _pdep_u32(fh as u32, masks[0] as u32) as u64;
+    let mv0 = _pdep_u32(fv as u32, masks[1] as u32) as u64;
+    let md0 = _pdep_u32(fd as u32, masks[2] as u32) as u64;
+    let ma0 = _pdep_u32(fa as u32, masks[3] as u32) as u64;
 
-    let mh1 = pdep(fh as u32,                                   (masks[0] >> 32) as u32) as u64;
-    let mv1 = pdep((fv as u64 >> 4) as u32,                     (masks[1] >> 32) as u32) as u64;
-    let md1 = pdep((fd as u64 >> SHIFTS_P[7 - x + y]) as u32,   (masks[2] >> 32) as u32) as u64;
-    let ma1 = pdep((fa as u64 >> SHIFTS_P[x + y]) as u32,       (masks[3] >> 32) as u32) as u64;
+    let mh1 = _pdep_u32(fh as u32,                                 (masks[0] >> 32) as u32) as u64;
+    let mv1 = _pdep_u32((fv as u64 >> 4) as u32,                   (masks[1] >> 32) as u32) as u64;
+    let md1 = _pdep_u32((fd as u64 >> SHIFTS_P[7 - x + y]) as u32, (masks[2] >> 32) as u32) as u64;
+    let ma1 = _pdep_u32((fa as u64 >> SHIFTS_P[x + y]) as u32,     (masks[3] >> 32) as u32) as u64;
 
     (mh0 | mv0 | md0 | ma0  |  (mh1 << 32) | (mv1 << 32) | (md1 << 32) | (ma1 << 32)) as u64
 }
 
-#[cfg(not(feature="bmi2"))]
+#[cfg(not(target_feature="bmi2"))]
 /// A function which generates a mask representing all of the disks that will be flipped when the
 /// given move is made. Panics if pos > 63.
 /// # Arguments:

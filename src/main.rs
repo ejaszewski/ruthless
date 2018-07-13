@@ -1,5 +1,6 @@
 extern crate ruthless;
-extern crate time;
+
+use std::time::Instant;
 
 use ruthless::board::*;
 
@@ -9,10 +10,13 @@ fn main() {
     println!("Running perft test at depth {}.", depth);
     let mut board = Board::new();
 
-    let start_time = time::now();
+    let start_time = Instant::now();
     let nodes = perft_impl(depth, &mut board);
-    let end_time = time::now();
-    let time_taken = (end_time - start_time).num_milliseconds();
+    let end_time = Instant::now();
+
+    let duration = end_time - start_time;
+    let time_taken = duration.as_secs() as u32 * 1000 + duration.subsec_millis();
+
     let nps = nodes as f32 / time_taken as f32;
 
     println!("Perft Finished:");
