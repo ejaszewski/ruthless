@@ -1,12 +1,27 @@
+#[macro_use]
+extern crate clap;
 extern crate ruthless;
 
 use std::time::Instant;
 
+use clap::App;
 use ruthless::board::*;
 
 fn main() {
-    let depth = 11;
+    let yaml = load_yaml!("cli.yml");
+    let matches = App::from_yaml(yaml).get_matches();
 
+    if let Some(matches) = matches.subcommand_matches("perft") {
+        let depth_str = matches.value_of("DEPTH").unwrap();
+        if let Ok(depth) = depth_str.parse::<u64>() {
+            perft(depth);
+        } else {
+            panic!("DEPTH must be a positive integer.");
+        }
+    }
+}
+
+fn perft(depth: u64) {
     println!("Running perft test at depth {}.", depth);
     let mut board = Board::new();
 
