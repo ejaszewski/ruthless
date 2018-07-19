@@ -545,15 +545,15 @@ pub fn get_flip(pos: usize, player: u64, opponent: u64) -> u64 {
     const NOT_EDGES_V : u64 = !0xFF000000000000FF;
     const NOT_EDGES_D : u64 = !0xFF818181818181FF;
 
-    let ph: u64 = _pext_u64(player, masks[0]);
-    let pv: u64 = _pext_u64(player, masks[1]);
-    let pd: u64 = _pext_u64(player, masks[2]);
-    let pa: u64 = _pext_u64(player, masks[3]);
+    let ph: u64 = unsafe { _pext_u64(player, masks[0]) };
+    let pv: u64 = unsafe { _pext_u64(player, masks[1]) };
+    let pd: u64 = unsafe { _pext_u64(player, masks[2]) };
+    let pa: u64 = unsafe { _pext_u64(player, masks[3]) };
 
-    let oh: u64 = _pext_u64(opponent, masks[0] & NOT_EDGES_H);
-    let ov: u64 = _pext_u64(opponent, masks[1] & NOT_EDGES_V);
-    let od: u64 = _pext_u64(opponent, masks[2] & NOT_EDGES_D);
-    let oa: u64 = _pext_u64(opponent, masks[3] & NOT_EDGES_D);
+    let oh: u64 = unsafe { _pext_u64(opponent, masks[0] & NOT_EDGES_H) };
+    let ov: u64 = unsafe { _pext_u64(opponent, masks[1] & NOT_EDGES_V) };
+    let od: u64 = unsafe { _pext_u64(opponent, masks[2] & NOT_EDGES_D) };
+    let oa: u64 = unsafe { _pext_u64(opponent, masks[3] & NOT_EDGES_D) };
 
     let (x, y, x2, y2) = INDEXING[pos];
 
@@ -562,10 +562,10 @@ pub fn get_flip(pos: usize, player: u64, opponent: u64) -> u64 {
     let fd = FLIP[x2][(OUTFLANK[x2][od as usize] & pd as u8) as usize];
     let fa = FLIP[y2][(OUTFLANK[y2][oa as usize] & pa as u8) as usize];
 
-    let mh = _pdep_u64(fh as u64, masks[0]);
-    let mv = _pdep_u64(fv as u64, masks[1]);
-    let md = _pdep_u64(fd as u64, masks[2]);
-    let ma = _pdep_u64(fa as u64, masks[3]);
+    let mh = unsafe { _pdep_u64(fh as u64, masks[0]) };
+    let mv = unsafe { _pdep_u64(fv as u64, masks[1]) };
+    let md = unsafe { _pdep_u64(fd as u64, masks[2]) };
+    let ma = unsafe { _pdep_u64(fa as u64, masks[3]) };
 
     (mh | mv | md | ma) as u64
 }
@@ -585,25 +585,25 @@ pub fn get_flip(pos: usize, player: u64, opponent: u64) -> u64 {
     const NOT_EDGES_V: u64 = !0xFF000000000000FF;
     const NOT_EDGES_D: u64 = !0xFF818181818181FF;
 
-    let ph0 = _pext_u32(player as u32, masks[0] as u32) as u64;
-    let pv0 = _pext_u32(player as u32, masks[1] as u32) as u64;
-    let pd0 = _pext_u32(player as u32, masks[2] as u32) as u64;
-    let pa0 = _pext_u32(player as u32, masks[3] as u32) as u64;
+    let ph0 = unsafe { _pext_u32(player as u32, masks[0] as u32) as u64 };
+    let pv0 = unsafe { _pext_u32(player as u32, masks[1] as u32) as u64 };
+    let pd0 = unsafe { _pext_u32(player as u32, masks[2] as u32) as u64 };
+    let pa0 = unsafe { _pext_u32(player as u32, masks[3] as u32) as u64 };
 
-    let ph1 = _pext_u32((player >> 32) as u32, (masks[0] >> 32) as u32) as u64;
-    let pv1 = _pext_u32((player >> 32) as u32, (masks[1] >> 32) as u32) as u64;
-    let pd1 = _pext_u32((player >> 32) as u32, (masks[2] >> 32) as u32) as u64;
-    let pa1 = _pext_u32((player >> 32) as u32, (masks[3] >> 32) as u32) as u64;
+    let ph1 = unsafe { _pext_u32((player >> 32) as u32, (masks[0] >> 32) as u32) as u64 };
+    let pv1 = unsafe { _pext_u32((player >> 32) as u32, (masks[1] >> 32) as u32) as u64 };
+    let pd1 = unsafe { _pext_u32((player >> 32) as u32, (masks[2] >> 32) as u32) as u64 };
+    let pa1 = unsafe { _pext_u32((player >> 32) as u32, (masks[3] >> 32) as u32) as u64 };
 
-    let oh0 = _pext_u32(opponent as u32, (masks[0] & NOT_EDGES_H) as u32) as u64;
-    let ov0 = _pext_u32(opponent as u32, (masks[1] & NOT_EDGES_V) as u32) as u64;
-    let od0 = _pext_u32(opponent as u32, (masks[2] & NOT_EDGES_D) as u32) as u64;
-    let oa0 = _pext_u32(opponent as u32, (masks[3] & NOT_EDGES_D) as u32) as u64;
+    let oh0 = unsafe { _pext_u32(opponent as u32, (masks[0] & NOT_EDGES_H) as u32) as u64 };
+    let ov0 = unsafe { _pext_u32(opponent as u32, (masks[1] & NOT_EDGES_V) as u32) as u64 };
+    let od0 = unsafe { _pext_u32(opponent as u32, (masks[2] & NOT_EDGES_D) as u32) as u64 };
+    let oa0 = unsafe { _pext_u32(opponent as u32, (masks[3] & NOT_EDGES_D) as u32) as u64 };
 
-    let oh1 = _pext_u32((opponent >> 32) as u32, ((masks[0] & NOT_EDGES_H) >> 32) as u32) as u64;
-    let ov1 = _pext_u32((opponent >> 32) as u32, ((masks[1] & NOT_EDGES_V) >> 32) as u32) as u64;
-    let od1 = _pext_u32((opponent >> 32) as u32, ((masks[2] & NOT_EDGES_D) >> 32) as u32) as u64;
-    let oa1 = _pext_u32((opponent >> 32) as u32, ((masks[3] & NOT_EDGES_D) >> 32) as u32) as u64;
+    let oh1 = unsafe { _pext_u32((opponent >> 32) as u32, ((masks[0] & NOT_EDGES_H) >> 32) as u32) as u64 };
+    let ov1 = unsafe { _pext_u32((opponent >> 32) as u32, ((masks[1] & NOT_EDGES_V) >> 32) as u32) as u64 };
+    let od1 = unsafe { _pext_u32((opponent >> 32) as u32, ((masks[2] & NOT_EDGES_D) >> 32) as u32) as u64 };
+    let oa1 = unsafe { _pext_u32((opponent >> 32) as u32, ((masks[3] & NOT_EDGES_D) >> 32) as u32) as u64 };
 
     let (x, y, x2, y2) = INDEXING[pos];
 
@@ -625,15 +625,15 @@ pub fn get_flip(pos: usize, player: u64, opponent: u64) -> u64 {
     let fd = FLIP[x2][(OUTFLANK[x2][od as usize] & pd as u8) as usize];
     let fa = FLIP[y2][(OUTFLANK[y2][oa as usize] & pa as u8) as usize];
 
-    let mh0 = _pdep_u32(fh as u32, masks[0] as u32) as u64;
-    let mv0 = _pdep_u32(fv as u32, masks[1] as u32) as u64;
-    let md0 = _pdep_u32(fd as u32, masks[2] as u32) as u64;
-    let ma0 = _pdep_u32(fa as u32, masks[3] as u32) as u64;
+    let mh0 = unsafe { _pdep_u32(fh as u32, masks[0] as u32) as u64 };
+    let mv0 = unsafe { _pdep_u32(fv as u32, masks[1] as u32) as u64 };
+    let md0 = unsafe { _pdep_u32(fd as u32, masks[2] as u32) as u64 };
+    let ma0 = unsafe { _pdep_u32(fa as u32, masks[3] as u32) as u64 };
 
-    let mh1 = _pdep_u32(fh as u32,                                 (masks[0] >> 32) as u32) as u64;
-    let mv1 = _pdep_u32((fv as u64 >> 4) as u32,                   (masks[1] >> 32) as u32) as u64;
-    let md1 = _pdep_u32((fd as u64 >> SHIFTS_P[7 - x + y]) as u32, (masks[2] >> 32) as u32) as u64;
-    let ma1 = _pdep_u32((fa as u64 >> SHIFTS_P[x + y]) as u32,     (masks[3] >> 32) as u32) as u64;
+    let mh1 = unsafe { _pdep_u32(fh as u32,                                 (masks[0] >> 32) as u32) as u64 };
+    let mv1 = unsafe { _pdep_u32((fv as u64 >> 4) as u32,                   (masks[1] >> 32) as u32) as u64 };
+    let md1 = unsafe { _pdep_u32((fd as u64 >> SHIFTS_P[7 - x + y]) as u32, (masks[2] >> 32) as u32) as u64 };
+    let ma1 = unsafe { _pdep_u32((fa as u64 >> SHIFTS_P[x + y]) as u32,     (masks[3] >> 32) as u32) as u64 };
 
     (mh0 | mv0 | md0 | ma0  |  (mh1 << 32) | (mv1 << 32) | (md1 << 32) | (ma1 << 32)) as u64
 }
