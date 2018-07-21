@@ -6,3 +6,6 @@ authors = ["Ethan Jaszewski <ethanjaszewski@yahoo.com>"]
 [dependencies]
 
 [features]
+
+[profile.release]
+debug = true

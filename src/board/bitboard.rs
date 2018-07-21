@@ -505,7 +505,6 @@ pub fn directional_moves(player: u64, mask: u64, dir: i8) -> u64 {
     let mask_2 = mask & directional_shift(mask, dir);
     let mask_4 = mask_2 & directional_shift(mask_2, 2 * dir);
 
-
     let mut flip = player;
     flip |= mask & directional_shift(flip, dir);
     flip |= mask_2 & directional_shift(flip, dir * 2);
@@ -521,11 +520,16 @@ pub fn directional_moves(player: u64, mask: u64, dir: i8) -> u64 {
 pub fn all_moves(player: u64, opponent: u64) -> u64 {
     let mut all_moves: u64 = 0;
 
-    for i in 0..SHIFT_DIRS.len() {
-        let shift = SHIFT_DIRS[i];
-        let mask = if shift == 8 || shift == -8 { 0 } else { FILE_A | FILE_H };
-        all_moves |= directional_moves(player, opponent & !mask, shift);
-    }
+    let masked = opponent & !(FILE_A | FILE_H);
+
+    all_moves |= directional_moves(player, opponent, 8);
+    all_moves |= directional_moves(player, opponent, -8);
+    all_moves |= directional_moves(player, masked, 1);
+    all_moves |= directional_moves(player, masked, -1);
+    all_moves |= directional_moves(player, masked, 7);
+    all_moves |= directional_moves(player, masked, -7);
+    all_moves |= directional_moves(player, masked, 9);
+    all_moves |= directional_moves(player, masked, -9);
 
     all_moves & !(player | opponent)
 }
