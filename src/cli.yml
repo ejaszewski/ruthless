@@ -10,3 +10,5 @@ subcommands:
             - DEPTH:
                 help: The depth to which to run the perft test.
                 required: true
+    - play:
+        about: Basic CLI gameplay interface.

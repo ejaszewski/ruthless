@@ -45,6 +45,41 @@ pub fn coord_to_bitmask(coord: String) -> Option<u64> {
     Some(pos)
 }
 
+pub fn coord_to_move(coord: String) -> Move {
+    let mut chars = coord.chars();
+
+    let file = match chars.next() {
+        Some(c) => match c.to_uppercase().next().unwrap() {
+            'A' => 0,
+            'B' => 1,
+            'C' => 2,
+            'D' => 3,
+            'E' => 4,
+            'F' => 5,
+            'G' => 6,
+            'H' => 7,
+            _ => return Move::Pass,
+        },
+        None => return Move::Pass,
+    };
+
+    let rank = match chars.next() {
+        Some(c) => match c.to_string().parse::<u8>() {
+            Ok(r) => {
+                if r >= 1 && r <= 8 {
+                    r - 1
+                } else {
+                    return Move::Pass;
+                }
+            }
+            Err(_) => return Move::Pass,
+        },
+        None => return Move::Pass,
+    };
+
+    Move::Play(file + rank * 8)
+}
+
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Move {
     Play(u8),
@@ -63,6 +98,7 @@ impl fmt::Display for Move {
     }
 }
 
+#[derive(Clone)]
 pub struct Board {
     pub white_disks: u64,
     white_moves: u64,
