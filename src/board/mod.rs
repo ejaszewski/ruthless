@@ -103,6 +103,18 @@ impl Board {
         board
     }
 
+    pub fn from_pos(black_disks: u64, white_disks: u64, black_move: bool) -> Board {
+        Board {
+            white_disks,
+            black_disks,
+            black_move,
+            white_moves: 0,
+            white_moves_gen: false,
+            black_moves: 0,
+            black_moves_gen: false,
+        }
+    }
+
     /// A function which generates all of the moves that black can make in the current position.
     /// # Returns:
     /// * A mask of the disks where black can make a move.
@@ -169,6 +181,37 @@ impl Board {
         } else {
             self.get_white_moves()
         }.count_ones()
+    }
+
+    pub fn move_count_after(&mut self, move_option: Move) -> u32 {
+        match move_option {
+            Move::Play(m) => {
+                let disk = 0x80_00_00_00_00_00_00_00 >> m;
+
+                let (player, opponent) = if self.black_move {
+                    (self.black_disks, self.white_disks)
+                } else {
+                    (self.white_disks, self.black_disks)
+                };
+
+                let flood = bitboard::get_flip(m as usize, player, opponent);
+
+                let white = self.white_disks ^ flood;
+                let black = self.black_disks ^ flood;
+                if self.black_move {
+                    bitboard::all_moves(white ^ disk, black).count_ones()
+                } else {
+                    bitboard::all_moves(black ^ disk, white).count_ones()
+                }
+            }
+            Move::Pass => {
+                if self.black_move {
+                    self.get_white_moves()
+                } else {
+                    self.get_black_moves()
+                }.count_ones()
+            }
+        }
     }
 
     /// A function which determines whether a player can make moves.
