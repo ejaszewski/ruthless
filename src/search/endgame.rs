@@ -138,7 +138,7 @@ mod test {
     }
 
     #[test]
-    // #[ignore]
+    #[ignore]
     fn ffo_pos_41() {
         let mut board = Board::from_pos(0x000200F8642C1800, 0x7C3C7E0618D02472, true);
 
@@ -171,6 +171,7 @@ mod test {
     }
 
     #[test]
+    #[ignore]
     fn ffo_pos_46() {
         let mut board = Board::from_pos(0x1C04060703173078, 0x003838783C280C02, true);
 
