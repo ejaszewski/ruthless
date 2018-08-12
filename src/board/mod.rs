@@ -309,6 +309,39 @@ impl Board {
     }
 }
 
+impl fmt::Debug for Board {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "  A B C D E F G H \t  A B C D E F G H \n").unwrap();
+
+        let disk_char = | r: usize, f: usize, black: bool | {
+            let disk = bitboard::RANKS[r] & bitboard::FILES[f];
+            if self.black_disks & disk > 0 && black {
+                "#"
+            } else if self.white_disks & disk > 0 && !black {
+                "#"
+            } else {
+                "-"
+            }
+        };
+
+        for rank in 0..8 {
+            write!(f, "{} {} {} {} {} {} {} {} {}", rank + 1,
+                   disk_char(rank, 0, true), disk_char(rank, 1, true),
+                   disk_char(rank, 2, true), disk_char(rank, 3, true),
+                   disk_char(rank, 4, true), disk_char(rank, 5, true),
+                   disk_char(rank, 6, true), disk_char(rank, 7, true)).unwrap();
+            write!(f, "\t").unwrap();
+            write!(f, "{} {} {} {} {} {} {} {} {}", rank + 1,
+                   disk_char(rank, 0, false), disk_char(rank, 1, false),
+                   disk_char(rank, 2, false), disk_char(rank, 3, false),
+                   disk_char(rank, 4, false), disk_char(rank, 5, false),
+                   disk_char(rank, 6, false), disk_char(rank, 7, false)).unwrap();
+            write!(f, "\n").unwrap();
+        }
+        write!(f, "       BLACK      \t       WHITE      ")
+    }
+}
+
 impl fmt::Display for Board {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "    A   B   C   D   E   F   G   H  \n").unwrap();
