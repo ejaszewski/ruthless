@@ -1,4 +1,4 @@
-use super::{coord_to_bitmask, Move, Board};
+use super::{coord_to_bitmask, coord_to_move, Move, Board};
 
 #[test]
 fn test_coord_to_bitmask() {
@@ -18,7 +18,41 @@ fn test_coord_to_bitmask() {
     assert_eq!(coord_to_bitmask(String::from("a9")), None);
     assert_eq!(coord_to_bitmask(String::from("ab")), None);
     assert_eq!(coord_to_bitmask(String::from("a")), None);
+}
 
+#[test]
+fn test_coord_to_move() {
+    // Testing each file.
+    assert_eq!(coord_to_move(String::from("a1")), Move::Play(0));
+    assert_eq!(coord_to_move(String::from("b2")), Move::Play(9));
+    assert_eq!(coord_to_move(String::from("c3")), Move::Play(18));
+    assert_eq!(coord_to_move(String::from("d4")), Move::Play(27));
+    assert_eq!(coord_to_move(String::from("e5")), Move::Play(36));
+    assert_eq!(coord_to_move(String::from("f6")), Move::Play(45));
+    assert_eq!(coord_to_move(String::from("g7")), Move::Play(54));
+    assert_eq!(coord_to_move(String::from("h8")), Move::Play(63));
+
+    // Testing all possible failure modes.
+    assert_eq!(coord_to_move(String::from("")), Move::Pass);
+    assert_eq!(coord_to_move(String::from("j1")), Move::Pass);
+    assert_eq!(coord_to_move(String::from("a9")), Move::Pass);
+    assert_eq!(coord_to_move(String::from("ab")), Move::Pass);
+    assert_eq!(coord_to_move(String::from("a")), Move::Pass);
+}
+
+#[test]
+fn test_board_derives() {
+    let mut board = Board::new();
+    let clone = board.clone();
+
+    // TODO: Change to assert_eq! once we have the Debug format.
+    assert!(board == board);
+    assert!(board == clone);
+    assert!(clone == board);
+
+    board.make_move(coord_to_move(String::from("d3")));
+    assert!(board != clone);
+    assert!(board == board);
 }
 
 #[test]

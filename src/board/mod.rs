@@ -45,6 +45,11 @@ pub fn coord_to_bitmask(coord: String) -> Option<u64> {
     Some(pos)
 }
 
+/// A function which generates a bitmask corresponding to the given string coordinate.
+/// # Arguments:
+/// * `coord`: String coordinate of a square on the board.
+/// # Returns:
+/// * A Move, Play if the coord is valid, Pass otherwise.
 pub fn coord_to_move(coord: String) -> Move {
     let mut chars = coord.chars();
 
@@ -98,7 +103,7 @@ impl fmt::Display for Move {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Board {
     pub white_disks: u64,
     white_moves: u64,
