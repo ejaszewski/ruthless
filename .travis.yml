@@ -39,5 +39,5 @@ script:
   - cargo test  --release --verbose
 
 after_success:
-  - cargo coverage
+  - cargo coverage --release
   - bash <(curl -s https://codecov.io/bash)
