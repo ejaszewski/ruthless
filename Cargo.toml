@@ -7,3 +7,6 @@ authors = ["Ethan Jaszewski <ethanjaszewski@yahoo.com>"]
 clap = {version = "2.32", features = ["yaml"]}
 
 [features]
+
+[profile.release]
+debug = true
