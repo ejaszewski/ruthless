@@ -52,7 +52,7 @@ fn play() {
             if split[0] == "exit" {
                 break;
             } else if split[0] == "play" {
-                let m = board::coord_to_move(split[1].to_string());
+                let m = Move::from_coord(split[1].to_string());
 
                 if board.get_moves().contains(&m) {
                     println!("Playing move: {}", m);

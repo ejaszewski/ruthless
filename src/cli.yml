@@ -2,6 +2,8 @@ name: ruthless
 version: "0.1.0"
 author: Ethan Jaszewski <ethanjaszewski@yahoo.com>
 about: An Othello/Reversi AI.
+settings:
+  - SubcommandRequiredElseHelp
 args:
 subcommands:
     - perft:
