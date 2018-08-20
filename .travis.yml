@@ -39,5 +39,5 @@ script:
   - cargo test  --release --verbose
 
 after_success:
-  - cargo coverage --release -- --exclude-region='#[cfg(test)]'
+  - cargo coverage --release
   - bash <(curl -s https://codecov.io/bash)
