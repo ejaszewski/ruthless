@@ -1,0 +1,16 @@
+name: ruthless
+version: "0.1.0"
+author: Ethan Jaszewski <ethanjaszewski@yahoo.com>
+about: An Othello/Reversi AI.
+settings:
+  - SubcommandRequiredElseHelp
+args:
+subcommands:
+    - perft:
+        about: Runs a perft test to the specified depth.
+        args:
+            - DEPTH:
+                help: The depth to which to run the perft test.
+                required: true
+    - play:
+        about: Basic CLI gameplay interface.
