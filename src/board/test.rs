@@ -41,14 +41,24 @@ fn test_coord_to_move() {
 }
 
 #[test]
+fn test_move_count_after() {
+    // This is a very minimal test case, since this gets called a lot by the FFO tests.
+    let mut board = Board::from_pos(0x00FF000000000000, 0xFF00000000000000, true);
+    assert_eq!(board.move_count_after(Move::Pass), 8);
+
+    // This is a very minimal test case, since this gets called a lot by the FFO tests.
+    let mut board = Board::from_pos(0xFF00000000000000, 0x00FF000000000000, false);
+    assert_eq!(board.move_count_after(Move::Pass), 8);
+}
+
+#[test]
 fn test_board_derives() {
     let mut board = Board::new();
     let clone = board.clone();
 
-    // TODO: Change to assert_eq! once we have the Debug format.
-    assert!(board == board);
-    assert!(board == clone);
-    assert!(clone == board);
+    assert_eq!(board, board);
+    assert_eq!(board, clone);
+    assert_eq!(clone, board);
 
     board.make_move(Move::from_coord(String::from("d3")));
     assert!(board != clone);
@@ -216,4 +226,22 @@ fn test_board_display() {
 
     // Make sure the starting disks are correct.
     assert_eq!(format!("{}", board), display);
+}
+
+#[test]
+fn test_board_debug() {
+    let board = Board::new();
+
+    let debug = "  A B C D E F G H 	  A B C D E F G H \
+\n1 - - - - - - - -	1 - - - - - - - -
+2 - - - - - - - -	2 - - - - - - - -
+3 - - - - - - - -	3 - - - - - - - -
+4 - - - - # - - -	4 - - - # - - - -
+5 - - - # - - - -	5 - - - - # - - -
+6 - - - - - - - -	6 - - - - - - - -
+7 - - - - - - - -	7 - - - - - - - -
+8 - - - - - - - -	8 - - - - - - - -
+       BLACK      	       WHITE      ";
+
+    assert_eq!(format!("{:?}", board), debug);
 }

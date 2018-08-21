@@ -79,3 +79,22 @@ fn endgame_negamax(board: &mut Board, mut alpha: i8, beta: i8, wld: bool) -> (i8
 
     (alpha, total_nodes)
 }
+
+#[cfg(test)]
+mod test {
+    use board::{ Board, Move };
+
+    #[test]
+    fn ffo_simplified_40() {
+        let mut board = Board::from_pos(0x0101312303010100, 0x9E7ECEDCFC1E0800, true);
+
+        board.make_move(Move::Play(8));
+        board.make_move(Move::Play(1));
+
+        assert_eq!(super::endgame_solve(&mut board, true).0, 1);
+
+        let (score, m) = super::endgame_solve(&mut board, false);
+        assert_eq!(score, 38);
+        assert_eq!(m, Move::Play(2));
+    }
+}
