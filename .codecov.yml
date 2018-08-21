@@ -25,4 +25,5 @@ comment:
 
 ignore:
   - "src/main.rs"
+  - "src/**/*test.rs"
   - "src/experimental/*"

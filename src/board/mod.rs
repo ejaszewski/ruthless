@@ -146,6 +146,18 @@ impl Board {
         board
     }
 
+    pub fn from_pos(black_disks: u64, white_disks: u64, black_move: bool) -> Board {
+        Board {
+            white_disks,
+            black_disks,
+            black_move,
+            white_moves: 0,
+            white_moves_gen: false,
+            black_moves: 0,
+            black_moves_gen: false,
+        }
+    }
+
     /// A function which generates all of the moves that black can make in the current position.
     /// # Returns:
     /// * A mask of the disks where black can make a move.
@@ -212,6 +224,37 @@ impl Board {
         } else {
             self.get_white_moves()
         }.count_ones()
+    }
+
+    pub fn move_count_after(&mut self, move_option: Move) -> u32 {
+        match move_option {
+            Move::Play(m) => {
+                let disk = 0x80_00_00_00_00_00_00_00 >> m;
+
+                let (player, opponent) = if self.black_move {
+                    (self.black_disks, self.white_disks)
+                } else {
+                    (self.white_disks, self.black_disks)
+                };
+
+                let flood = bitboard::get_flip(m as usize, player, opponent);
+
+                let white = self.white_disks ^ flood;
+                let black = self.black_disks ^ flood;
+                if self.black_move {
+                    bitboard::all_moves(white ^ disk, black).count_ones()
+                } else {
+                    bitboard::all_moves(black ^ disk, white).count_ones()
+                }
+            }
+            Move::Pass => {
+                if self.black_move {
+                    self.get_white_moves()
+                } else {
+                    self.get_black_moves()
+                }.count_ones()
+            }
+        }
     }
 
     /// A function which determines whether a player can make moves.
@@ -306,6 +349,43 @@ impl Board {
     /// * true if the game is over, false otherwise
     pub fn is_game_over(&mut self) -> bool {
         self.black_disks == 0 || self.white_disks == 0 || !self.moves_exist()
+    }
+
+    pub fn get_score(&self) -> i8 {
+        self.black_disks.count_ones() as i8 - self.white_disks.count_ones() as i8
+    }
+}
+
+impl fmt::Debug for Board {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "  A B C D E F G H \t  A B C D E F G H \n").unwrap();
+
+        let disk_char = | r: usize, f: usize, black: bool | {
+            let disk = bitboard::RANKS[r] & bitboard::FILES[f];
+            if self.black_disks & disk > 0 && black {
+                "#"
+            } else if self.white_disks & disk > 0 && !black {
+                "#"
+            } else {
+                "-"
+            }
+        };
+
+        for rank in 0..8 {
+            write!(f, "{} {} {} {} {} {} {} {} {}", rank + 1,
+                   disk_char(rank, 0, true), disk_char(rank, 1, true),
+                   disk_char(rank, 2, true), disk_char(rank, 3, true),
+                   disk_char(rank, 4, true), disk_char(rank, 5, true),
+                   disk_char(rank, 6, true), disk_char(rank, 7, true)).unwrap();
+            write!(f, "\t").unwrap();
+            write!(f, "{} {} {} {} {} {} {} {} {}", rank + 1,
+                   disk_char(rank, 0, false), disk_char(rank, 1, false),
+                   disk_char(rank, 2, false), disk_char(rank, 3, false),
+                   disk_char(rank, 4, false), disk_char(rank, 5, false),
+                   disk_char(rank, 6, false), disk_char(rank, 7, false)).unwrap();
+            write!(f, "\n").unwrap();
+        }
+        write!(f, "       BLACK      \t       WHITE      ")
     }
 }
 
