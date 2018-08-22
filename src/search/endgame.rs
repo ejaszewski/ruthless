@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use ::board::{ Board, Move };
 
-pub fn endgame_solve(board: &mut Board, wld: bool) -> (i8, Move) {
+pub fn endgame_solve(board: &mut Board, wld: bool) -> (i32, Move) {
     let start_time = Instant::now();
     let mut total_nodes = 0;
 
@@ -43,7 +43,7 @@ pub fn endgame_solve(board: &mut Board, wld: bool) -> (i8, Move) {
     return (best_score, best_move);
 }
 
-fn endgame_negamax(board: &mut Board, mut alpha: i8, beta: i8, wld: bool) -> (i8, u64) {
+fn endgame_negamax(board: &mut Board, mut alpha: i32, beta: i32, wld: bool) -> (i32, u64) {
     if board.is_game_over() {
         let score = if board.black_move { board.get_score() } else { -board.get_score() };
         if wld {
