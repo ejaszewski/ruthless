@@ -20,7 +20,7 @@ pub fn negamax<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &T) -> (i3
         let start_time = Instant::now();
 
         let undo = board.make_move(m);
-        let (mut result, nodes) = negamax_impl(board, -beta, -best_score, depth - 1, evaluator);
+        let (mut result, nodes) = negamax_impl(board, -beta, best_score, depth - 1, evaluator);
         board.undo_move(undo, m);
 
         result = -result;
@@ -42,8 +42,6 @@ pub fn negamax<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &T) -> (i3
             best_score = result;
         }
     }
-
-
 
     return (best_score, best_move);
 }
