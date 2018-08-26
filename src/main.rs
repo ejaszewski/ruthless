@@ -7,7 +7,7 @@ use std::time::Instant;
 
 use clap::App;
 use ruthless::board::{ self, Move };
-use ruthless::search::{ endgame, negamax, eval::PieceSquareEvaluator };
+use ruthless::search::{ endgame, negamax, bns, eval::PieceSquareEvaluator };
 
 fn main() {
     let yaml = load_yaml!("cli.yml");
@@ -81,7 +81,15 @@ fn play() {
                 // Get the best move.
                 let (score, best_move) = if depth < board.all_disks().count_zeros() as u8 {
                     // If the search is not full depth, then run a normal search.
-                    negamax::negamax(&mut board, depth, &PieceSquareEvaluator::new())
+                    if let Some(&alg) = split.get(2) {
+                        match alg {
+                            "nm" => negamax::negamax(&mut board, depth, &PieceSquareEvaluator::new()),
+                            "bns" => bns::best_node_search(&mut board, depth, &PieceSquareEvaluator::new()),
+                            _ => negamax::negamax(&mut board, depth, &PieceSquareEvaluator::new())
+                        }
+                    } else {
+                        negamax::negamax(&mut board, depth, &PieceSquareEvaluator::new())
+                    }
                 } else {
                     // If the search will be full-depth, then just endgame solve.
                     endgame::endgame_solve(&mut board, false)
@@ -93,7 +101,7 @@ fn play() {
                 undo_stack.push((undo_info, best_move));
             } else {
                 println!("Invalid action. Must be one of:");
-                let actions = vec![ "play <coord>", "go <depth>", "undo", "exit" ];
+                let actions = vec![ "play <coord>", "go [depth] [algorithm]", "undo", "exit" ];
                 for action in actions {
                     println!("  - {}", action);
                 }
