@@ -19,32 +19,28 @@ pub fn best_node_search<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &
 
     println!("Running BNS:");
 
-    let moves = board.get_moves();
-    let mut best_move = moves[0];
+    let mut moves = board.get_moves();
 
     while beta - alpha >= 2 && better != 1 {
         let guess = next_guess(alpha, beta, better);
-        let mut better_count = 0;
 
         print!("  - α: {}, β: {}, G: {}", alpha, beta, guess);
         io::stdout().flush().expect("asdf");
 
-        for m in &moves {
+        let filtered: Vec<Move> = moves.iter().filter(| &m | {
             let undo = board.make_move(*m);
             let (mut result, nodes) = negamax_impl(board, -guess, -(guess - 1), depth - 1, evaluator);
             board.undo_move(undo, *m);
 
             result = -result;
 
-            if result >= guess {
-                better_count += 1;
-                best_move = *m;
-            }
-        }
+            result >= guess
+        }).map(|m| *m).collect();
 
-        if better_count >= 1 {
+        if filtered.len() >= 1 {
             alpha = guess;
-            better = better_count;
+            better = filtered.len() as u32;
+            moves = filtered;
         } else {
             beta = guess;
         }
@@ -52,5 +48,5 @@ pub fn best_node_search<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &
         println!(" -- Better: {}", better);
     }
 
-    (alpha, best_move)
+    (alpha, moves[0])
 }
