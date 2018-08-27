@@ -1,3 +1,18 @@
+//! Contains an implementation of the Negamax search algorithm with Alpha-Beta pruning.
+//! # Implementation:
+//! The algorithm used is a standard implementation of Negamax, which returns a score relative to
+//! the side playing (positive for winning, negative for losing). Both the root negamax (`negamax`)
+//! and implementation (`negamax_impl`) also have alpha-beta puning.
+//!
+//! The root method begins with upper and lower bounds of `i32::MAX` and `-i32::MAX` for the score,
+//! respectively, and runs a negamax search on each move in the position, to determine the score
+//! for each move. The lower bound is tweaked after each search to minimize the search window, so
+//! an accurate score is guaranteed only for the best move, but all moves will be searched.
+//!
+//! The implementation Negamax uses the provided upper and lower bounds, tweaking appropriately, so
+//! is not guaranteed to search every move in the position. Scores must be in the range [`alpha`,
+//! `beta`], so alpha-cutoffs will return alpha, while beta-cutoffs will return beta.
+
 use std::i32;
 use std::io::{ self, Write };
 use std::time::Instant;
@@ -5,6 +20,15 @@ use std::time::Instant;
 use ::board::{ Board, Move };
 use ::search::eval::Evaluator;
 
+/// A Negamax implementation which returns the best move for a curent position, along with score.
+/// This function should be called only if the best move is what is desired. Prints information
+/// about the search to stdout.
+/// # Arguments:
+/// * `board`: Board to search.
+/// * `depth`: Depth to search to.
+/// * `evaluator`: Evaluator to use for position evaluation at a leaf.
+/// # Returns:
+/// * A tuple containing the score of the best move and the best move.
 pub fn negamax<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &T) -> (i32, Move) {
     let mut moves = board.get_moves();
     moves.sort_unstable_by_key(|&m| board.move_count_after(m)); // TODO: Better move ordering.
@@ -20,7 +44,7 @@ pub fn negamax<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &T) -> (i3
         let start_time = Instant::now();
 
         let undo = board.make_move(m);
-        let (mut result, nodes) = negamax_impl(board, -beta, best_score, depth - 1, evaluator);
+        let (mut result, nodes) = negamax_impl(board, -beta, -best_score, depth - 1, evaluator);
         board.undo_move(undo, m);
 
         result = -result;
@@ -46,6 +70,17 @@ pub fn negamax<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &T) -> (i3
     return (best_score, best_move);
 }
 
+/// A Negamax implementation which returns the score of the best move in current position for the
+/// current player. Evaluates score whenever the depth limit is hit or the game is over. Scores
+/// returned are always in the range [`alpha`, `beta`].
+/// # Arguments:
+/// * `board`: Board to search.
+/// * `depth`: Depth to search to.
+/// * `alpha`: Alpha-cutoff.
+/// * `beta`: Beta-cutoff.
+/// * `evaluator`: Evaluator to use for position evaluation at a leaf.
+/// # Returns:
+/// * A tuple containing the score of the best move and the number of nodes searched.
 pub fn negamax_impl<T: Evaluator>(board: &mut Board, mut alpha: i32, beta: i32, depth: u8, evaluator: &T) -> (i32, u64) {
     if board.is_game_over() || depth == 0 {
         return (evaluator.get_score(board), 1);

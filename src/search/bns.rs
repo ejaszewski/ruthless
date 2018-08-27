@@ -1,3 +1,29 @@
+//! Contains an implementation of Best Node Search, a fuzzy search algorithm, which uses multiple
+//! zero-window Negamax calls to find the best move.
+//!
+//! # Algorithm:
+//! Best Node Search is an algorithm detailed in 2011 which uses several zero-window Negamax
+//! searches to find the best move. It is a "fuzzified" algorithm, meaning that it doesn't
+//! necessarily find the exact score for any of the moves, but instead determines which move is
+//! best by finding the score which only one move exceeds. This is done by setting search bounds,
+//! guessing what score will separate one move, then performing zero-window searches on each move.
+//! The bounds and guess are tweaked, and the process is repeated until the best move is found.
+//!
+//! This algorithm is a theoretical improvement over standard Negamax and NegaScout because with a
+//! relatively accurate guess, multiple moves can be discarded with a relatively fast zero-window
+//! search. The algorithm benefits from accurate upper and lower bounds, and statistical tuning of
+//! guessing from the bounds.
+//!
+//! # Implementation:
+//! The Best Node Search implemented in this module is a slight modification of the one presented
+//! in the original paper, with some small improvements. It uses the negamax implementation from
+//! the `negamax` package for its zero-window searches. The main modification made to the
+//! implementation described in the paper is that moves which are below a cutoff are discarded as
+//! long as at least one move is greater than the cutoff. This means that once a move is known to
+//! not be the best, it is never searched again.
+
+// TODO: Get link to paper on BNS
+
 use std::i32;
 use std::io::{ self, Write };
 use std::time::Instant;
@@ -7,6 +33,15 @@ use ::search::eval::Evaluator;
 
 pub use ::search::negamax::negamax_impl;
 
+/// A BNS implementation which returns the best move for a curent position, along with score.
+/// This function should be called only if the best move is what is desired. Prints information
+/// about the search to stdout.
+/// # Arguments:
+/// * `board`: Board to search.
+/// * `depth`: Depth to search to.
+/// * `evaluator`: Evaluator to use for position evaluation at a leaf.
+/// # Returns:
+/// * A tuple containing the score of the best move and the best move.
 pub fn best_node_search<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &T) -> (i32, Move) {
     let next_guess = | a: i32, b: i32, count: u32 | {
         a + ((b - a) as f32 * ((count as f32 - 1.0) / count as f32)) as i32
