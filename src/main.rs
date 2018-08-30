@@ -7,6 +7,7 @@ use std::time::Instant;
 
 use clap::App;
 use ruthless::board::{ self, Move };
+use ruthless::search::{ endgame, negamax, bns, eval::PieceSquareEvaluator };
 
 fn main() {
     let yaml = load_yaml!("cli.yml");
@@ -32,7 +33,7 @@ fn play() {
     let mut undo_stack: Vec<(u64, Move)> = Vec::new();
 
     let print_info = |b: &mut board::Board| {
-        println!("{}", b);
+        println!("\n{}", b);
         print!("Playable Moves:\n\t");
         for m in b.get_moves() {
             print!("{} ", m);
@@ -70,9 +71,37 @@ fn play() {
                 } else {
                     println!("No moves to undo!");
                 }
+            } else if split[0] == "go" {
+                // Get the search depth
+                let depth = match split.get(1) {
+                    Some(dep) => match dep.parse::<u8>() { Ok(x) => x, _ => 8 },
+                    None => 8
+                };
+
+                // Get the best move.
+                let (score, best_move) = if depth < board.all_disks().count_zeros() as u8 {
+                    // If the search is not full depth, then run a normal search.
+                    if let Some(&alg) = split.get(2) {
+                        match alg {
+                            "nm" => negamax::negamax(&mut board, depth, &PieceSquareEvaluator::new()),
+                            "bns" => bns::best_node_search(&mut board, depth, &PieceSquareEvaluator::new()),
+                            _ => negamax::negamax(&mut board, depth, &PieceSquareEvaluator::new())
+                        }
+                    } else {
+                        negamax::negamax(&mut board, depth, &PieceSquareEvaluator::new())
+                    }
+                } else {
+                    // If the search will be full-depth, then just endgame solve.
+                    endgame::endgame_solve(&mut board, false)
+                };
+
+                println!("Computer is playing {}, which had score {}.", best_move, score);
+                // Make move and save undo information.
+                let undo_info = board.make_move(best_move);
+                undo_stack.push((undo_info, best_move));
             } else {
                 println!("Invalid action. Must be one of:");
-                let actions = vec![ "play <coord>", "undo", "exit" ];
+                let actions = vec![ "play <coord>", "go [depth] [algorithm]", "undo", "exit" ];
                 for action in actions {
                     println!("  - {}", action);
                 }

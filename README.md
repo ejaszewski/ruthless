@@ -21,12 +21,12 @@ the project:
 - [ ] User-Friendly CLI
 - [ ] Fast endgame solver
 - [ ] Several search algorithms:
-  - [ ] Negamax
+  - [x] Negamax
   - [ ] NegaScout
-  - [ ] Best Node Search
+  - [x] Best Node Search
   - [ ] MCTS
 - [ ] Several evaluation methods:
-  - [ ] Piece-Square tables
+  - [x] Piece-Square tables
   - [ ] Pattern-Based
   - [ ] Advanced Stability & Mobility
 - [ ] [NBoard](http://www.orbanova.com/nboard/) compatibility

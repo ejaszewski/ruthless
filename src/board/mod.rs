@@ -351,8 +351,8 @@ impl Board {
         self.black_disks == 0 || self.white_disks == 0 || !self.moves_exist()
     }
 
-    pub fn get_score(&self) -> i8 {
-        self.black_disks.count_ones() as i8 - self.white_disks.count_ones() as i8
+    pub fn get_score(&self) -> i32 {
+        self.black_disks.count_ones() as i32 - self.white_disks.count_ones() as i32
     }
 }
 
