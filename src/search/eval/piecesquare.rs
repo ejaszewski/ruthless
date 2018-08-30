@@ -23,6 +23,12 @@ impl PieceSquareEvaluator {
             square_table: [64, -30, 10, 5, -40, 2, 2, 5, 1, 1]
         }
     }
+
+    pub fn from(square_table: [i32; 10]) -> PieceSquareEvaluator {
+        PieceSquareEvaluator {
+            square_table
+        }
+    }
 }
 
 impl super::Evaluator for PieceSquareEvaluator {
@@ -33,5 +39,22 @@ impl super::Evaluator for PieceSquareEvaluator {
             score -= (board.white_disks & mask).count_ones() as i32 * self.square_table[index];
         }
         score
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use ::board::Board;
+    use ::search::eval::Evaluator;
+    use super::PieceSquareEvaluator;
+
+    #[test]
+    fn test_piece_square_evaluator() {
+        let eval_1 = PieceSquareEvaluator::new();
+        let eval_2 = PieceSquareEvaluator::from([1; 10]);
+
+        let mut board = Board::from_pos(0xFFFFFFFF00000000, 0x00000000FFFFFFFF, true);
+        assert_eq!(eval_1.get_score(&mut board), 0);
+        assert_eq!(eval_2.get_score(&mut board), 0);
     }
 }

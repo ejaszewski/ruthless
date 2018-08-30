@@ -104,3 +104,20 @@ pub fn best_node_search<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &
 
     (alpha, moves[0])
 }
+
+#[cfg(test)]
+mod test {
+    use ::board::{ Board, Move };
+    use ::search::{ bns, eval::PieceSquareEvaluator };
+
+    #[test]
+    fn test_best_node_search() {
+        let mut board = Board::from_pos(0x000040BC00000000, 0x0000004000000000, false);
+        let eval = PieceSquareEvaluator::from([1; 10]);
+
+        let (score, m) = bns::best_node_search(&mut board, 2, &eval);
+
+        assert_eq!(m, Move::Play(9));
+        assert!(score <= 1);
+    }
+}

@@ -55,12 +55,6 @@ pub fn negamax<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &T) -> (i3
 
         println!(" -- Score: {}, Nodes: {}, Time {} ms", result, nodes, time_taken);
 
-        if result >= beta {
-            best_move = m;
-            best_score = beta;
-            break;
-        }
-
         if result > best_score {
             best_move = m;
             best_score = result;
@@ -114,4 +108,21 @@ pub fn negamax_impl<T: Evaluator>(board: &mut Board, mut alpha: i32, beta: i32, 
     }
 
     (alpha, total_nodes)
+}
+
+#[cfg(test)]
+mod test {
+    use ::board::{ Board, Move };
+    use ::search::{ negamax, eval::PieceSquareEvaluator };
+
+    #[test]
+    fn test_negamax() {
+        let mut board = Board::from_pos(0x000040BC00000000, 0x0000004000000000, false);
+        let eval = PieceSquareEvaluator::from([1; 10]);
+
+        let (score, m) = negamax::negamax(&mut board, 2, &eval);
+
+        assert_eq!(m, Move::Play(9));
+        assert_eq!(score, 1);
+    }
 }
