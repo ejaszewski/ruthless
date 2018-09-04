@@ -1,3 +1,7 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 //! Contains a number of utility functions and constants for bitboard operations.
 #[cfg(all(target_arch="x86", target_feature="bmi2"))]
 use std::arch::x86::{ _pext_u32, _pdep_u32 };

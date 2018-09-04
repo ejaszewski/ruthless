@@ -1,3 +1,7 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 //! Contains an implementation of the Negamax search algorithm with Alpha-Beta pruning.
 //! # Implementation:
 //! The algorithm used is a standard implementation of Negamax, which returns a score relative to
