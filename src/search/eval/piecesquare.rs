@@ -34,10 +34,18 @@ impl PieceSquareEvaluator {
 impl super::Evaluator for PieceSquareEvaluator {
     fn get_score(&self, board: &mut Board) -> i32 {
         let mut score = 0;
+
+        let (player, opponent) = if board.black_move {
+            (board.black_disks, board.white_disks)
+        } else {
+            (board.white_disks, board.black_disks)
+        };
+
         for (index, mask) in PIECE_SQUARE_MASKS.iter().enumerate() {
-            score += (board.black_disks & mask).count_ones() as i32 * self.square_table[index];
-            score -= (board.white_disks & mask).count_ones() as i32 * self.square_table[index];
+            score += (player & mask).count_ones() as i32 * self.square_table[index];
+            score -= (opponent & mask).count_ones() as i32 * self.square_table[index];
         }
+
         score
     }
 }
