@@ -6,14 +6,14 @@ use ::board::Board;
 
 const PIECE_SQUARE_MASKS: [u64; 10] = [
     0x8100000000000081,
-    0x4200000000000042,
-    0x2400000000000024,
-    0x1800000000000018,
+    0x4281000000008142,
+    0x2400810000810024,
+    0x1800008181000018,
     0x0042000000004200,
-    0x0024000000002400,
-    0x0018000000001800,
+    0x0024420000422400,
+    0x0018004242001800,
     0x0000240000240000,
-    0x0000180000180000,
+    0x0000182424180000,
     0x0000001818000000
 ];
 
@@ -37,20 +37,19 @@ impl PieceSquareEvaluator {
 
 impl super::Evaluator for PieceSquareEvaluator {
     fn get_score(&self, board: &mut Board) -> i32 {
-        let mut score = 0;
-
-        let (player, opponent) = if board.black_move {
-            (board.black_disks, board.white_disks)
-        } else {
-            (board.white_disks, board.black_disks)
-        };
+        let mut black_score = 0;
+        let mut white_score = 0;
 
         for (index, mask) in PIECE_SQUARE_MASKS.iter().enumerate() {
-            score += (player & mask).count_ones() as i32 * self.square_table[index];
-            score -= (opponent & mask).count_ones() as i32 * self.square_table[index];
+            black_score += (board.black_disks & mask).count_ones() as i32 * self.square_table[index];
+            white_score += (board.white_disks & mask).count_ones() as i32 * self.square_table[index];
         }
 
-        score
+        if board.black_move {
+            black_score - white_score
+        } else {
+            white_score - black_score
+        }
     }
 }
 
