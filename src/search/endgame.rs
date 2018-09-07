@@ -44,7 +44,7 @@ pub fn endgame_solve(board: &mut Board, wld: bool) -> (i32, Move) {
 
     println!("[{}] Searched {} nodes in {} ms.", if wld { "WLD" } else { "FULL" }, total_nodes, time_taken);
 
-    return (best_score, best_move);
+    (best_score, best_move)
 }
 
 fn endgame_negamax(board: &mut Board, mut alpha: i32, beta: i32, wld: bool) -> (i32, u64) {

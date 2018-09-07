@@ -89,11 +89,11 @@ pub fn best_node_search<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &
             iter_nodes += nodes;
 
             result >= guess
-        }).map(|m| *m).collect();
+        }).cloned().collect();
 
         total_nodes += iter_nodes;
 
-        if filtered.len() >= 1 {
+        if !filtered.is_empty() {
             alpha = guess;
             better = filtered.len() as u32;
             moves = filtered;

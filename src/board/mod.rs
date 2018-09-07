@@ -14,7 +14,7 @@ pub mod test;
 /// * `coord`: String coordinate of a square on the board.
 /// # Returns:
 /// * A bitmask representing the coordinate, or None if the coordinate was invalid.
-pub fn coord_to_bitmask(coord: String) -> Option<u64> {
+pub fn coord_to_bitmask(coord: &str) -> Option<u64> {
     let mut chars = coord.chars();
 
     let mut pos = match chars.next() {
@@ -61,7 +61,7 @@ impl Move {
     /// * `coord`: String coordinate of a square on the board.
     /// # Returns:
     /// * A Move, Play if the coord is valid, Pass otherwise.
-    pub fn from_coord(coord: String) -> Move {
+    pub fn from_coord(coord: &str) -> Move {
         let mut chars = coord.chars();
 
         let file = match chars.next() {
@@ -99,7 +99,7 @@ impl Move {
 
 impl fmt::Display for Move {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if let &Move::Play(play) = self {
+        if let Move::Play(play) = *self {
             let letter = ["a", "b", "c", "d", "e", "f", "g", "h"][(play % 8) as usize];
             let number = play / 8 + 1;
             write!(f, "{}{}", letter, number)
@@ -127,12 +127,12 @@ impl Board {
     /// * A mask of the disks flipped when the given move is made.
     pub fn new() -> Board {
         let mut white_disks = 0;
-        white_disks |= coord_to_bitmask(String::from("d4")).unwrap();
-        white_disks |= coord_to_bitmask(String::from("e5")).unwrap();
+        white_disks |= coord_to_bitmask("d4").unwrap();
+        white_disks |= coord_to_bitmask("e5").unwrap();
 
         let mut black_disks = 0;
-        black_disks |= coord_to_bitmask(String::from("e4")).unwrap();
-        black_disks |= coord_to_bitmask(String::from("d5")).unwrap();
+        black_disks |= coord_to_bitmask("e4").unwrap();
+        black_disks |= coord_to_bitmask("d5").unwrap();
 
         let black_move = true;
 
@@ -169,7 +169,7 @@ impl Board {
         if !self.black_moves_gen {
             self.gen_black_moves();
         }
-        return self.black_moves;
+        self.black_moves
     }
 
     /// A function which generates all of the moves that white can make in the current position.
@@ -179,7 +179,7 @@ impl Board {
         if !self.white_moves_gen {
             self.gen_white_moves();
         }
-        return self.white_moves;
+        self.white_moves
     }
 
     fn gen_black_moves(&mut self) {
@@ -362,13 +362,11 @@ impl Board {
 
 impl fmt::Debug for Board {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "  A B C D E F G H \t  A B C D E F G H \n").unwrap();
+        writeln!(f, "  A B C D E F G H \t  A B C D E F G H ").unwrap();
 
         let disk_char = | r: usize, f: usize, black: bool | {
             let disk = bitboard::RANKS[r] & bitboard::FILES[f];
-            if self.black_disks & disk > 0 && black {
-                "#"
-            } else if self.white_disks & disk > 0 && !black {
+            if self.black_disks & disk > 0 && black || self.white_disks & disk > 0 && !black {
                 "#"
             } else {
                 "-"
@@ -387,7 +385,7 @@ impl fmt::Debug for Board {
                    disk_char(rank, 2, false), disk_char(rank, 3, false),
                    disk_char(rank, 4, false), disk_char(rank, 5, false),
                    disk_char(rank, 6, false), disk_char(rank, 7, false)).unwrap();
-            write!(f, "\n").unwrap();
+            writeln!(f).unwrap();
         }
         write!(f, "       BLACK      \t       WHITE      ")
     }
@@ -395,8 +393,8 @@ impl fmt::Debug for Board {
 
 impl fmt::Display for Board {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "    A   B   C   D   E   F   G   H  \n").unwrap();
-        write!(f, "  ╔═══╤═══╤═══╤═══╤═══╤═══╤═══╤═══╗\n").unwrap();
+        writeln!(f, "    A   B   C   D   E   F   G   H  ").unwrap();
+        writeln!(f, "  ╔═══╤═══╤═══╤═══╤═══╤═══╤═══╤═══╗").unwrap();
 
         let disk_char = | r: usize, f: usize | {
             let disk = bitboard::RANKS[r] & bitboard::FILES[f];
@@ -417,9 +415,9 @@ impl fmt::Display for Board {
                    disk_char(rank, 6), disk_char(rank, 7)).unwrap();
 
             if rank == 7 {
-                write!(f, "\n  ╚═══╧═══╧═══╧═══╧═══╧═══╧═══╧═══╝\n").unwrap();
+                writeln!(f, "\n  ╚═══╧═══╧═══╧═══╧═══╧═══╧═══╧═══╝").unwrap();
             } else {
-                write!(f, "\n  ╟───┼───┼───┼───┼───┼───┼───┼───╢\n").unwrap();
+                writeln!(f, "\n  ╟───┼───┼───┼───┼───┼───┼───┼───╢").unwrap();
             }
         }
         write!(f, "    A   B   C   D   E   F   G   H  ")

@@ -65,7 +65,7 @@ pub fn negamax<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &T) -> (i3
         }
     }
 
-    return (best_score, best_move);
+    (best_score, best_move)
 }
 
 /// A Negamax implementation which returns the score of the best move in current position for the

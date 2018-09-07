@@ -7,41 +7,41 @@ use super::{coord_to_bitmask, Move, Board};
 #[test]
 fn test_coord_to_bitmask() {
     // Testing each file.
-    assert_eq!(coord_to_bitmask(String::from("a1")), Some(0x80_00_00_00_00_00_00_00));
-    assert_eq!(coord_to_bitmask(String::from("b2")), Some(0x00_40_00_00_00_00_00_00));
-    assert_eq!(coord_to_bitmask(String::from("c3")), Some(0x00_00_20_00_00_00_00_00));
-    assert_eq!(coord_to_bitmask(String::from("d4")), Some(0x00_00_00_10_00_00_00_00));
-    assert_eq!(coord_to_bitmask(String::from("e5")), Some(0x00_00_00_00_08_00_00_00));
-    assert_eq!(coord_to_bitmask(String::from("f6")), Some(0x00_00_00_00_00_04_00_00));
-    assert_eq!(coord_to_bitmask(String::from("g7")), Some(0x00_00_00_00_00_00_02_00));
-    assert_eq!(coord_to_bitmask(String::from("h8")), Some(0x00_00_00_00_00_00_00_01));
+    assert_eq!(coord_to_bitmask("a1"), Some(0x80_00_00_00_00_00_00_00));
+    assert_eq!(coord_to_bitmask("b2"), Some(0x00_40_00_00_00_00_00_00));
+    assert_eq!(coord_to_bitmask("c3"), Some(0x00_00_20_00_00_00_00_00));
+    assert_eq!(coord_to_bitmask("d4"), Some(0x00_00_00_10_00_00_00_00));
+    assert_eq!(coord_to_bitmask("e5"), Some(0x00_00_00_00_08_00_00_00));
+    assert_eq!(coord_to_bitmask("f6"), Some(0x00_00_00_00_00_04_00_00));
+    assert_eq!(coord_to_bitmask("g7"), Some(0x00_00_00_00_00_00_02_00));
+    assert_eq!(coord_to_bitmask("h8"), Some(0x00_00_00_00_00_00_00_01));
 
     // Testing all possible failure modes.
-    assert_eq!(coord_to_bitmask(String::from("")), None);
-    assert_eq!(coord_to_bitmask(String::from("j1")), None);
-    assert_eq!(coord_to_bitmask(String::from("a9")), None);
-    assert_eq!(coord_to_bitmask(String::from("ab")), None);
-    assert_eq!(coord_to_bitmask(String::from("a")), None);
+    assert_eq!(coord_to_bitmask(""), None);
+    assert_eq!(coord_to_bitmask("j1"), None);
+    assert_eq!(coord_to_bitmask("a9"), None);
+    assert_eq!(coord_to_bitmask("ab"), None);
+    assert_eq!(coord_to_bitmask("a"), None);
 }
 
 #[test]
 fn test_coord_to_move() {
     // Testing each file.
-    assert_eq!(Move::from_coord(String::from("a1")), Move::Play(0));
-    assert_eq!(Move::from_coord(String::from("b2")), Move::Play(9));
-    assert_eq!(Move::from_coord(String::from("c3")), Move::Play(18));
-    assert_eq!(Move::from_coord(String::from("d4")), Move::Play(27));
-    assert_eq!(Move::from_coord(String::from("e5")), Move::Play(36));
-    assert_eq!(Move::from_coord(String::from("f6")), Move::Play(45));
-    assert_eq!(Move::from_coord(String::from("g7")), Move::Play(54));
-    assert_eq!(Move::from_coord(String::from("h8")), Move::Play(63));
+    assert_eq!(Move::from_coord("a1"), Move::Play(0));
+    assert_eq!(Move::from_coord("b2"), Move::Play(9));
+    assert_eq!(Move::from_coord("c3"), Move::Play(18));
+    assert_eq!(Move::from_coord("d4"), Move::Play(27));
+    assert_eq!(Move::from_coord("e5"), Move::Play(36));
+    assert_eq!(Move::from_coord("f6"), Move::Play(45));
+    assert_eq!(Move::from_coord("g7"), Move::Play(54));
+    assert_eq!(Move::from_coord("h8"), Move::Play(63));
 
     // Testing all possible failure modes.
-    assert_eq!(Move::from_coord(String::from("")), Move::Pass);
-    assert_eq!(Move::from_coord(String::from("j1")), Move::Pass);
-    assert_eq!(Move::from_coord(String::from("a9")), Move::Pass);
-    assert_eq!(Move::from_coord(String::from("ab")), Move::Pass);
-    assert_eq!(Move::from_coord(String::from("a")), Move::Pass);
+    assert_eq!(Move::from_coord(""), Move::Pass);
+    assert_eq!(Move::from_coord("j1"), Move::Pass);
+    assert_eq!(Move::from_coord("a9"), Move::Pass);
+    assert_eq!(Move::from_coord("ab"), Move::Pass);
+    assert_eq!(Move::from_coord("a"), Move::Pass);
 }
 
 #[test]
@@ -64,7 +64,7 @@ fn test_board_derives() {
     assert_eq!(board, clone);
     assert_eq!(clone, board);
 
-    board.make_move(Move::from_coord(String::from("d3")));
+    board.make_move(Move::from_coord("d3"));
     assert!(board != clone);
     assert!(board == board);
 }

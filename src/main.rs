@@ -52,12 +52,12 @@ fn play() {
     for line in stdin.lock().lines() {
         // Get input from the player.
         if let Ok(text) = line {
-            let split: Vec<&str> = text.split(" ").collect();
+            let split: Vec<&str> = text.split(' ').collect();
 
             if split[0] == "exit" {
                 break;
             } else if split[0] == "play" {
-                let m = Move::from_coord(split[1].to_string());
+                let m = Move::from_coord(split[1]);
 
                 if board.get_moves().contains(&m) {
                     println!("Playing move: {}", m);
