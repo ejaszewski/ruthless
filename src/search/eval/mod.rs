@@ -2,11 +2,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-use board::Board;
+use crate::board::Board;
 
 mod piecesquare;
 pub use self::piecesquare::PieceSquareEvaluator;
 
 pub trait Evaluator {
-    fn get_score(&self, &mut Board) -> i32;
+    fn get_score(&self, _: &mut Board) -> i32;
 }

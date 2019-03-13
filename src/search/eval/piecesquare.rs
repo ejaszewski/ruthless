@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-use ::board::Board;
+use crate::board::Board;
 
 const PIECE_SQUARE_MASKS: [u64; 10] = [
     0x81_00_00_00_00_00_00_81,
@@ -56,8 +56,8 @@ impl super::Evaluator for PieceSquareEvaluator {
 
 #[cfg(test)]
 mod test {
-    use ::board::Board;
-    use ::search::eval::Evaluator;
+    use crate::board::Board;
+    use crate::search::eval::Evaluator;
     use super::PieceSquareEvaluator;
 
     #[test]

@@ -2,11 +2,10 @@
 name = "ruthless"
 version = "0.1.0"
 authors = ["Ethan Jaszewski <ethanjaszewski@yahoo.com>"]
+edition = "2018"
 
 [dependencies]
 clap = {version = "2.32", features = ["yaml"]}
-
-[features]
 
 [profile.release]
 debug = true

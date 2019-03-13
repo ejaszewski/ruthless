@@ -2,8 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-use board::{ Board, Move };
-use search::endgame::endgame_solve;
+use crate::board::{ Board, Move };
+use crate::search::endgame::endgame_solve;
 
 fn move_in_list(moves: Vec<u8>, m: Move) -> bool {
     moves.iter().any(|&x| Move::Play(x) == m)

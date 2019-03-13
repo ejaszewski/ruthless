@@ -21,8 +21,8 @@ use std::i32;
 use std::io::{ self, Write };
 use std::time::Instant;
 
-use ::board::{ Board, Move };
-use ::search::eval::Evaluator;
+use crate::board::{ Board, Move };
+use crate::search::eval::Evaluator;
 
 /// A Negamax implementation which returns the best move for a curent position, along with score.
 /// This function should be called only if the best move is what is desired. Prints information
@@ -116,8 +116,8 @@ pub fn negamax_impl<T: Evaluator>(board: &mut Board, mut alpha: i32, beta: i32, 
 
 #[cfg(test)]
 mod test {
-    use ::board::{ Board, Move };
-    use ::search::{ negamax, eval::PieceSquareEvaluator };
+    use crate::board::{ Board, Move };
+    use crate::search::{ negamax, eval::PieceSquareEvaluator };
 
     #[test]
     fn test_negamax() {

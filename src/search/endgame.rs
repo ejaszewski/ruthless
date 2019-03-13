@@ -4,7 +4,7 @@
 
 use std::time::Instant;
 
-use ::board::{ Board, Move };
+use crate::board::{ Board, Move };
 
 pub fn endgame_solve(board: &mut Board, wld: bool) -> (i32, Move) {
     let start_time = Instant::now();
@@ -86,7 +86,7 @@ fn endgame_negamax(board: &mut Board, mut alpha: i32, beta: i32, wld: bool) -> (
 
 #[cfg(test)]
 mod test {
-    use board::{ Board, Move };
+    use crate::board::{ Board, Move };
 
     #[test]
     fn ffo_simplified_40() {

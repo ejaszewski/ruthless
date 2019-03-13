@@ -32,10 +32,10 @@ use std::i32;
 use std::io::{ self, Write };
 use std::time::Instant;
 
-use ::board::{ Board, Move };
-use ::search::eval::Evaluator;
+use crate::board::{ Board, Move };
+use crate::search::eval::Evaluator;
 
-pub use ::search::negamax::negamax_impl;
+pub use crate::search::negamax::negamax_impl;
 
 /// A BNS implementation which returns the best move for a curent position, along with score.
 /// This function should be called only if the best move is what is desired. Prints information
@@ -111,8 +111,8 @@ pub fn best_node_search<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &
 
 #[cfg(test)]
 mod test {
-    use ::board::{ Board, Move };
-    use ::search::{ bns, eval::PieceSquareEvaluator };
+    use crate::board::{ Board, Move };
+    use crate::search::{ bns, eval::PieceSquareEvaluator };
 
     #[test]
     fn test_best_node_search() {
