@@ -526,14 +526,9 @@ pub fn all_moves(player: u64, opponent: u64) -> u64 {
 
     let masked = opponent & !(FILE_A | FILE_H);
 
-    all_moves |= directional_moves(player, opponent, 8);
-    all_moves |= directional_moves(player, opponent, -8);
-    all_moves |= directional_moves(player, masked, 1);
-    all_moves |= directional_moves(player, masked, -1);
-    all_moves |= directional_moves(player, masked, 7);
-    all_moves |= directional_moves(player, masked, -7);
-    all_moves |= directional_moves(player, masked, 9);
-    all_moves |= directional_moves(player, masked, -9);
+    for &dir in SHIFT_DIRS.iter() {
+        all_moves |= directional_moves(player, if dir % 8 == 0 { opponent } else { masked }, dir);
+    }
 
     all_moves & !(player | opponent)
 }
