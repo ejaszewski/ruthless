@@ -4,13 +4,14 @@
 
 #[macro_use]
 extern crate clap;
-extern crate ruthless;
 
+use std::fs::File;
 use std::io::{ self, BufRead, Write };
 use std::time::Instant;
 
 use clap::App;
-use ruthless::board::{ self, Move };
+use rand::Rng;
+use ruthless::board::{ self, Move, Board, Position };
 use ruthless::search::{ endgame, negamax, bns, eval::PieceSquareEvaluator };
 
 fn main() {
@@ -23,6 +24,28 @@ fn main() {
             perft(depth);
         } else {
             panic!("DEPTH must be a positive integer less than 256.");
+        }
+    }
+
+    if let Some(gtd) = matches.subcommand_matches("gen-training-data") {
+        let empties_str = gtd.value_of("EMPTIES").unwrap();
+        let num_pos_str = gtd.value_of("NUM_POSITIONS").unwrap();
+        let output_file = gtd.value_of("FILE").unwrap();
+
+        if let Ok(empties) = empties_str.parse::<u8>() {
+            if let Ok(num_pos) = num_pos_str.parse::<usize>() {
+                let positions = gen_training_data(empties, num_pos);
+                println!("Serializing position data...");
+                let json_out = serde_json::to_string(&positions).unwrap_or(String::new());
+                println!("Writing output to file...");
+                let mut file = File::create(output_file).unwrap();
+                file.write_all(json_out.as_bytes()).expect("Unable to write to output file.");
+                println!("Done.");
+            } else {
+                panic!("NUM_POSITIONS must be a positive integer.");
+            }
+        } else {
+            panic!("EMPTIES must be a positive integer less than 256.");
         }
     }
 
@@ -169,4 +192,25 @@ fn perft_impl(depth: u8, board: &mut board::Board) -> u64 {
     }
 
     nodes
+}
+
+fn gen_training_data(empties: u8, num_pos: usize) -> Vec<Position> {
+    // TODO: Make this a lot cleaner.
+    let mut rng = rand::thread_rng();
+    let mut positions = Vec::new();
+    'new_pos: while positions.len() < num_pos {
+        let mut board = Board::new();
+        while board.all_disks().count_zeros() > empties.into() {
+            let moves = board.get_moves();
+            board.make_move(moves[rng.gen_range(0, moves.len())]);
+            if board.is_game_over() {
+                break 'new_pos;
+            }
+        }
+        let score = endgame::endgame_solve(&mut board, false);
+        let mut pos = board.get_position();
+        pos.score = Some(score.0);
+        positions.push(pos);
+    }
+    positions
 }

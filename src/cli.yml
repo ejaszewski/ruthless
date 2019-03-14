@@ -14,3 +14,15 @@ subcommands:
                 required: true
     - play:
         about: Basic CLI gameplay interface.
+    - gen-training-data:
+        about: Generates training data using the endgame solver with the given number of empties.
+        args:
+            - EMPTIES:
+                help: The number of empties from which to solve.
+                required: true
+            - NUM_POSITIONS:
+                help: The number of random positions to generate.
+                required: true
+            - FILE:
+                help: The file to output training data to (json).
+                required: true

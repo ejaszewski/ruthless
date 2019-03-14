@@ -3,6 +3,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
  
 use std::fmt;
+use std::str;
+
+use serde::{Deserialize, Serialize};
 
 pub mod bitboard;
 
@@ -159,6 +162,34 @@ impl Board {
             white_moves_gen: false,
             black_moves: 0,
             black_moves_gen: false,
+        }
+    }
+
+    pub fn get_position(&self) -> Position {
+        let mut pos = String::new();
+
+        for i in 0..64 {
+            let sq = 1 << (63 - i);
+            pos.push_str(if (self.black_disks & sq) != 0 {
+                "*"
+            } else if (self.white_disks & sq) != 0 {
+                "O"
+            } else {
+                "-"
+            });
+        }
+
+        pos.push_str(" ");
+
+        pos.push_str(if self.black_move {
+            "*"
+        } else {
+            "O"
+        });
+
+        Position {
+            pos,
+            score: None
         }
     }
 
@@ -422,4 +453,10 @@ impl fmt::Display for Board {
         }
         write!(f, "    A   B   C   D   E   F   G   H  ")
     }
+}
+
+#[derive(Serialize)]
+pub struct Position {
+    pos: String,
+    pub score: Option<i32>
 }
