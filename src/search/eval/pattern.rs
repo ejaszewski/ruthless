@@ -731,7 +731,7 @@ fn pext64(a: u64, mask: u64) -> u64 {
     let mut m = 0x80_00_00_00_00_00_00_00;
 
     for _ in 0..64 {
-        if mask & m {
+        if mask & m == 1 {
             dst |= a & 1;
             a >> 1;
         }
