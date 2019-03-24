@@ -6,6 +6,8 @@ use crate::board::Board;
 
 mod piecesquare;
 pub use self::piecesquare::PieceSquareEvaluator;
+mod pattern;
+pub use self::pattern::PatternEvaluator;
 
 pub trait Evaluator {
     fn get_score(&self, _: &Board) -> i32;
