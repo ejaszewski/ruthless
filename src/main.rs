@@ -11,6 +11,7 @@ use std::time::Instant;
 
 use clap::App;
 use rand::Rng;
+use rayon::prelude::*;
 use ruthless::board::{ self, Move, Board, Position };
 use ruthless::search::{ endgame, negamax, bns, eval::PieceSquareEvaluator };
 
@@ -119,7 +120,7 @@ fn play() {
                     }
                 } else {
                     // If the search will be full-depth, then just endgame solve.
-                    endgame::endgame_solve(&mut board, false)
+                    endgame::endgame_solve(&mut board, false, true)
                 };
 
                 println!("Computer is playing {}, which had score {}.", best_move, score);
@@ -196,21 +197,24 @@ fn perft_impl(depth: u8, board: &mut board::Board) -> u64 {
 
 fn gen_training_data(empties: u8, num_pos: usize) -> Vec<Position> {
     // TODO: Make this a lot cleaner.
+    let idxs: Vec<usize> = (0..num_pos).collect();
+    idxs.par_iter().map(|&i| random_solved(empties)).collect()
+}
+
+fn random_solved(empties: u8) -> Position {
     let mut rng = rand::thread_rng();
-    let mut positions = Vec::new();
-    'new_pos: while positions.len() < num_pos {
+    'new_pos: loop {
         let mut board = Board::new();
         while board.all_disks().count_zeros() > empties.into() {
             let moves = board.get_moves();
             board.make_move(moves[rng.gen_range(0, moves.len())]);
             if board.is_game_over() {
-                break 'new_pos;
+                continue 'new_pos;
             }
         }
-        let score = endgame::endgame_solve(&mut board, false);
+        let score = endgame::endgame_solve(&mut board, false, false);
         let mut pos = board.get_position();
         pos.score = Some(score.0);
-        positions.push(pos);
+        return pos;
     }
-    positions
 }

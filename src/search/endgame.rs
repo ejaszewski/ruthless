@@ -6,7 +6,7 @@ use std::time::Instant;
 
 use crate::board::{ Board, Move };
 
-pub fn endgame_solve(board: &mut Board, wld: bool) -> (i32, Move) {
+pub fn endgame_solve(board: &mut Board, wld: bool, print: bool) -> (i32, Move) {
     let start_time = Instant::now();
     let mut total_nodes = 0;
 
@@ -42,7 +42,9 @@ pub fn endgame_solve(board: &mut Board, wld: bool) -> (i32, Move) {
     let duration = end_time - start_time;
     let time_taken = duration.as_secs() as u32 * 1000 + duration.subsec_millis();
 
-    println!("[{}] Searched {} nodes in {} ms.", if wld { "WLD" } else { "FULL" }, total_nodes, time_taken);
+    if print {
+        println!("[{}] Searched {} nodes in {} ms.", if wld { "WLD" } else { "FULL" }, total_nodes, time_taken);
+    }
 
     (best_score, best_move)
 }
@@ -58,11 +60,12 @@ fn endgame_negamax(board: &mut Board, mut alpha: i32, beta: i32, wld: bool) -> (
     }
 
     let mut moves = board.get_moves();
-    if board.move_count() > 1 && board.all_disks().count_zeros() > 3 {
+    let move_count = board.move_count();
+    if move_count > 4 || move_count > 1 && board.all_disks().count_zeros() > 3 {
         moves.sort_unstable_by_key(|&m| board.move_count_after(m));
     }
 
-    let mut total_nodes = 1;
+    let mut total_nodes = 0;
 
     for m in moves {
         let undo = board.make_move(m);
@@ -95,9 +98,9 @@ mod test {
         board.make_move(Move::Play(8));
         board.make_move(Move::Play(1));
 
-        assert_eq!(super::endgame_solve(&mut board, true).0, 1);
+        assert_eq!(super::endgame_solve(&mut board, true, true).0, 1);
 
-        let (score, m) = super::endgame_solve(&mut board, false);
+        let (score, m) = super::endgame_solve(&mut board, false, true);
         assert_eq!(score, 38);
         assert_eq!(m, Move::Play(2));
     }
