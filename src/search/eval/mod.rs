@@ -8,5 +8,5 @@ mod piecesquare;
 pub use self::piecesquare::PieceSquareEvaluator;
 
 pub trait Evaluator {
-    fn get_score(&self, _: &mut Board) -> i32;
+    fn get_score(&self, _: &Board) -> i32;
 }

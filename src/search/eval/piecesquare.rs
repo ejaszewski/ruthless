@@ -37,7 +37,7 @@ impl PieceSquareEvaluator {
 }
 
 impl super::Evaluator for PieceSquareEvaluator {
-    fn get_score(&self, board: &mut Board) -> i32 {
+    fn get_score(&self, board: &Board) -> i32 {
         let mut black_score = 0;
         let mut white_score = 0;
 
@@ -66,7 +66,7 @@ mod test {
         let eval_2 = PieceSquareEvaluator::from([1; 10]);
 
         let mut board = Board::from_pos(0xFF_FF_FF_FF_00_00_00_00, 0x00_00_00_00_FF_FF_FF_FF, true);
-        assert_eq!(eval_1.get_score(&mut board), 0);
-        assert_eq!(eval_2.get_score(&mut board), 0);
+        assert_eq!(eval_1.get_score(&board), 0);
+        assert_eq!(eval_2.get_score(&board), 0);
     }
 }
