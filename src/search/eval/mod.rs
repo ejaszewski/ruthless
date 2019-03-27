@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 use crate::board::Board;
+use crate::board::Move;
 
 mod piecesquare;
 pub use self::piecesquare::PieceSquareEvaluator;
@@ -11,4 +12,11 @@ pub use self::pattern::PatternEvaluator;
 
 pub trait Evaluator {
     fn get_score(&self, _: &Board) -> i32;
+    fn move_order_score(&self, board: &mut Board, mv: Move) -> i32 {
+        let undo = board.make_move(mv);
+        let score = -self.get_score(board);
+        board.undo_move(undo, mv);
+        
+        score
+    }
 }
