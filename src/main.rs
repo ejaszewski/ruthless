@@ -6,14 +6,23 @@
 extern crate clap;
 
 use std::fs::File;
-use std::io::{ self, BufRead, Write };
+use std::io::{ self, BufRead, BufReader, Write };
 use std::time::Instant;
 
 use clap::App;
 use rand::Rng;
 use rayon::prelude::*;
 use ruthless::board::{ self, Move, Board, Position };
-use ruthless::search::{ endgame, negamax, bns, eval::PieceSquareEvaluator };
+use ruthless::search::{ endgame, negamax, bns, eval::{ PieceSquareEvaluator, PatternEvaluator } };
+use ruthless::search::endgame::EndgameSearcher;
+use serde::Deserialize;
+use serde_json::from_reader;
+
+#[derive(Deserialize)]
+struct PatternFile {
+    masks: Vec<u64>,
+    weights: Vec<Vec<f32>>
+}
 
 fn main() {
     let yaml = load_yaml!("cli.yml");
@@ -71,6 +80,12 @@ fn play() {
         io::stdout().flush().expect("Unable to flush stdout.");
     };
 
+    let file = File::open("pattern.json").expect("File read error.");
+    let reader = BufReader::new(file);
+    let pat_file: PatternFile = from_reader(reader).expect("Unable to parse json");
+
+    let pat_eval = PatternEvaluator::from(pat_file.masks, pat_file.weights);
+
     print_info(&mut board);
 
     for line in stdin.lock().lines() {
@@ -111,12 +126,17 @@ fn play() {
                     // If the search is not full depth, then run a normal search.
                     if let Some(&alg) = split.get(2) {
                         match alg {
-                            "nm" => negamax::negamax(&mut board, depth, &PieceSquareEvaluator::new()),
-                            "bns" => bns::best_node_search(&mut board, depth, &PieceSquareEvaluator::new()),
-                            _ => negamax::negamax(&mut board, depth, &PieceSquareEvaluator::new())
+                            "nm" => negamax::negamax(&mut board, depth, &pat_eval),
+                            "bns" => bns::best_node_search(&mut board, depth, &pat_eval),
+                            _ => negamax::negamax(&mut board, depth, &pat_eval)
                         }
                     } else {
-                        negamax::negamax(&mut board, depth, &PieceSquareEvaluator::new())
+                        if (board.all_disks().count_zeros() as i32 - depth as i32) < 20 {
+                            println!("Using pattern evaluator.");
+                            negamax::negamax(&mut board, depth, &pat_eval)
+                        } else {
+                            negamax::negamax(&mut board, depth, &PieceSquareEvaluator::new())
+                        }
                     }
                 } else {
                     // If the search will be full-depth, then just endgame solve.
@@ -198,10 +218,11 @@ fn perft_impl(depth: u8, board: &mut board::Board) -> u64 {
 fn gen_training_data(empties: u8, num_pos: usize) -> Vec<Position> {
     // TODO: Make this a lot cleaner.
     let idxs: Vec<usize> = (0..num_pos).collect();
-    idxs.par_iter().map(|&i| random_solved(empties)).collect()
+    let searcher: EndgameSearcher = EndgameSearcher::new(false);
+    idxs.par_iter().map(|&_| random_solved(empties, &searcher)).collect()
 }
 
-fn random_solved(empties: u8) -> Position {
+fn random_solved(empties: u8, solver: &EndgameSearcher) -> Position {
     let mut rng = rand::thread_rng();
     'new_pos: loop {
         let mut board = Board::new();
@@ -212,9 +233,12 @@ fn random_solved(empties: u8) -> Position {
                 continue 'new_pos;
             }
         }
-        let score = endgame::endgame_solve(&mut board, false, false);
+        let mut score = solver.endgame_solve(&mut board, false).0;
+        if !board.black_move {
+            score = -score;
+        }
         let mut pos = board.get_position();
-        pos.score = Some(score.0);
+        pos.score = Some(score);
         return pos;
     }
 }
