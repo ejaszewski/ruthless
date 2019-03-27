@@ -35,7 +35,7 @@ use crate::search::eval::Evaluator;
 /// * A tuple containing the score of the best move and the best move.
 pub fn negamax<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &T) -> (i32, Move) {
     let mut moves = board.get_moves();
-    moves.sort_unstable_by_key(|&m| board.move_count_after(m)); // TODO: Better move ordering.
+    moves.sort_unstable_by_key(|&m| evaluator.move_order_score(board, m));
 
     let beta = i32::MAX;
     let mut best_score = -beta;
@@ -48,7 +48,7 @@ pub fn negamax<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &T) -> (i3
         let start_time = Instant::now();
 
         let undo = board.make_move(m);
-        let (mut result, nodes) = negamax_impl(board, -beta, beta, depth - 1, evaluator);
+        let (mut result, nodes) = negamax_impl(board, -beta, -best_score, depth - 1, evaluator);
         board.undo_move(undo, m);
 
         result = -result;
@@ -57,11 +57,12 @@ pub fn negamax<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &T) -> (i3
         let duration = end_time - start_time;
         let time_taken = duration.as_secs() as u32 * 1000 + duration.subsec_millis();
 
-        println!(" -- Score: {}, Nodes: {}, Time {} ms", result, nodes, time_taken);
-
         if result > best_score {
+            println!(" -- Score: {:3}, Nodes: {}, Time {} ms", result, nodes, time_taken);
             best_move = m;
             best_score = result;
+        } else {
+            println!(" --             Nodes: {}, Time {} ms", nodes, time_taken);
         }
     }
 
