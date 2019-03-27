@@ -4,6 +4,7 @@
 
 use crate::board::{ Board, Move };
 use crate::search::endgame::endgame_solve;
+use crate::search::endgame::EndgameSearcher;
 
 fn move_in_list(moves: Vec<u8>, m: Move) -> bool {
     moves.iter().any(|&x| Move::Play(x) == m)
@@ -22,7 +23,9 @@ fn ffo_pos_40_wld() {
 fn ffo_pos_40_exact() {
     let mut board = Board::from_pos(0x0101312303010100, 0x9E7ECEDCFC1E0800, true);
 
-    let (score, m) = endgame_solve(&mut board, false, true);
+    let searcher: EndgameSearcher = EndgameSearcher::new(true);
+
+    let (score, m) = searcher.endgame_solve(&mut board, false);
     assert_eq!(score, 38);
     assert!(move_in_list(vec![ 8 ], m));
 }
@@ -40,7 +43,9 @@ fn ffo_pos_41_wld() {
 fn ffo_pos_41_exact() {
     let mut board = Board::from_pos(0x000200F8642C1800, 0x7C3C7E0618D02472, true);
 
-    let (score, m) = endgame_solve(&mut board, false, true);
+    let searcher: EndgameSearcher = EndgameSearcher::new(true);
+
+    let (score, m) = searcher.endgame_solve(&mut board, false);
     assert_eq!(score, 0);
     assert!(move_in_list(vec![ 31 ], m));
 }
@@ -58,7 +63,9 @@ fn ffo_pos_42_wld() {
 fn ffo_pos_42_exact() {
     let mut board = Board::from_pos(0x000C040486040200, 0x3801FB7B391B1D3C, true);
 
-    let (score, m) = endgame_solve(&mut board, false, true);
+    let searcher: EndgameSearcher = EndgameSearcher::new(true);
+
+    let (score, m) = searcher.endgame_solve(&mut board, false);
     assert_eq!(score, 6);
     assert!(move_in_list(vec![ 14 ], m));
 }
@@ -76,7 +83,9 @@ fn ffo_pos_43_wld() {
 fn ffo_pos_43_exact() {
     let mut board = Board::from_pos(0x3E3C0C1E1C08143E, 0x0000706062F60800, false);
 
-    let (score, m) = endgame_solve(&mut board, false, true);
+    let searcher: EndgameSearcher = EndgameSearcher::new(true);
+
+    let (score, m) = searcher.endgame_solve(&mut board, false);
     assert_eq!(score, -12);
     assert!(move_in_list(vec![ 50, 22 ], m));
 }
@@ -94,7 +103,9 @@ fn ffo_pos_44_wld() {
 fn ffo_pos_44_exact() {
     let mut board = Board::from_pos(0x08081C0E0CC83C1C, 0x222563F1F0340000, false);
 
-    let (score, m) = endgame_solve(&mut board, false, true);
+    let searcher: EndgameSearcher = EndgameSearcher::new(true);
+
+    let (score, m) = searcher.endgame_solve(&mut board, false);
     assert_eq!(score, -14);
     assert!(move_in_list(vec![ 57, 11 ], m));
 }
@@ -112,7 +123,23 @@ fn ffo_pos_46_wld() {
 fn ffo_pos_46_exact() {
     let mut board = Board::from_pos(0x1C04060703173078, 0x003838783C280C02, true);
 
-    let (score, m) = endgame_solve(&mut board, false, true);
+    let searcher: EndgameSearcher = EndgameSearcher::new(true);
+
+    let (score, m) = searcher.endgame_solve(&mut board, false);
     assert_eq!(score, -8);
     assert!(move_in_list(vec![ 17 ], m));
+}
+
+#[test]
+#[ignore]
+fn ffo_pos_47_exact() {
+    let mut board = Board::from_pos(0x000004FC24140C3C, 0x7C3C780058E83000, true);
+    board.make_move(Move::Play(14));
+    board.make_move(Move::Play(57));
+
+    let searcher: EndgameSearcher = EndgameSearcher::new(true);
+
+    let (score, m) = searcher.endgame_solve(&mut board, false);
+    assert_eq!(score, 4);
+    assert!(move_in_list(vec![ 49 ], m));
 }
