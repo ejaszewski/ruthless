@@ -13,7 +13,7 @@ use clap::App;
 use rand::Rng;
 use rayon::prelude::*;
 use ruthless::board::{ self, Move, Board, Position };
-use ruthless::search::{ endgame, negamax, bns, eval::{ PieceSquareEvaluator, PatternEvaluator } };
+use ruthless::search::{ endgame, negamax, bns, eval::{ Evaluator, PieceSquareEvaluator, PatternEvaluator } };
 use ruthless::search::endgame::EndgameSearcher;
 use serde::Deserialize;
 use serde_json::from_reader;
@@ -41,16 +41,27 @@ fn main() {
         let empties_str = gtd.value_of("EMPTIES").unwrap();
         let num_pos_str = gtd.value_of("NUM_POSITIONS").unwrap();
         let output_file = gtd.value_of("FILE").unwrap();
+        let depth_maybe_str = gtd.value_of("DEPTH").unwrap_or("");
 
         if let Ok(empties) = empties_str.parse::<u8>() {
             if let Ok(num_pos) = num_pos_str.parse::<usize>() {
-                let positions = gen_training_data(empties, num_pos);
-                println!("Serializing position data...");
-                let json_out = serde_json::to_string(&positions).unwrap_or(String::new());
-                println!("Writing output to file...");
-                let mut file = File::create(output_file).unwrap();
-                file.write_all(json_out.as_bytes()).expect("Unable to write to output file.");
-                println!("Done.");
+                if let Ok(depth) = depth_maybe_str.parse::<u8>() {
+                    let positions = training_data_heuristic(empties, depth, num_pos);
+                    println!("Serializing position data...");
+                    let json_out = serde_json::to_string(&positions).unwrap_or(String::new());
+                    println!("Writing output to file...");
+                    let mut file = File::create(output_file).unwrap();
+                    file.write_all(json_out.as_bytes()).expect("Unable to write to output file.");
+                    println!("Done.");
+                } else {
+                    let positions = training_data_solve(empties, num_pos);
+                    println!("Serializing position data...");
+                    let json_out = serde_json::to_string(&positions).unwrap_or(String::new());
+                    println!("Writing output to file...");
+                    let mut file = File::create(output_file).unwrap();
+                    file.write_all(json_out.as_bytes()).expect("Unable to write to output file.");
+                    println!("Done.");
+                }
             } else {
                 panic!("NUM_POSITIONS must be a positive integer.");
             }
@@ -80,11 +91,17 @@ fn play() {
         io::stdout().flush().expect("Unable to flush stdout.");
     };
 
-    let file = File::open("pattern.json").expect("File read error.");
+    let file = File::open("pat9-12-fp.json").expect("File read error.");
     let reader = BufReader::new(file);
     let pat_file: PatternFile = from_reader(reader).expect("Unable to parse json");
 
     let pat_eval = PatternEvaluator::from(pat_file.masks, pat_file.weights);
+
+    let file = File::open("pat9-12-fp2.json").expect("File read error.");
+    let reader = BufReader::new(file);
+    let pat_file: PatternFile = from_reader(reader).expect("Unable to parse json");
+
+    let pat_eval2 = PatternEvaluator::from(pat_file.masks, pat_file.weights);
 
     print_info(&mut board);
 
@@ -122,21 +139,35 @@ fn play() {
                 };
 
                 // Get the best move.
-                let (score, best_move) = if depth < board.all_disks().count_zeros() as u8 {
+                let (score, best_move) = if depth <= board.all_disks().count_zeros() as u8 {
                     // If the search is not full depth, then run a normal search.
                     if let Some(&alg) = split.get(2) {
                         match alg {
-                            "nm" => negamax::negamax(&mut board, depth, &pat_eval),
+                            "nm" => negamax::negamax(&mut board, depth, &pat_eval, true),
                             "bns" => bns::best_node_search(&mut board, depth, &pat_eval),
-                            _ => negamax::negamax(&mut board, depth, &pat_eval)
+                            _ => negamax::negamax(&mut board, depth, &pat_eval, true)
                         }
                     } else {
-                        if (board.all_disks().count_zeros() as i32 - depth as i32) < 20 {
-                            println!("Using pattern evaluator.");
-                            negamax::negamax(&mut board, depth, &pat_eval)
+                        // if (board.all_disks().count_zeros() - depth as u32) < 15 {
+                        //     println!("Using pattern stage 2.");
+                        //     negamax::negamax(&mut board, depth, &pat_eval, true)
+                        // } else {
+                        //     println!("Using pattern stage 1.");
+                        //     negamax::negamax(&mut board, depth, &pat_eval2, true)
+                        // }
+                        if board.black_move {
+                            println!("Using pattern 1.");
+                            negamax::negamax(&mut board, depth, &pat_eval, true)
                         } else {
-                            negamax::negamax(&mut board, depth, &PieceSquareEvaluator::new())
+                            println!("Using pattern 2.");
+                            negamax::negamax(&mut board, depth, &pat_eval2, true)
                         }
+                        // if (board.all_disks().count_zeros() as i32 - depth as i32) < 20 {
+                        //     println!("Using pattern evaluator.");
+                        //     negamax::negamax(&mut board, depth, &pat_eval, true)
+                        // } else {
+                        //     negamax::negamax(&mut board, depth, &PieceSquareEvaluator::new(), true)
+                        // }
                     }
                 } else {
                     // If the search will be full-depth, then just endgame solve.
@@ -215,7 +246,7 @@ fn perft_impl(depth: u8, board: &mut board::Board) -> u64 {
     nodes
 }
 
-fn gen_training_data(empties: u8, num_pos: usize) -> Vec<Position> {
+fn training_data_solve(empties: u8, num_pos: usize) -> Vec<Position> {
     // TODO: Make this a lot cleaner.
     let idxs: Vec<usize> = (0..num_pos).collect();
     let searcher: EndgameSearcher = EndgameSearcher::new(false);
@@ -234,6 +265,39 @@ fn random_solved(empties: u8, solver: &EndgameSearcher) -> Position {
             }
         }
         let mut score = solver.endgame_solve(&mut board, false).0;
+        if !board.black_move {
+            score = -score;
+        }
+        let mut pos = board.get_position();
+        pos.score = Some(score);
+        return pos;
+    }
+}
+
+fn training_data_heuristic(empties: u8, depth: u8, num_pos: usize) -> Vec<Position> {
+    let idxs: Vec<usize> = (0..num_pos).collect();
+
+    let file = File::open("pat9-12.json").expect("File read error.");
+    let reader = BufReader::new(file);
+    let pat_file: PatternFile = from_reader(reader).expect("Unable to parse json");
+
+    let pat_eval = PatternEvaluator::from(pat_file.masks, pat_file.weights);
+
+    idxs.par_iter().map(|&_| random_heuristic(empties, depth, &pat_eval)).collect()
+}
+
+fn random_heuristic(empties: u8, depth: u8, heuristic: &PatternEvaluator) -> Position {
+    let mut rng = rand::thread_rng();
+    'new_pos: loop {
+        let mut board = Board::new();
+        while board.all_disks().count_zeros() > empties.into() {
+            let moves = board.get_moves();
+            board.make_move(moves[rng.gen_range(0, moves.len())]);
+            if board.is_game_over() {
+                continue 'new_pos;
+            }
+        }
+        let mut score = negamax::negamax(&mut board, depth, heuristic, false).0;
         if !board.black_move {
             score = -score;
         }

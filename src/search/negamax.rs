@@ -33,17 +33,19 @@ use crate::search::eval::Evaluator;
 /// * `evaluator`: Evaluator to use for position evaluation at a leaf.
 /// # Returns:
 /// * A tuple containing the score of the best move and the best move.
-pub fn negamax<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &T) -> (i32, Move) {
+pub fn negamax<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &T, print: bool) -> (i32, Move) {
     let mut moves = board.get_moves();
-    moves.sort_unstable_by_key(|&m| evaluator.move_order_score(board, m));
+    moves.sort_unstable_by_key(|&m| -evaluator.move_order_score(board, m));
 
     let beta = i32::MAX;
     let mut best_score = -beta;
     let mut best_move = moves[0];
 
     for m in moves {
-        print!("Evaluating: {}", m);
-        io::stdout().flush().expect("Unable to flush stdout.");
+        if print {
+            print!("Evaluating: {}", m);
+            io::stdout().flush().expect("Unable to flush stdout.");
+        }
 
         let start_time = Instant::now();
 
@@ -58,10 +60,12 @@ pub fn negamax<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &T) -> (i3
         let time_taken = duration.as_secs() as u32 * 1000 + duration.subsec_millis();
 
         if result > best_score {
-            println!(" -- Score: {:3}, Nodes: {}, Time {} ms", result, nodes, time_taken);
+            if print {
+                println!(" -- Score: {:3}, Nodes: {}, Time {} ms", result, nodes, time_taken);
+            }
             best_move = m;
             best_score = result;
-        } else {
+        } else if print {
             println!(" --             Nodes: {}, Time {} ms", nodes, time_taken);
         }
     }
@@ -86,12 +90,7 @@ pub fn negamax_impl<T: Evaluator>(board: &mut Board, mut alpha: i32, beta: i32, 
     }
 
     let mut moves = board.get_moves();
-    moves.sort_unstable_by_key(|&m| {
-        let undo = board.make_move(m);
-        let score = evaluator.get_score(board);
-        board.undo_move(undo, m);
-        score
-    });
+    moves.sort_unstable_by_key(|&m| -evaluator.move_order_score(board, m));
 
     let mut total_nodes = 1;
 
@@ -125,7 +124,7 @@ mod test {
         let mut board = Board::from_pos(0x000040BC00000000, 0x0000004000000000, false);
         let eval = PieceSquareEvaluator::from([1; 10]);
 
-        let (_score, m) = negamax::negamax(&mut board, 2, &eval);
+        let (_score, m) = negamax::negamax(&mut board, 2, &eval, true);
 
         assert_eq!(m, Move::Play(9));
     }

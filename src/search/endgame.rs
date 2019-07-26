@@ -24,7 +24,7 @@ pub struct EndgameSearcher {
 
 impl EndgameSearcher {
     pub fn new(print: bool) -> EndgameSearcher {
-        let file = File::open("patmultiempty.json").expect("File read error.");
+        let file = File::open("pat9-12.json").expect("File read error.");
         let reader = BufReader::new(file);
         let pat_file: PatternFile = from_reader(reader).expect("Unable to parse json");
 
@@ -42,7 +42,7 @@ impl EndgameSearcher {
 
         let mut moves = board.get_moves();
         if board.all_disks().count_zeros() > 12 {
-            moves.sort_unstable_by_key(|&m| self.eval.move_order_score(board, m));
+            moves.sort_unstable_by_key(|&m| -self.eval.move_order_score(board, m));
         } else {
             moves.sort_unstable_by_key(|&m| board.move_count_after(m));
         }
@@ -95,7 +95,7 @@ impl EndgameSearcher {
 
         let mut moves = board.get_moves();
         let empties = board.all_disks().count_zeros();
-        moves.sort_unstable_by_key(|&m| self.eval.move_order_score(board, m));
+        moves.sort_unstable_by_key(|&m| -self.eval.move_order_score(board, m));
 
         let mut total_nodes = 0;
 
@@ -141,7 +141,7 @@ impl EndgameSearcher {
 
         for m in moves {
             let undo = board.make_move(m);
-            let (mut result, nodes) = if empties > 3 {
+            let (mut result, nodes) = if empties > 2 {
                 self.endgame_negamax_ffo(board, -beta, -alpha, wld)
             } else {
                 self.endgame_negamax_nb(board, -beta, -alpha, wld)
@@ -162,8 +162,6 @@ impl EndgameSearcher {
 
         (alpha, total_nodes)
     }
-
-
 
     fn endgame_negamax_nb(&self, board: &mut Board, mut alpha: i32, beta: i32, wld: bool) -> (i32, u64) {
         let moves = board.get_moves();
