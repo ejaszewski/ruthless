@@ -5,7 +5,7 @@
 use std::time::Instant;
 
 use crate::board::{ Board, Move };
-use crate::search::eval::{ Evaluator, PatternEvaluator };
+use crate::search::{ SearchData, eval::{ Evaluator, PatternEvaluator } };
 use std::fs::File;
 use std::io::BufReader;
 use serde::Deserialize;
@@ -36,7 +36,7 @@ impl EndgameSearcher {
         }
     }
 
-    pub fn endgame_solve(&self, board: &mut Board, wld: bool) -> (i32, Move) {
+    pub fn endgame_solve(&self, board: &mut Board, wld: bool) -> (i32, Move, SearchData) {
         let start_time = Instant::now();
         let mut total_nodes = 0;
 
@@ -80,7 +80,7 @@ impl EndgameSearcher {
             println!("[{}] Searched {} nodes in {} ms.", if wld { "WLD" } else { "FULL" }, total_nodes, time_taken);
         }
 
-        (best_score, best_move)
+        (best_score, best_move, SearchData { nodes: total_nodes, time: time_taken })
     }
 
     fn endgame_negamax(&self, board: &mut Board, mut alpha: i32, beta: i32, wld: bool) -> (i32, u64) {
@@ -205,7 +205,7 @@ impl EndgameSearcher {
     }
 }
 
-pub fn endgame_solve(board: &mut Board, wld: bool, print: bool) -> (i32, Move) {
+pub fn endgame_solve(board: &mut Board, wld: bool, print: bool) -> (i32, Move, SearchData) {
     let start_time = Instant::now();
     let mut total_nodes = 0;
 
@@ -245,7 +245,7 @@ pub fn endgame_solve(board: &mut Board, wld: bool, print: bool) -> (i32, Move) {
         println!("[{}] Searched {} nodes in {} ms.", if wld { "WLD" } else { "FULL" }, total_nodes, time_taken);
     }
 
-    (best_score, best_move)
+    (best_score, best_move, SearchData { nodes: total_nodes, time: time_taken })
 }
 
 fn endgame_negamax(board: &mut Board, mut alpha: i32, beta: i32, wld: bool) -> (i32, u64) {

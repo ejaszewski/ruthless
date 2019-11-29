@@ -33,7 +33,7 @@ use std::io::{ self, Write };
 use std::time::Instant;
 
 use crate::board::{ Board, Move };
-use crate::search::eval::Evaluator;
+use crate::search::{ SearchData, eval::Evaluator };
 
 pub use crate::search::negamax::negamax_impl;
 
@@ -46,7 +46,7 @@ pub use crate::search::negamax::negamax_impl;
 /// * `evaluator`: Evaluator to use for position evaluation at a leaf.
 /// # Returns:
 /// * A tuple containing the score of the best move and the best move.
-pub fn best_node_search<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &T) -> (i32, Move) {
+pub fn best_node_search<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &T) -> (i32, Move, SearchData) {
     let next_guess = | a: i32, b: i32, count: u32 | {
         a + ((b - a) as f32 * ((count as f32 - 1.0) / count as f32)) as i32
     };
@@ -64,7 +64,7 @@ pub fn best_node_search<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &
     let mut beta = initial + 20;
     let mut better = board.move_count();
 
-    println!("Running BNS:");
+    println!("Running BNS depth {}:", depth);
 
     let total_time_start = Instant::now();
     let mut total_nodes = 0;
@@ -104,9 +104,11 @@ pub fn best_node_search<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &
         println!(" -- Time: {} ms, Nodes: {} -- Better: {}", time_ms(iter_time_start, Instant::now()), iter_nodes, better);
     }
 
-    println!("BNS Finished. Time: {} ms, Nodes: {}, Best Move: {}", time_ms(total_time_start, Instant::now()), total_nodes, moves[0]);
+    let total_time = time_ms(total_time_start, Instant::now());
 
-    (alpha, moves[0])
+    println!("BNS Finished. Time: {} ms, Nodes: {}, Best Move: {}", total_time, total_nodes, moves[0]);
+
+    (alpha, moves[0], SearchData { nodes: total_nodes, time: total_time })
 }
 
 #[cfg(test)]

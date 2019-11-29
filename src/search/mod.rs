@@ -7,6 +7,12 @@ pub mod eval;
 pub mod endgame;
 pub mod negamax;
 pub mod bns;
+pub mod iterative;
 
 #[cfg(test)]
 mod ffo_test;
+
+pub struct SearchData {
+    nodes: u64,
+    time: u32
+}

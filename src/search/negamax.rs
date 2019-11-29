@@ -22,7 +22,7 @@ use std::io::{ self, Write };
 use std::time::Instant;
 
 use crate::board::{ Board, Move };
-use crate::search::eval::Evaluator;
+use crate::search::{ SearchData, eval::Evaluator };
 
 /// A Negamax implementation which returns the best move for a curent position, along with score.
 /// This function should be called only if the best move is what is desired. Prints information
@@ -33,7 +33,7 @@ use crate::search::eval::Evaluator;
 /// * `evaluator`: Evaluator to use for position evaluation at a leaf.
 /// # Returns:
 /// * A tuple containing the score of the best move and the best move.
-pub fn negamax<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &T, print: bool) -> (i32, Move) {
+pub fn negamax<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &T, print: bool) -> (i32, Move, SearchData) {
     let mut moves = board.get_moves();
     moves.sort_unstable_by_key(|&m| -evaluator.move_order_score(board, m));
 
@@ -78,7 +78,7 @@ pub fn negamax<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &T, print:
 
     println!("Searched {} nodes in {} ms ({:.2} kn/s)", total_nodes, total_millis, total_nodes as f32 / total_millis as f32);
 
-    (best_score, best_move)
+    (best_score, best_move, SearchData { nodes: total_nodes, time: total_millis })
 }
 
 /// A Negamax implementation which returns the score of the best move in current position for the
@@ -134,7 +134,7 @@ mod test {
         let mut board = Board::from_pos(0x000040BC00000000, 0x0000004000000000, false);
         let eval = PieceSquareEvaluator::from([1; 10]);
 
-        let (_score, m) = negamax::negamax(&mut board, 2, &eval, true);
+        let (_score, m, _) = negamax::negamax(&mut board, 2, &eval, true);
 
         assert_eq!(m, Move::Play(9));
     }

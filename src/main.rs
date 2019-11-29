@@ -13,7 +13,7 @@ use clap::App;
 use rand::Rng;
 use rayon::prelude::*;
 use ruthless::board::{ self, Move, Board, Position };
-use ruthless::search::{ endgame, negamax, bns, eval::{ Evaluator, PieceSquareEvaluator, PatternEvaluator } };
+use ruthless::search::{ endgame, negamax, bns, iterative, eval::{ Evaluator, PieceSquareEvaluator, PatternEvaluator } };
 use ruthless::search::endgame::EndgameSearcher;
 use serde::Deserialize;
 use serde_json::from_reader;
@@ -139,7 +139,7 @@ fn play() {
                 };
 
                 // Get the best move.
-                let (score, best_move) = if depth <= board.all_disks().count_zeros() as u8 {
+                let (score, best_move, _) = if depth <= board.all_disks().count_zeros() as u8 {
                     // If the search is not full depth, then run a normal search.
                     if let Some(&alg) = split.get(2) {
                         match alg {
@@ -148,30 +148,33 @@ fn play() {
                             _ => negamax::negamax(&mut board, depth, &pat_eval, true)
                         }
                     } else {
-                        // if (board.all_disks().count_zeros() - depth as u32) < 15 {
-                        //     println!("Using pattern stage 2.");
-                        //     negamax::negamax(&mut board, depth, &pat_eval, true)
-                        // } else {
-                        //     println!("Using pattern stage 1.");
-                        //     negamax::negamax(&mut board, depth, &pat_eval2, true)
-                        // }
-                        if board.black_move {
-                            println!("Using pattern 1.");
-                            negamax::negamax(&mut board, depth, &pat_eval, true)
-                        } else {
-                            println!("Using pattern 2.");
-                            negamax::negamax(&mut board, depth, &pat_eval2, true)
-                        }
-                        // if (board.all_disks().count_zeros() as i32 - depth as i32) < 20 {
-                        //     println!("Using pattern evaluator.");
-                        //     negamax::negamax(&mut board, depth, &pat_eval, true)
-                        // } else {
-                        //     negamax::negamax(&mut board, depth, &PieceSquareEvaluator::new(), true)
-                        // }
+                        negamax::negamax(&mut board, depth, &pat_eval, true)
                     }
                 } else {
                     // If the search will be full-depth, then just endgame solve.
                     endgame::endgame_solve(&mut board, false, true)
+                };
+
+                println!("Computer is playing {}, which had score {}.", best_move, score);
+                // Make move and save undo information.
+                let undo_info = board.make_move(best_move);
+                undo_stack.push((undo_info, best_move));
+            } else if split[0] == "gt" {
+                // Get the search depth
+                let time = match split.get(1) {
+                    Some(dep) => match dep.parse::<u32>() { Ok(x) => x, _ => 1000 },
+                    None => 1000
+                };
+
+                // Get the best move.
+                let (score, best_move, _) = if let Some(&alg) = split.get(2) {
+                    match alg {
+                        "nm" => iterative::nm_iter_deep(&mut board, time, &pat_eval),
+                        "bns" => iterative::bns_iter_deep(&mut board, time, &pat_eval),
+                        _ => iterative::nm_iter_deep(&mut board, time, &pat_eval)
+                    }
+                } else {
+                    iterative::nm_iter_deep(&mut board, time, &pat_eval)
                 };
 
                 println!("Computer is playing {}, which had score {}.", best_move, score);
