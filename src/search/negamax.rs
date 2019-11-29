@@ -41,6 +41,9 @@ pub fn negamax<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &T, print:
     let mut best_score = -beta;
     let mut best_move = moves[0];
 
+    let mut total_nodes = 0;
+    let mut total_millis = 0;
+
     for m in moves {
         if print {
             print!("Evaluating: {}", m);
@@ -68,7 +71,12 @@ pub fn negamax<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &T, print:
         } else if print {
             println!(" --             Nodes: {}, Time {} ms", nodes, time_taken);
         }
+
+        total_nodes += nodes;
+        total_millis += time_taken;
     }
+
+    println!("Searched {} nodes in {} ms ({:.2} kn/s)", total_nodes, total_millis, total_nodes as f32 / total_millis as f32);
 
     (best_score, best_move)
 }
@@ -90,7 +98,9 @@ pub fn negamax_impl<T: Evaluator>(board: &mut Board, mut alpha: i32, beta: i32, 
     }
 
     let mut moves = board.get_moves();
-    moves.sort_unstable_by_key(|&m| -evaluator.move_order_score(board, m));
+    if depth > 3 {    
+        moves.sort_unstable_by_key(|&m| -evaluator.move_order_score(board, m));
+    }
 
     let mut total_nodes = 1;
 

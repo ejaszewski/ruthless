@@ -200,6 +200,7 @@ fn play() {
                 } else {
                     println!("TIE!");
                 }
+                println!("\n{}", board);
                 break;
             }
 

@@ -3,10 +3,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #[cfg(all(target_arch="x86", target_feature="bmi2"))]
-use std::arch::x86::{ _pext_u32 };
+use std::arch::x86::{ _pext_u32, _pdep_u32 };
 
 #[cfg(all(target_arch="x86_64", target_feature="bmi2"))]
-use std::arch::x86_64::{ _pext_u64 };
+use std::arch::x86_64::{ _pext_u64, _pdep_u64 };
 
 #[cfg(target_arch="x86_64")]
 use std::arch::x86_64::{ _bswap64 };
@@ -704,6 +704,44 @@ const TWOS_TERNARY: [usize; 4096] = [
 ];
 
 #[cfg(all(target_arch="x86_64", target_feature="bmi2"))]
+fn pdep64(a: u64, mask: u64) -> u64 {
+    unsafe {
+        _pdep_u64(a, mask)
+    }
+}
+
+#[cfg(all(target_arch="x86", target_feature="bmi2"))]
+fn pdep64(a: u64, mask: u64) -> u64 {
+    let mask_low = mask & 0xFF_FF_FF_FF;
+    let low = unsafe {
+        _pdep_u32((a & 0xFF_FF_FF_FF) as u32, mask_low as u32)
+    };
+
+    let high = unsafe {
+        _pdep_u32(a >> 32, mask >> mask_low.count_ones())
+    };
+
+    low | (high << 32)
+}
+
+#[cfg(not(target_feature="bmi2"))]
+fn pdep64(a: u64, mask: u64) -> u64 {
+    let mut temp = mask;
+    let mut dst = 0;
+    let mut idx = 1u64;
+    
+    while temp != 0 {
+        if a & idx != 0 {
+            dst |= temp & temp.wrapping_neg();
+        }
+        temp &= temp - 1;
+        idx = idx.wrapping_add(idx);
+    }
+
+    dst
+}
+
+#[cfg(all(target_arch="x86_64", target_feature="bmi2"))]
 fn pext64(a: u64, mask: u64) -> u64 {
     unsafe {
         _pext_u64(a, mask)
@@ -726,16 +764,16 @@ fn pext64(a: u64, mask: u64) -> u64 {
 
 #[cfg(not(target_feature="bmi2"))]
 fn pext64(a: u64, mask: u64) -> u64 {
-    let mut temp = a;
+    let mut temp = mask;
     let mut dst = 0;
-    let mut m = 0x80_00_00_00_00_00_00_00;
-
-    for _ in 0..64 {
-        if mask & m == 1 {
-            dst |= temp & 1;
+    let mut idx = 1u64;
+    
+    while temp != 0 {
+        if a & temp & temp.wrapping_neg() != 0 {
+            dst |= idx;
         }
-        temp >>= 1;
-        m >>= 1;
+        idx = idx.wrapping_add(idx);
+        temp &= temp - 1;
     }
 
     dst
@@ -792,8 +830,72 @@ impl PatternEvaluator {
     }
 
     pub fn from(masks: Vec<u64>, weights: Vec<Vec<f32>>) -> PatternEvaluator {
+        let rotate = | mask: u64, weight: &Vec<f32> | {
+            let mut new_masks = vec![mask];
+            let mut new_weights = vec![weight.clone()];
+
+            let max_idx = 3usize.pow(mask.count_ones() as u32);
+            let max_val = 2usize.pow(mask.count_ones() as u32);
+
+            let mut board = [-1; 64];
+            let mut idx = 0;
+            for i in 0..64 {
+                if mask & (0x80_00_00_00_00_00_00_00 << i) == 1 {
+                    board[i] = idx;
+                    idx += 1;
+                } 
+            }
+
+            let rotate_board = | a: u64, i: u8 | {
+                let mut temp = a;
+                for _ in 0..i {
+                    temp = flip_vertical(flip_diag(temp));
+                }
+                temp
+            };
+
+            for r in 1..4 {
+                // 90 degree clockwise rotation
+                let rotated = rotate_board(mask, r);
+                
+                //iterate through 0..3**n
+                //pdep into pattern
+                //rotate pdeped val
+                //pext with rotated pattern
+                //write to vec at index
+
+                let mut rot_weight = vec![0.0; max_idx];
+                for i in 0..max_val {
+                    for j in 0..max_val {
+                        if i & j == 0 {
+                            let mut idep = pdep64(i as u64, mask);
+                            let mut jdep = pdep64(j as u64, mask);
+                            idep = rotate_board(idep, r);
+                            jdep = rotate_board(jdep, r);
+                            let iext = pext64(idep, rotated) as usize;
+                            let jext = pext64(jdep, rotated) as usize;
+                            rot_weight[ONES_TERNARY[iext] + TWOS_TERNARY[jext]] = weight[ONES_TERNARY[i] + TWOS_TERNARY[j]];
+                        }
+                    }
+                }
+
+                new_masks.push(rotated);
+                new_weights.push(rot_weight);
+            }
+
+            (new_masks, new_weights)
+        };
+
+        let mut all_masks = vec![];
+        let mut all_weights = vec![];
+
+        masks.iter().zip(weights).map(| (&m, w) | rotate(m, &w)).for_each(| (mut m, mut w) | {
+            all_masks.append(&mut m);
+            all_weights.append(&mut w);
+        });
+
         PatternEvaluator {
-            patterns: masks.iter().zip(weights).map(| (&m, w) | (m, w)).collect()
+            patterns: all_masks.iter().zip(all_weights).map(| (&m, w) | (m, w)).collect()
         }
     }
 }
@@ -804,21 +906,15 @@ impl super::Evaluator for PatternEvaluator {
         let mut blacks = board.black_disks;
         let mut whites = board.white_disks;
 
-        for _ in 0..4 {
-            for (mask, weights) in self.patterns.iter() {
-                // Extract the pattern from both bitboards
-                let black_pat = pext64(blacks, *mask) as usize;
-                let white_pat = pext64(whites, *mask) as usize;
-                // Get the index of the given pattern
-                let index = ONES_TERNARY[white_pat] + TWOS_TERNARY[black_pat];
+        for (mask, weights) in self.patterns.iter() {
+            // Extract the pattern from both bitboards
+            let black_pat = pext64(blacks, *mask) as usize;
+            let white_pat = pext64(whites, *mask) as usize;
+            // Get the index of the given pattern
+            let index = ONES_TERNARY[white_pat] + TWOS_TERNARY[black_pat];
 
-                // Add the pattern's weight to the score
-                score += weights[index];
-            }
-
-            // Rotate both bitboards by 90°
-            blacks = flip_vertical(flip_diag(blacks));
-            whites = flip_vertical(flip_diag(whites));
+            // Add the pattern's weight to the score
+            score += weights[index];
         }
 
         if board.black_move {
