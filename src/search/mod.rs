@@ -13,6 +13,7 @@ pub mod iterative;
 mod ffo_test;
 
 pub struct SearchData {
-    nodes: u64,
-    time: u32
+    pub nodes: u64,
+    pub time: u32,
+    pub depth: u8
 }

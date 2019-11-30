@@ -108,7 +108,7 @@ pub fn best_node_search<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &
 
     println!("BNS Finished. Time: {} ms, Nodes: {}, Best Move: {}", total_time, total_nodes, moves[0]);
 
-    (alpha, moves[0], SearchData { nodes: total_nodes, time: total_time })
+    (alpha, moves[0], SearchData { nodes: total_nodes, time: total_time, depth })
 }
 
 #[cfg(test)]

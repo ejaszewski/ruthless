@@ -73,6 +73,13 @@ fn main() {
     if let Some(_play_matches) = matches.subcommand_matches("play") {
         play();
     }
+
+    if let Some(cs2_matches) = matches.subcommand_matches("cs2l") {
+        let board = board::Board::new();
+        let black = cs2_matches.value_of("COLOR").unwrap() == "Black";
+
+        cs2_play(board, black);
+    }
 }
 
 fn play() {
@@ -212,6 +219,93 @@ fn play() {
         } else {
             break;
         }
+    }
+}
+
+fn cs2_play(mut board: Board, black: bool) {
+    let stdin = io::stdin();
+    let mut first_move = true;
+    let mut last_bf = 10.0;
+
+    let file = File::open("pat9-12-fp.json").expect("File read error.");
+    let reader = BufReader::new(file);
+    let pat_file: PatternFile = from_reader(reader).expect("Unable to parse json");
+
+    let pat_eval = PatternEvaluator::from(pat_file.masks, pat_file.weights);
+
+    eprintln!("Initialized...");
+    println!("");
+
+    for line in stdin.lock().lines() {
+        let line = line.unwrap();
+        eprintln!("Line: {}", line);
+
+        eprintln!(
+            "\nRuthless: Making {} Move",
+            if !board.black_move { "Dark" } else { "Light" }
+        );
+
+        let line_split: Vec<&str> = line.split(" ").collect();
+
+        let x: i8 = str::parse::<i8>(line_split[0]).unwrap();
+        let y: i8 = str::parse::<i8>(line_split[1]).unwrap();
+        let ms_left: i64 = str::parse::<i64>(line_split[2]).unwrap();
+        if x >= 0 && y >= 0 {
+            let coord: u8 = (y * 8 + x) as u8;
+            board.make_move(Move::Play(coord));
+        } else if black && first_move {
+            eprintln!("First move & black.");
+        } else {
+            board.make_move(Move::Pass);
+        }
+
+        let x: i32;
+        let y: i32;
+        let best_move;
+        let srch_data;
+
+        let time_allocated = (2. / (52. - board.all_disks().count_ones() as f32).max(3.0) * ms_left as f32) as u32;
+
+        if board.all_disks().count_zeros() > 18 && !(board.all_disks().count_zeros() < 20 && last_bf < 3.5) {
+            let (score, best, data) = iterative::nm_iter_deep(&mut board, time_allocated, &pat_eval);
+            best_move = best;
+            last_bf = (data.nodes as f32).powf(1.0 / data.depth as f32);
+            srch_data = data;
+        } else if board.all_disks().count_zeros() > 12 {
+            let (score, best, data) = endgame::endgame_solve(&mut board, true, false);
+            if score == -1 { // TODO: This is bad.
+                let (score, best, data) = iterative::nm_iter_deep(&mut board, time_allocated, &pat_eval);
+                best_move = best;
+                last_bf = (data.nodes as f32).powf(1.0 / data.depth as f32);
+            } else {
+                best_move = best;
+                last_bf = 0.0;
+            }
+            srch_data = data;
+        } else {
+            last_bf = 0.0;
+            let (score, best, data) = endgame::endgame_solve(&mut board, false, false);
+            best_move = best;
+            srch_data = data;
+        }
+
+        match best_move {
+            Move::Play(m) => {
+                x = (m % 8) as i32;
+                y = (m / 8) as i32;
+            }
+            Move::Pass => {
+                x = -1;
+                y = -1;
+            }
+        }
+
+        board.make_move(best_move);
+        first_move = false;
+
+        eprintln!("");
+        eprintln!("Searched {} nodes. {:.2} kn/s", srch_data.nodes, srch_data.nodes as f32 / srch_data.time as f32);
+        println!("{} {}", x, y);
     }
 }
 

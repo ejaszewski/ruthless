@@ -37,9 +37,11 @@ pub fn bns_iter_deep<T: Evaluator>(board: &mut Board, time: u32, evaluator: &T) 
         time_spent += data.time;
     }
 
+    depth -= 1;
+
     println!("Final search was depth {}. Total time was {:.2} s", depth - 1, time_spent as f32 / 1000.0);
 
-    (best_score, best_move, SearchData { nodes: searched_total, time: time_spent })
+    (best_score, best_move, SearchData { nodes: searched_total, time: time_spent, depth })
 }
 
 pub fn nm_iter_deep<T: Evaluator>(board: &mut Board, time: u32, evaluator: &T) -> (i32, Move, SearchData) {
@@ -55,7 +57,7 @@ pub fn nm_iter_deep<T: Evaluator>(board: &mut Board, time: u32, evaluator: &T) -
     let mut branching_factor = 0.0;
 
     while time_prediction < time {
-        let (score, m, data) = negamax::negamax(board, depth, evaluator, true);
+        let (score, m, data) = negamax::negamax(board, depth, evaluator, false);
 
         best_move = m;
         best_score = score;
@@ -68,7 +70,9 @@ pub fn nm_iter_deep<T: Evaluator>(board: &mut Board, time: u32, evaluator: &T) -
         time_spent += data.time;
     }
 
-    println!("Final search was depth {}. Total time was {:.2} s", depth - 1, time_spent as f32 / 1000.0);
+    depth -= 1;
 
-    (best_score, best_move, SearchData { nodes: searched_total, time: time_spent })
+    eprintln!("Final search was depth {}. Total time was {:.2} s", depth, time_spent as f32 / 1000.0);
+
+    (best_score, best_move, SearchData { nodes: searched_total, time: time_spent, depth })
 }

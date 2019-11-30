@@ -75,10 +75,12 @@ pub fn negamax<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &T, print:
         total_nodes += nodes;
         total_millis += time_taken;
     }
+    
+    if print {
+        println!("Searched {} nodes in {} ms ({:.2} kn/s)", total_nodes, total_millis, total_nodes as f32 / total_millis as f32);
+    }
 
-    println!("Searched {} nodes in {} ms ({:.2} kn/s)", total_nodes, total_millis, total_nodes as f32 / total_millis as f32);
-
-    (best_score, best_move, SearchData { nodes: total_nodes, time: total_millis })
+    (best_score, best_move, SearchData { nodes: total_nodes, time: total_millis, depth })
 }
 
 /// A Negamax implementation which returns the score of the best move in current position for the

@@ -80,7 +80,7 @@ impl EndgameSearcher {
             println!("[{}] Searched {} nodes in {} ms.", if wld { "WLD" } else { "FULL" }, total_nodes, time_taken);
         }
 
-        (best_score, best_move, SearchData { nodes: total_nodes, time: time_taken })
+        (best_score, best_move, SearchData { nodes: total_nodes, time: time_taken, depth: board.all_disks().count_zeros() as u8 })
     }
 
     fn endgame_negamax(&self, board: &mut Board, mut alpha: i32, beta: i32, wld: bool) -> (i32, u64) {
@@ -245,7 +245,7 @@ pub fn endgame_solve(board: &mut Board, wld: bool, print: bool) -> (i32, Move, S
         println!("[{}] Searched {} nodes in {} ms.", if wld { "WLD" } else { "FULL" }, total_nodes, time_taken);
     }
 
-    (best_score, best_move, SearchData { nodes: total_nodes, time: time_taken })
+    (best_score, best_move, SearchData { nodes: total_nodes, time: time_taken, depth: board.all_disks().count_zeros() as u8 })
 }
 
 fn endgame_negamax(board: &mut Board, mut alpha: i32, beta: i32, wld: bool) -> (i32, u64) {
