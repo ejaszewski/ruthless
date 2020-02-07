@@ -65,7 +65,7 @@ mod test {
         let eval_1 = PieceSquareEvaluator::new();
         let eval_2 = PieceSquareEvaluator::from([1; 10]);
 
-        let mut board = Board::from_pos(0xFF_FF_FF_FF_00_00_00_00, 0x00_00_00_00_FF_FF_FF_FF, true);
+        let board = Board::from_pos(0xFF_FF_FF_FF_00_00_00_00, 0x00_00_00_00_FF_FF_FF_FF, true);
         assert_eq!(eval_1.get_score(&board), 0);
         assert_eq!(eval_2.get_score(&board), 0);
     }

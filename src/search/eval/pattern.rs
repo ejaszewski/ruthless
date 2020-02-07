@@ -903,8 +903,8 @@ impl PatternEvaluator {
 impl super::Evaluator for PatternEvaluator {
     fn get_score(&self, board: &Board) -> i32 {
         let mut score: f32 = 0.0;
-        let mut blacks = board.black_disks;
-        let mut whites = board.white_disks;
+        let blacks = board.black_disks;
+        let whites = board.white_disks;
 
         for (mask, weights) in self.patterns.iter() {
             // Extract the pattern from both bitboards
