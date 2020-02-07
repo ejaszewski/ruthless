@@ -176,12 +176,12 @@ fn play() {
                 // Get the best move.
                 let (score, best_move, _) = if let Some(&alg) = split.get(2) {
                     match alg {
-                        "nm" => iterative::nm_iter_deep(&mut board, time, &pat_eval),
+                        "nm" => negamax::negamax_id(&mut board, time, &pat_eval, false),
                         "bns" => iterative::bns_iter_deep(&mut board, time, &pat_eval),
-                        _ => iterative::nm_iter_deep(&mut board, time, &pat_eval)
+                        _ => negamax::negamax_id(&mut board, time, &pat_eval, true)
                     }
                 } else {
-                    iterative::nm_iter_deep(&mut board, time, &pat_eval)
+                    negamax::negamax_id(&mut board, time, &pat_eval, true)
                 };
 
                 println!("Computer is playing {}, which had score {}.", best_move, score);
@@ -262,23 +262,29 @@ fn cs2_play(mut board: Board, black: bool) {
         let x: i32;
         let y: i32;
         let best_move;
+        let best_score;
         let srch_data;
 
         let time_allocated = (2. / (52. - board.all_disks().count_ones() as f32).max(3.0) * ms_left as f32) as u32;
 
+        eprintln!("Allocating {:.2} s to search.", time_allocated as f32 / 1000.0);
+
         if board.all_disks().count_zeros() > 18 && !(board.all_disks().count_zeros() < 20 && last_bf < 3.5) {
-            let (score, best, data) = iterative::nm_iter_deep(&mut board, time_allocated, &pat_eval);
+            let (score, best, data) = negamax::negamax_id(&mut board, time_allocated, &pat_eval, false);
             best_move = best;
+            best_score = score;
             last_bf = (data.nodes as f32).powf(1.0 / data.depth as f32);
             srch_data = data;
         } else if board.all_disks().count_zeros() > 12 {
             let (score, best, data) = endgame::endgame_solve(&mut board, true, false);
             if score == -1 { // TODO: This is bad.
-                let (score, best, data) = iterative::nm_iter_deep(&mut board, time_allocated, &pat_eval);
+                let (score, best, data) = negamax::negamax_id(&mut board, time_allocated, &pat_eval, false);
                 best_move = best;
+                best_score = score;
                 last_bf = (data.nodes as f32).powf(1.0 / data.depth as f32);
             } else {
                 best_move = best;
+                best_score = score;
                 last_bf = 0.0;
             }
             srch_data = data;
@@ -286,8 +292,11 @@ fn cs2_play(mut board: Board, black: bool) {
             last_bf = 0.0;
             let (score, best, data) = endgame::endgame_solve(&mut board, false, false);
             best_move = best;
+            best_score = score;
             srch_data = data;
         }
+
+        eprintln!("\nBest move was {} with score {}", best_move, best_score);
 
         match best_move {
             Move::Play(m) => {
@@ -304,7 +313,8 @@ fn cs2_play(mut board: Board, black: bool) {
         first_move = false;
 
         eprintln!("");
-        eprintln!("Searched {} nodes. {:.2} kn/s", srch_data.nodes, srch_data.nodes as f32 / srch_data.time as f32);
+        eprintln!("Searched {} nodes in {} ms ({:.2} kn/s). Final depth was {}.", srch_data.nodes, srch_data.time, srch_data.nodes as f32 / srch_data.time as f32, srch_data.depth);
+        eprintln!("");
         println!("{} {}", x, y);
     }
 }

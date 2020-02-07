@@ -17,12 +17,15 @@
 //! is not guaranteed to search every move in the position. Scores must be in the range [`alpha`,
 //! `beta`], so alpha-cutoffs will return alpha, while beta-cutoffs will return beta.
 
+use std::collections::HashMap;
 use std::i32;
 use std::io::{ self, Write };
 use std::time::Instant;
 
 use crate::board::{ Board, Move };
 use crate::search::{ SearchData, eval::Evaluator };
+
+const MIN_SEARCH_DEPTH: u8 = 8;
 
 /// A Negamax implementation which returns the best move for a curent position, along with score.
 /// This function should be called only if the best move is what is desired. Prints information
@@ -81,6 +84,95 @@ pub fn negamax<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &T, print:
     }
 
     (best_score, best_move, SearchData { nodes: total_nodes, time: total_millis, depth })
+}
+
+/// A Negamax implementation which returns the best move for a curent position, along with score.
+/// This function should be called only if the best move is what is desired. Prints information
+/// about the search to stdout.
+/// # Arguments:
+/// * `board`: Board to search.
+/// * `depth`: Depth to search to.
+/// * `evaluator`: Evaluator to use for position evaluation at a leaf.
+/// # Returns:
+/// * A tuple containing the score of the best move and the best move.
+pub fn negamax_id<T: Evaluator>(board: &mut Board, time: u32, evaluator: &T, print: bool) -> (i32, Move, SearchData) {
+    let mut moves = board.get_moves();
+    moves.sort_unstable_by_key(|&m| -evaluator.move_order_score(board, m));
+
+    let mut scores: HashMap<Move, i32> = HashMap::new();
+
+    let mut total_nodes = 0;
+    let mut total_millis = 0;
+
+    let mut depth = MIN_SEARCH_DEPTH;
+    let mut time_prediction = 0;
+
+    let mut branching_factor = 0.0;
+
+    while time_prediction + total_millis < time {
+        let beta = i32::MAX;
+
+        let mut best_score = -beta;
+        let mut best_move = &moves[0];
+
+        let mut iter_nodes = 0;
+        let mut iter_time = 0;
+
+        for m in &moves {
+            if print {
+                print!("Evaluating: {}", m);
+                io::stdout().flush().expect("Unable to flush stdout.");
+            }
+
+            let start_time = Instant::now();
+
+            let undo = board.make_move(*m);
+            let (mut result, nodes) = negamax_impl(board, -beta, -best_score, depth - 1, evaluator);
+            board.undo_move(undo, *m);
+
+            result = -result;
+
+            scores.insert(*m, result);
+
+            let end_time = Instant::now();
+            let duration = end_time - start_time;
+            let time_taken = duration.as_secs() as u32 * 1000 + duration.subsec_millis();
+
+            if result > best_score {
+                if print {
+                    println!(" -- Score: {:3}, Nodes: {}, Time {} ms", result, nodes, time_taken);
+                }
+                best_move = &m;
+                best_score = result;
+            } else if print {
+                println!(" --             Nodes: {}, Time {} ms", nodes, time_taken);
+            }
+            
+            iter_nodes += nodes;
+            iter_time += time_taken;
+            total_nodes += nodes;
+            total_millis += time_taken;
+        }
+
+        moves.sort_by_key(|&m| -scores.get(&m).unwrap());
+
+        depth += 1;
+
+        branching_factor = (iter_nodes as f32).powf(1.0 / depth as f32);
+        time_prediction = (iter_time as f32 * (branching_factor + 1.0)) as u32;
+
+        eprintln!("Took {} ms", iter_time);
+        eprintln!("Predicted next time is {} ms", time_prediction);
+    }
+
+    depth -= 1;
+    
+    if print {
+        println!("Searched {} nodes in {} ms ({:.2} kn/s)", total_nodes, total_millis, total_nodes as f32 / total_millis as f32);
+        println!("Final search was depth {}", depth);
+    }
+
+    (*scores.get(&moves[0]).unwrap(), moves[0], SearchData { nodes: total_nodes, time: total_millis, depth })
 }
 
 /// A Negamax implementation which returns the score of the best move in current position for the
