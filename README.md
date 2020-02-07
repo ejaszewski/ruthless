@@ -1,9 +1,8 @@
 Ruthless
---------
+========
 
 [![Build Status](https://travis-ci.org/ejaszewski/ruthless.svg?branch=master)](https://travis-ci.org/ejaszewski/ruthless)
 [![codecov](https://codecov.io/gh/ejaszewski/ruthless/branch/master/graph/badge.svg)](https://codecov.io/gh/ejaszewski/ruthless)
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fejaszewski%2Fruthless.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fejaszewski%2Fruthless?ref=badge_shield)
 
 Ruthless is an Othello AI written in the [Rust] language.
 
@@ -12,12 +11,14 @@ current version of Ruthless is a complete rewrite started March 2018.
 
 ---
 
-## Goals
+Goals
+-----
 
 Ruthless is a hobby project, mainly created to learn Rust, and experiment with
 bitboards, code optimization, and tree searches. I also set up Travis CI and
 Codecov as a learning exercise. That said, I also have some concrete goals for
 the project:
+
 - [ ] User-Friendly CLI
 - [ ] Fast endgame solver
 - [ ] Several search algorithms:
@@ -31,8 +32,9 @@ the project:
   - [ ] Advanced Stability & Mobility
 - [ ] [NBoard](http://www.orbanova.com/nboard/) compatibility
 
+License
+-------
 
-## License
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fejaszewski%2Fruthless.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fejaszewski%2Fruthless?ref=badge_large)
+This project is released under the [Mozilla Public License](https://www.mozilla.org/en-US/MPL/) (MPL 2.0). A copy of the license is available in the LICENSE file, or at <https://www.mozilla.org/en-US/MPL/>.
 
 [Rust]: https://www.rust-lang.org
