@@ -121,7 +121,7 @@ mod test {
         let mut board = Board::from_pos(0x000040BC00000000, 0x0000004000000000, false);
         let eval = PieceSquareEvaluator::from([1; 10]);
 
-        let (_score, m) = bns::best_node_search(&mut board, 2, &eval);
+        let (_score, m, _) = bns::best_node_search(&mut board, 2, &eval);
 
         assert_eq!(m, Move::Play(9));
     }

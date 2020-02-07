@@ -13,7 +13,7 @@ use clap::App;
 use rand::Rng;
 use rayon::prelude::*;
 use ruthless::board::{ self, Move, Board, Position };
-use ruthless::search::{ endgame, negamax, bns, iterative, eval::{ Evaluator, PieceSquareEvaluator, PatternEvaluator } };
+use ruthless::search::{ endgame, negamax, bns, iterative, eval::{ PatternEvaluator } };
 use ruthless::search::endgame::EndgameSearcher;
 use serde::Deserialize;
 use serde_json::from_reader;
@@ -103,12 +103,6 @@ fn play() {
     let pat_file: PatternFile = from_reader(reader).expect("Unable to parse json");
 
     let pat_eval = PatternEvaluator::from(pat_file.masks, pat_file.weights);
-
-    let file = File::open("pat9-12-fp2.json").expect("File read error.");
-    let reader = BufReader::new(file);
-    let pat_file: PatternFile = from_reader(reader).expect("Unable to parse json");
-
-    let pat_eval2 = PatternEvaluator::from(pat_file.masks, pat_file.weights);
 
     print_info(&mut board);
 

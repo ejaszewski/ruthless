@@ -25,7 +25,7 @@ fn ffo_pos_40_exact() {
 
     let searcher: EndgameSearcher = EndgameSearcher::new(true);
 
-    let (score, m) = searcher.endgame_solve(&mut board, false);
+    let (score, m, _) = searcher.endgame_solve(&mut board, false);
     assert_eq!(score, 38);
     assert!(move_in_list(vec![ 8 ], m));
 }
@@ -45,7 +45,7 @@ fn ffo_pos_41_exact() {
 
     let searcher: EndgameSearcher = EndgameSearcher::new(true);
 
-    let (score, m) = searcher.endgame_solve(&mut board, false);
+    let (score, m, _) = searcher.endgame_solve(&mut board, false);
     assert_eq!(score, 0);
     assert!(move_in_list(vec![ 31 ], m));
 }
@@ -65,7 +65,7 @@ fn ffo_pos_42_exact() {
 
     let searcher: EndgameSearcher = EndgameSearcher::new(true);
 
-    let (score, m) = searcher.endgame_solve(&mut board, false);
+    let (score, m, _) = searcher.endgame_solve(&mut board, false);
     assert_eq!(score, 6);
     assert!(move_in_list(vec![ 14 ], m));
 }
@@ -85,7 +85,7 @@ fn ffo_pos_43_exact() {
 
     let searcher: EndgameSearcher = EndgameSearcher::new(true);
 
-    let (score, m) = searcher.endgame_solve(&mut board, false);
+    let (score, m, _) = searcher.endgame_solve(&mut board, false);
     assert_eq!(score, -12);
     assert!(move_in_list(vec![ 50, 22 ], m));
 }
@@ -105,7 +105,7 @@ fn ffo_pos_44_exact() {
 
     let searcher: EndgameSearcher = EndgameSearcher::new(true);
 
-    let (score, m) = searcher.endgame_solve(&mut board, false);
+    let (score, m, _) = searcher.endgame_solve(&mut board, false);
     assert_eq!(score, -14);
     assert!(move_in_list(vec![ 57, 11 ], m));
 }
@@ -125,7 +125,7 @@ fn ffo_pos_46_exact() {
 
     let searcher: EndgameSearcher = EndgameSearcher::new(true);
 
-    let (score, m) = searcher.endgame_solve(&mut board, false);
+    let (score, m, _) = searcher.endgame_solve(&mut board, false);
     assert_eq!(score, -8);
     assert!(move_in_list(vec![ 17 ], m));
 }
@@ -139,7 +139,7 @@ fn ffo_pos_47_exact() {
 
     let searcher: EndgameSearcher = EndgameSearcher::new(true);
 
-    let (score, m) = searcher.endgame_solve(&mut board, false);
+    let (score, m, _) = searcher.endgame_solve(&mut board, false);
     assert_eq!(score, 4);
     assert!(move_in_list(vec![ 49 ], m));
 }

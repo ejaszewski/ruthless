@@ -5,7 +5,7 @@
 use std::fmt;
 use std::str;
 
-use serde::{Deserialize, Serialize};
+use serde::{Serialize};
 
 pub mod bitboard;
 

@@ -183,7 +183,7 @@ impl EndgameSearcher {
         (alpha, total_nodes)
     }
 
-    fn endgame_negamax_nb_2(&self, board: &mut Board, mut alpha: i32, beta: i32, wld: bool) -> (i32, u64) {
+    fn endgame_negamax_nb_2(&self, board: &mut Board, mut alpha: i32, _beta: i32, wld: bool) -> (i32, u64) {
         let moves = board.get_moves();
 
         for &m in &moves {
@@ -299,7 +299,7 @@ mod test {
 
         assert_eq!(super::endgame_solve(&mut board, true, true).0, 1);
 
-        let (score, m) = super::endgame_solve(&mut board, false, true);
+        let (score, m, _) = super::endgame_solve(&mut board, false, true);
         assert_eq!(score, 38);
         assert_eq!(m, Move::Play(2));
     }

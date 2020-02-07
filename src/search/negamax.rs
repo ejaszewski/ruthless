@@ -107,13 +107,12 @@ pub fn negamax_id<T: Evaluator>(board: &mut Board, time: u32, evaluator: &T, pri
     let mut depth = MIN_SEARCH_DEPTH;
     let mut time_prediction = 0;
 
-    let mut branching_factor = 0.0;
+    let mut branching_factor;
 
     while time_prediction + total_millis < time {
         let beta = i32::MAX;
 
         let mut best_score = -beta;
-        let mut best_move = &moves[0];
 
         let mut iter_nodes = 0;
         let mut iter_time = 0;
@@ -142,7 +141,6 @@ pub fn negamax_id<T: Evaluator>(board: &mut Board, time: u32, evaluator: &T, pri
                 if print {
                     println!(" -- Score: {:3}, Nodes: {}, Time {} ms", result, nodes, time_taken);
                 }
-                best_move = &m;
                 best_score = result;
             } else if print {
                 println!(" --             Nodes: {}, Time {} ms", nodes, time_taken);

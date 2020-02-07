@@ -21,7 +21,7 @@ pub fn bns_iter_deep<T: Evaluator>(board: &mut Board, time: u32, evaluator: &T) 
     let mut best_move = board.get_moves()[0];
     let mut best_score = 0;
 
-    let mut branching_factor = 0.0;
+    let mut branching_factor;
 
     while time_prediction < time {
         let (score, m, data) = bns::best_node_search(board, depth, evaluator);
@@ -54,7 +54,7 @@ pub fn nm_iter_deep<T: Evaluator>(board: &mut Board, time: u32, evaluator: &T) -
     let mut best_move = board.get_moves()[0];
     let mut best_score = 0;
 
-    let mut branching_factor = 0.0;
+    let mut branching_factor;
 
     while time_prediction < time {
         let (score, m, data) = negamax::negamax(board, depth, evaluator, false);
