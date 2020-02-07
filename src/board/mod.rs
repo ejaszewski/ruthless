@@ -8,6 +8,9 @@ use std::str;
 use serde::{Serialize};
 
 pub mod bitboard;
+pub mod movelist;
+
+use movelist::MoveList;
 
 #[cfg(test)]
 pub mod test;
@@ -226,7 +229,7 @@ impl Board {
     /// A function which generates all of the moves that the current player can make.
     /// # Returns:
     /// * A list of moves that can be made by the current player.
-    pub fn get_moves(&mut self) -> Vec<Move> {
+    pub fn get_moves(&mut self) -> MoveList {
         let mut all_moves = if self.black_move {
             self.get_black_moves()
         } else {
@@ -234,7 +237,7 @@ impl Board {
         };
 
         let num_moves = all_moves.count_ones() as usize;
-        let mut moves: Vec<Move> = Vec::with_capacity(num_moves);
+        let mut moves = MoveList::new();
 
         if all_moves == 0 {
             moves.push(Move::Pass);

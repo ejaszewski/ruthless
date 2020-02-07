@@ -90,7 +90,7 @@ fn play() {
     let print_info = |b: &mut board::Board| {
         println!("\n{}", b);
         print!("Playable Moves:\n\t");
-        for m in b.get_moves() {
+        for m in &b.get_moves() {
             print!("{} ", m);
         }
         println!("\n");
@@ -116,7 +116,7 @@ fn play() {
             } else if split[0] == "play" {
                 let m = Move::from_coord(split[1]);
 
-                if board.get_moves().contains(&m) {
+                if board.get_moves().contains(m) {
                     println!("Playing move: {}", m);
                     // Make the move and save for undo.
                     let undo_info = board.make_move(m);
@@ -340,9 +340,9 @@ fn perft_impl(depth: u8, board: &mut board::Board) -> u64 {
     let mut nodes = 0;
 
     for m in &board.get_moves() {
-        let undo = board.make_move(*m);
+        let undo = board.make_move(m);
         nodes += perft_impl(depth - 1, board);
-        board.undo_move(undo, *m);
+        board.undo_move(undo, m);
     }
 
     nodes

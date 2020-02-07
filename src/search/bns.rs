@@ -80,16 +80,16 @@ pub fn best_node_search<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &
         print!("  - α: {}, β: {}, G: {}", alpha, beta, guess);
         io::stdout().flush().expect("asdf");
 
-        let filtered: Vec<Move> = moves.iter().filter(| &m | {
-            let undo = board.make_move(*m);
+        let filtered = moves.filtered(| &m | {
+            let undo = board.make_move(m);
             let (mut result, nodes) = negamax_impl(board, -guess, -(guess - 1), depth - 1, evaluator);
-            board.undo_move(undo, *m);
+            board.undo_move(undo, m);
 
             result = -result;
             iter_nodes += nodes;
 
             result >= guess
-        }).cloned().collect();
+        });
 
         total_nodes += iter_nodes;
 

@@ -42,16 +42,16 @@ impl EndgameSearcher {
 
         let mut moves = board.get_moves();
         if board.all_disks().count_zeros() > 12 {
-            moves.sort_unstable_by_key(|&m| -self.eval.move_order_score(board, m));
+            moves.sort_by(|&m| -self.eval.move_order_score(board, m));
         } else {
-            moves.sort_unstable_by_key(|&m| board.move_count_after(m));
+            moves.sort_by(|&m| board.move_count_after(m) as i32);
         }
 
         let beta = if wld { 1 } else { 64 };
         let mut best_score = -beta;
         let mut best_move = moves[0];
 
-        for m in moves {
+        for m in &moves {
             let undo = board.make_move(m);
             let (mut result, nodes) = self.endgame_negamax(board, -beta, -best_score, wld);
             board.undo_move(undo, m);
@@ -95,11 +95,11 @@ impl EndgameSearcher {
 
         let mut moves = board.get_moves();
         let empties = board.all_disks().count_zeros();
-        moves.sort_unstable_by_key(|&m| -self.eval.move_order_score(board, m));
+        moves.sort_by(|&m| -self.eval.move_order_score(board, m));
 
         let mut total_nodes = 0;
 
-        for m in moves {
+        for m in &moves {
             let undo = board.make_move(m);
             let (mut result, nodes) = if empties > 12 {
                 self.endgame_negamax(board, -beta, -alpha, wld)
@@ -135,11 +135,11 @@ impl EndgameSearcher {
 
         let mut moves = board.get_moves();
         let empties = board.all_disks().count_zeros();
-        moves.sort_unstable_by_key(|&m| board.move_count_after(m));
+        moves.sort_by(|&m| board.move_count_after(m) as i32);
 
         let mut total_nodes = 0;
 
-        for m in moves {
+        for m in &moves {
             let undo = board.make_move(m);
             let (mut result, nodes) = if empties > 2 {
                 self.endgame_negamax_ffo(board, -beta, -alpha, wld)
@@ -167,7 +167,7 @@ impl EndgameSearcher {
         let moves = board.get_moves();
         let mut total_nodes = 0;
 
-        for m in moves {
+        for m in &moves {
             let undo = board.make_move(m);
             let (mut result, nodes) = self.endgame_negamax_nb_2(board, -beta, -alpha, wld);
             board.undo_move(undo, m);
@@ -186,7 +186,7 @@ impl EndgameSearcher {
     fn endgame_negamax_nb_2(&self, board: &mut Board, mut alpha: i32, _beta: i32, wld: bool) -> (i32, u64) {
         let moves = board.get_moves();
 
-        for &m in &moves {
+        for m in &moves {
             let undo = board.make_move(m);
 
             let mut score = if board.black_move { -board.get_score() } else { board.get_score() };
@@ -210,13 +210,13 @@ pub fn endgame_solve(board: &mut Board, wld: bool, print: bool) -> (i32, Move, S
     let mut total_nodes = 0;
 
     let mut moves = board.get_moves();
-    moves.sort_unstable_by_key(|&m| board.move_count_after(m));
+    moves.sort_by(|&m| board.move_count_after(m) as i32);
 
     let beta = if wld { 1 } else { 64 };
     let mut best_score = -beta;
     let mut best_move = moves[0];
 
-    for m in moves {
+    for m in &moves {
         let undo = board.make_move(m);
         let (mut result, nodes) = endgame_negamax(board, -beta, -best_score, wld);
         board.undo_move(undo, m);
@@ -261,12 +261,12 @@ fn endgame_negamax(board: &mut Board, mut alpha: i32, beta: i32, wld: bool) -> (
     let mut moves = board.get_moves();
     let move_count = board.move_count();
     if move_count > 4 || move_count > 1 && board.all_disks().count_zeros() > 3 {
-        moves.sort_unstable_by_key(|&m| board.move_count_after(m));
+        moves.sort_by(|&m| board.move_count_after(m) as i32);
     }
 
     let mut total_nodes = 0;
 
-    for m in moves {
+    for m in &moves {
         let undo = board.make_move(m);
         let (mut result, nodes) = endgame_negamax(board, -beta, -alpha, wld);
         board.undo_move(undo, m);

@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-use super::{coord_to_bitmask, Move, Board};
+use super::{coord_to_bitmask, Move, Board, movelist::MoveList};
 
 #[test]
 fn test_coord_to_bitmask() {
@@ -101,7 +101,7 @@ fn test_board_new() {
     assert_eq!(board.white_disks, 0x00_00_00_10_08_00_00_00);
 
     // Make sure black's moves were generated correctly.
-    let moves = vec![Move::Play(19), Move::Play(26), Move::Play(37), Move::Play(44)];
+    let moves = MoveList::from(vec![Move::Play(19), Move::Play(26), Move::Play(37), Move::Play(44)]);
     assert_eq!(board.get_moves(), moves);
     assert_eq!(board.get_black_moves(), 0x00_00_10_20_04_08_00_00);
     assert_eq!(board.move_count(), 4);
@@ -121,7 +121,7 @@ fn test_board_1() {
     assert_eq!(board.white_disks, 0x00_00_00_00_08_00_00_00);
 
     // Make sure that white's moves were generated correctly.
-    let moves = vec![Move::Play(18), Move::Play(20), Move::Play(34)];
+    let moves = MoveList::from(vec![Move::Play(18), Move::Play(20), Move::Play(34)]);
     assert_eq!(board.get_moves(), moves);
     assert_eq!(board.get_white_moves(), 0x00_00_28_00_20_00_00_00);
     assert_eq!(board.move_count(), 3);
@@ -186,7 +186,7 @@ fn test_board_3() {
     assert_eq!(board.get_white_moves(), 0x00_00_00_00_00_00_00_00);
 
     // Make sure we're at a loss condition & have no moves.
-    assert_eq!(board.get_moves(), vec![Move::Pass]);
+    assert_eq!(board.get_moves(), MoveList::from(vec![Move::Pass]));
     assert!(!board.moves_exist());
     assert!(board.is_game_over());
 

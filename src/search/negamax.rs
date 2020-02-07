@@ -38,7 +38,7 @@ const MIN_SEARCH_DEPTH: u8 = 8;
 /// * A tuple containing the score of the best move and the best move.
 pub fn negamax<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &T, print: bool) -> (i32, Move, SearchData) {
     let mut moves = board.get_moves();
-    moves.sort_unstable_by_key(|&m| -evaluator.move_order_score(board, m));
+    moves.sort_by(|&m| -evaluator.move_order_score(board, m));
 
     let beta = i32::MAX;
     let mut best_score = -beta;
@@ -47,7 +47,7 @@ pub fn negamax<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &T, print:
     let mut total_nodes = 0;
     let mut total_millis = 0;
 
-    for m in moves {
+    for m in &moves {
         if print {
             print!("Evaluating: {}", m);
             io::stdout().flush().expect("Unable to flush stdout.");
@@ -97,7 +97,7 @@ pub fn negamax<T: Evaluator>(board: &mut Board, depth: u8, evaluator: &T, print:
 /// * A tuple containing the score of the best move and the best move.
 pub fn negamax_id<T: Evaluator>(board: &mut Board, time: u32, evaluator: &T, print: bool) -> (i32, Move, SearchData) {
     let mut moves = board.get_moves();
-    moves.sort_unstable_by_key(|&m| -evaluator.move_order_score(board, m));
+    moves.sort_by(|&m| -evaluator.move_order_score(board, m));
 
     let mut scores: HashMap<Move, i32> = HashMap::new();
 
@@ -125,13 +125,13 @@ pub fn negamax_id<T: Evaluator>(board: &mut Board, time: u32, evaluator: &T, pri
 
             let start_time = Instant::now();
 
-            let undo = board.make_move(*m);
+            let undo = board.make_move(m);
             let (mut result, nodes) = negamax_impl(board, -beta, -best_score, depth - 1, evaluator);
-            board.undo_move(undo, *m);
+            board.undo_move(undo, m);
 
             result = -result;
 
-            scores.insert(*m, result);
+            scores.insert(m, result);
 
             let end_time = Instant::now();
             let duration = end_time - start_time;
@@ -152,7 +152,7 @@ pub fn negamax_id<T: Evaluator>(board: &mut Board, time: u32, evaluator: &T, pri
             total_millis += time_taken;
         }
 
-        moves.sort_by_key(|&m| -scores.get(&m).unwrap());
+        moves.sort_by(|&m| -scores.get(&m).unwrap());
 
         depth += 1;
 
@@ -191,12 +191,12 @@ pub fn negamax_impl<T: Evaluator>(board: &mut Board, mut alpha: i32, beta: i32, 
 
     let mut moves = board.get_moves();
     if depth > 3 {    
-        moves.sort_unstable_by_key(|&m| -evaluator.move_order_score(board, m));
+        moves.sort_by(|&m| -evaluator.move_order_score(board, m));
     }
 
     let mut total_nodes = 1;
 
-    for m in moves {
+    for m in &moves {
         let undo = board.make_move(m);
         let (mut result, nodes) = negamax_impl(board, -beta, -alpha, depth - 1, evaluator);
         board.undo_move(undo, m);
