@@ -48,7 +48,7 @@ impl MoveList {
 
         // Sort the move list.
         for i in 1..self.size as usize {
-            let mut j = i - 1;
+            let mut j = i;
             let (m, s) = (self.moves[i], keys[i]);
 
             while j > 0 && keys[j - 1] > s {
@@ -94,7 +94,7 @@ impl MoveList {
 
 impl std::cmp::PartialEq for MoveList {
     fn eq(&self, other: &Self) -> bool {
-        if self.size == other.size {
+        if self.size != other.size {
             false
         } else {
             for i in 0..self.size as usize {
@@ -110,12 +110,16 @@ impl std::cmp::PartialEq for MoveList {
 impl fmt::Debug for MoveList {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "[")?;
+
+        if self.size == 0 {
+            return write!(f, " ]");
+        }
         
-        for i in 0..self.size as usize {
-            write!(f, "{:?}", self.moves[i])?;
+        for i in 0..(self.size - 1) as usize {
+            write!(f, "{:?}, ", self.moves[i])?;
         }
 
-        write!(f, "]")
+        write!(f, "{:?}]", self.moves[(self.size - 1) as usize])
     }
 }
 
@@ -165,5 +169,39 @@ impl<'a> Iterator for MoveListIterator<'a> {
         } else {
             None
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::board::{ Move, movelist::MoveList };
+
+    #[test]
+    fn test_sort() {
+        let sorted = MoveList::from(vec![
+            Move::Play(5),
+            Move::Play(10),
+            Move::Play(15),
+            Move::Play(20),
+            Move::Play(25),
+            Move::Play(30),
+            Move::Play(35),
+            Move::Play(40)
+        ]);
+
+        let mut list = MoveList::from(vec![
+            Move::Play(20),
+            Move::Play(30),
+            Move::Play(10),
+            Move::Play(15),
+            Move::Play(40),
+            Move::Play(35),
+            Move::Play(25),
+            Move::Play(5)
+        ]);
+
+        list.sort_by(|m| if let Move::Play(x) = m { *x as i32 } else { -1 });
+
+        assert_eq!(list, sorted);
     }
 }

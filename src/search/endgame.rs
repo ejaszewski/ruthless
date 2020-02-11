@@ -141,7 +141,7 @@ impl EndgameSearcher {
 
         for m in &moves {
             let undo = board.make_move(m);
-            let (mut result, nodes) = if empties > 2 {
+            let (mut result, nodes) = if empties > 0 {
                 self.endgame_negamax_ffo(board, -beta, -alpha, wld)
             } else {
                 self.endgame_negamax_nb(board, -beta, -alpha, wld)

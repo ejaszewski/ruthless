@@ -153,7 +153,7 @@ pub fn negamax_id<T: Evaluator>(board: &mut Board, time: u32, evaluator: &T, pri
         }
 
         moves.sort_by(|&m| -scores.get(&m).unwrap());
-
+        
         depth += 1;
 
         branching_factor = (iter_nodes as f32).powf(1.0 / depth as f32);
