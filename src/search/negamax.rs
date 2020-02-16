@@ -154,16 +154,16 @@ pub fn negamax_id<T: Evaluator>(board: &mut Board, time: u32, evaluator: &T, pri
 
         moves.sort_by(|&m| -scores.get(&m).unwrap());
         
-        depth += 1;
-
         branching_factor = (iter_nodes as f32).powf(1.0 / depth as f32);
-        time_prediction = (iter_time as f32 * (branching_factor + 1.0)) as u32;
+        
+        depth += 2;
+        time_prediction = (iter_time as f32 * (branching_factor.powi(2) + 1.0)) as u32;
 
         eprintln!("Took {} ms", iter_time);
         eprintln!("Predicted next time is {} ms", time_prediction);
     }
 
-    depth -= 1;
+    depth -= 2;
     
     if print {
         println!("Searched {} nodes in {} ms ({:.2} kn/s)", total_nodes, total_millis, total_nodes as f32 / total_millis as f32);
@@ -190,8 +190,15 @@ pub fn negamax_impl<T: Evaluator>(board: &mut Board, mut alpha: i32, beta: i32, 
     }
 
     let mut moves = board.get_moves();
-    if depth > 3 {    
-        moves.sort_by(|&m| -evaluator.move_order_score(board, m));
+    if depth > 4 {
+        moves.sort_by(|&m| {
+            let half_depth = ((depth / 2) & !0x1) | (depth & 0x1);
+            let undo = board.make_move(m);
+            let (result, nodes) = negamax_impl(board, -beta, -alpha, half_depth, evaluator);
+            board.undo_move(undo, m);
+    
+            -result
+        });
     }
 
     let mut total_nodes = 1;
@@ -204,12 +211,12 @@ pub fn negamax_impl<T: Evaluator>(board: &mut Board, mut alpha: i32, beta: i32, 
         result = -result;
         total_nodes += nodes;
 
-        if result > alpha {
-            alpha = result;
+        if result >= beta {
+            return (beta, total_nodes);
         }
 
-        if alpha >= beta {
-            break;
+        if result > alpha {
+            alpha = result;
         }
     }
 
