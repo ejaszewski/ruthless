@@ -819,17 +819,21 @@ fn flip_diag(a: u64) -> u64 {
 
 #[derive(Default)]
 pub struct PatternEvaluator {
-    patterns: Vec<(u64, Vec<f32>)>
+    patterns: Vec<(u64, Vec<f32>)>,
+    parity_e: f32,
+    parity_o: f32
 }
 
 impl PatternEvaluator {
     pub fn new() -> Self {
         PatternEvaluator {
-            patterns: Vec::new()
+            patterns: Vec::new(),
+            parity_e: 0f32,
+            parity_o: 0f32
         }
     }
 
-    pub fn from(masks: Vec<u64>, weights: Vec<Vec<f32>>) -> PatternEvaluator {
+    pub fn from(masks: Vec<u64>, weights: Vec<Vec<f32>>, parity_e: f32, parity_o: f32) -> PatternEvaluator {
         let rotate = | mask: u64, weight: &Vec<f32> | {
             let mut new_masks = vec![mask];
             let mut new_weights = vec![weight.clone()];
@@ -895,14 +899,20 @@ impl PatternEvaluator {
         });
 
         PatternEvaluator {
-            patterns: all_masks.iter().zip(all_weights).map(| (&m, w) | (m, w)).collect()
+            patterns: all_masks.iter().zip(all_weights).map(| (&m, w) | (m, w)).collect(),
+            parity_e, parity_o
         }
     }
 }
 
 impl super::Evaluator for PatternEvaluator {
     fn get_score(&self, board: &Board) -> i32 {
-        let mut score: f32 = 0.0;
+        let mut score: f32 = if board.all_disks().count_zeros() & 1 == 1 {
+            self.parity_o
+        } else {
+            self.parity_e
+        };
+
         let blacks = board.black_disks;
         let whites = board.white_disks;
 

@@ -13,7 +13,7 @@ use clap::App;
 use rand::Rng;
 use rayon::prelude::*;
 use ruthless::board::{ self, Move, Board, Position };
-use ruthless::search::{ endgame, negamax, bns, iterative, eval::{ PatternEvaluator } };
+use ruthless::search::{ endgame, negamax, bns, iterative, eval::{ PatternEvaluator, StagedPatternEvaluator } };
 use ruthless::search::endgame::EndgameSearcher;
 use serde::Deserialize;
 use serde_json::from_reader;
@@ -21,7 +21,9 @@ use serde_json::from_reader;
 #[derive(Deserialize)]
 struct PatternFile {
     masks: Vec<u64>,
-    weights: Vec<Vec<f32>>
+    weights: Vec<Vec<f32>>,
+    parity_e: f32,
+    parity_o: f32
 }
 
 fn main() {
@@ -98,11 +100,11 @@ fn play() {
         io::stdout().flush().expect("Unable to flush stdout.");
     };
 
-    let file = File::open("pat9-12-fp.json").expect("File read error.");
+    let file = File::open("pat15-20p.json").expect("File read error.");
     let reader = BufReader::new(file);
     let pat_file: PatternFile = from_reader(reader).expect("Unable to parse json");
 
-    let pat_eval = PatternEvaluator::from(pat_file.masks, pat_file.weights);
+    let pat_eval = PatternEvaluator::from(pat_file.masks, pat_file.weights, pat_file.parity_e, pat_file.parity_o);
 
     print_info(&mut board);
 
@@ -221,11 +223,24 @@ fn cs2_play(mut board: Board, black: bool) {
     let mut first_move = true;
     let mut last_bf = 10.0;
 
-    let file = File::open("pat9-12-fp.json").expect("File read error.");
-    let reader = BufReader::new(file);
-    let pat_file: PatternFile = from_reader(reader).expect("Unable to parse json");
+    let pat_eval_from_file = | path: &str | {
+        let file = File::open(path).expect("File read error.");
+        let reader = BufReader::new(file);
+        let pat_file: PatternFile = from_reader(reader).expect("Unable to parse json");
+    
+        PatternEvaluator::from(pat_file.masks, pat_file.weights, pat_file.parity_e, pat_file.parity_o)
+    };
 
-    let pat_eval = PatternEvaluator::from(pat_file.masks, pat_file.weights);
+    let stages = vec![25, 33, 41, 49];
+    let evals = vec![
+        pat_eval_from_file("pat39-44p.json"),
+        pat_eval_from_file("pat31-36p.json"),
+        pat_eval_from_file("pat23-28p.json"),
+        pat_eval_from_file("pat15-20p.json"),
+        pat_eval_from_file("pat9-12p.json")
+    ];
+
+    let pat_eval = StagedPatternEvaluator::from(stages, evals);
 
     eprintln!("Initialized...");
     println!("");
@@ -259,17 +274,17 @@ fn cs2_play(mut board: Board, black: bool) {
         let best_score;
         let srch_data;
 
-        let time_allocated = (2. / (52. - board.all_disks().count_ones() as f32).max(3.0) * ms_left as f32) as u32;
+        let time_allocated = (2.5 / (44. - board.all_disks().count_ones() as f32).max(3.0) * ms_left as f32) as u32;
 
         eprintln!("Allocating {:.2} s to search.", time_allocated as f32 / 1000.0);
 
-        if board.all_disks().count_zeros() > 18 && !(board.all_disks().count_zeros() < 20 && last_bf < 3.5) {
+        if board.all_disks().count_zeros() > 24 && !(board.all_disks().count_zeros() < 26 && last_bf < 3.5) {
             let (score, best, data) = negamax::negamax_id(&mut board, time_allocated, &pat_eval, false);
             best_move = best;
             best_score = score;
             last_bf = (data.nodes as f32).powf(1.0 / data.depth as f32);
             srch_data = data;
-        } else if board.all_disks().count_zeros() > 12 {
+        } else if board.all_disks().count_zeros() > 20 {
             let (score, best, data) = endgame::endgame_solve(&mut board, true, false);
             if score == -1 { // TODO: This is bad.
                 let (score, best, data) = negamax::negamax_id(&mut board, time_allocated, &pat_eval, false);
@@ -379,11 +394,13 @@ fn random_solved(empties: u8, solver: &EndgameSearcher) -> Position {
 fn training_data_heuristic(empties: u8, depth: u8, num_pos: usize) -> Vec<Position> {
     let idxs: Vec<usize> = (0..num_pos).collect();
 
-    let file = File::open("pat9-12.json").expect("File read error.");
+    let file = File::open("pat31-36p.json").expect("File read error.");
     let reader = BufReader::new(file);
     let pat_file: PatternFile = from_reader(reader).expect("Unable to parse json");
 
-    let pat_eval = PatternEvaluator::from(pat_file.masks, pat_file.weights);
+    let pat_eval = PatternEvaluator::from(pat_file.masks, pat_file.weights, pat_file.parity_e, pat_file.parity_o);
+    
+    println!("Solving positions...");
 
     idxs.par_iter().map(|&_| random_heuristic(empties, depth, &pat_eval)).collect()
 }

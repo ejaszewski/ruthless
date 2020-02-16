@@ -9,6 +9,8 @@ mod piecesquare;
 pub use self::piecesquare::PieceSquareEvaluator;
 mod pattern;
 pub use self::pattern::PatternEvaluator;
+mod staged;
+pub use self::staged::StagedPatternEvaluator;
 
 pub trait Evaluator {
     fn get_score(&self, _: &Board) -> i32;
