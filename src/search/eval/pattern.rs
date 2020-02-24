@@ -928,9 +928,9 @@ impl super::Evaluator for PatternEvaluator {
         }
 
         if board.black_move {
-            score as i32
+            (score * 100.0) as i32
         } else {
-            -score as i32
+            (-score * 100.0) as i32
         }
     }
 }

@@ -13,7 +13,7 @@ use clap::App;
 use rand::Rng;
 use rayon::prelude::*;
 use ruthless::board::{ self, Move, Board, Position };
-use ruthless::search::{ endgame, negamax, bns, iterative, eval::{ PatternEvaluator, StagedPatternEvaluator } };
+use ruthless::search::{ endgame, negamax, bns, iterative, nm_new, eval::{ PatternEvaluator, StagedPatternEvaluator } };
 use ruthless::search::endgame::EndgameSearcher;
 use serde::Deserialize;
 use serde_json::from_reader;
@@ -241,6 +241,9 @@ fn cs2_play(mut board: Board, black: bool) {
     ];
 
     let pat_eval = StagedPatternEvaluator::from(stages, evals);
+
+    // let mut searcher = nm_new::NegamaxSearcher::with_eval(pat_eval);
+    // searcher.set_output(Box::new(io::stderr()));
 
     eprintln!("Initialized...");
     println!("");

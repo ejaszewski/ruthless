@@ -7,7 +7,9 @@ pub mod eval;
 pub mod endgame;
 pub mod negamax;
 pub mod bns;
+pub mod nm_new;
 pub mod iterative;
+pub mod hashtable;
 
 #[cfg(test)]
 mod ffo_test;

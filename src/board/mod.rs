@@ -115,7 +115,7 @@ impl fmt::Display for Move {
     }
 }
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct Board {
     pub white_disks: u64,
     white_moves: u64,
