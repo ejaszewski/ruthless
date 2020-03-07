@@ -6,7 +6,7 @@
 extern crate clap;
 
 use std::fs::File;
-use std::io::{ self, BufRead, BufReader, Write };
+use std::io::{ self, BufRead, BufReader, BufWriter, Write };
 use std::time::Instant;
 
 use clap::App;
@@ -15,8 +15,9 @@ use rayon::prelude::*;
 use ruthless::board::{ self, Move, Board, Position };
 use ruthless::search::{ endgame, negamax, bns, iterative, nm_new, eval::{ PatternEvaluator, StagedPatternEvaluator } };
 use ruthless::search::endgame::EndgameSearcher;
+use ruthless::ml::{ self, eval::{ StagedRLPatternEvaluator, RLPatternEvaluator } };
 use serde::Deserialize;
-use serde_json::from_reader;
+use serde_json::{ from_reader, to_writer };
 
 #[derive(Deserialize)]
 struct PatternFile {
@@ -76,6 +77,68 @@ fn main() {
         play();
     }
 
+    if let Some(sp_matches) = matches.subcommand_matches("self-play") {
+        let num_str = sp_matches.value_of("NUM_GAMES").unwrap();
+
+        if let Ok(num_games) = num_str.parse::<u64>() {
+            // let file = File::open("start.json").expect("File read error.");
+            // let reader = BufReader::new(file);
+            // let mut eval_st: RLPatternEvaluator = from_reader(reader).expect("Unable to parse json");
+            // eval_st.reset();
+
+            let mut eval_st = StagedRLPatternEvaluator::from_masks(
+                vec![
+                    1161999622361579520,
+                    580999813328273408,
+                    290499906672525312,
+                    145249953336295424,
+                    72624976668147840,
+                    71776119061217280,
+                    280375465082880,
+                    1095216660480,
+                    18393263828134526976,
+                    17940089115630370816,
+                    13889313184898088960,
+                    16204197749883666432,
+                    17924467806326226944,
+                    13635773771771019264
+                ],
+                vec![9, 17, 25, 33, 41, 49, 57]
+            );
+
+            // let mut eval_st = RLPatternEvaluator::from_masks(
+            //     vec![
+            //         1161999622361579520,
+            //         580999813328273408,
+            //         290499906672525312,
+            //         145249953336295424,
+            //         72624976668147840,
+            //         71776119061217280,
+            //         280375465082880,
+            //         1095216660480,
+            //         18393263828134526976,
+            //         17940089115630370816,
+            //         13889313184898088960,
+            //         16204197749883666432,
+            //         17924467806326226944,
+            //         13635773771771019264
+            //     ]
+            // );
+
+            // let file = File::open("rlsp4m.json").expect("File read error.");
+            // let reader = BufReader::new(file);
+            // let mut eval_st: StagedRLPatternEvaluator = from_reader(reader).expect("Unable to parse json");
+            
+            eval_st = ml::self_play(eval_st, 0.01, 0.05, 2000, num_games as usize);
+
+            let file = File::create("end_ms.json").expect("Unable to create file.");
+            let writer = BufWriter::new(file);
+            to_writer(writer, &eval_st).expect("Unable to write to file.");
+        } else {
+            panic!("NUM_GAMES must be a positive integer.")
+        }
+    }
+    
     if let Some(cs2_matches) = matches.subcommand_matches("cs2l") {
         let board = board::Board::new();
         let black = cs2_matches.value_of("COLOR").unwrap() == "Black";
@@ -100,7 +163,7 @@ fn play() {
         io::stdout().flush().expect("Unable to flush stdout.");
     };
 
-    let file = File::open("pat15-20p.json").expect("File read error.");
+    let file = File::open("end2.json").expect("File read error.");
     let reader = BufReader::new(file);
     let pat_file: PatternFile = from_reader(reader).expect("Unable to parse json");
 
@@ -231,19 +294,24 @@ fn cs2_play(mut board: Board, black: bool) {
         PatternEvaluator::from(pat_file.masks, pat_file.weights, pat_file.parity_e, pat_file.parity_o)
     };
 
-    let stages = vec![25, 33, 41, 49];
-    let evals = vec![
-        pat_eval_from_file("pat39-44p.json"),
-        pat_eval_from_file("pat31-36p.json"),
-        pat_eval_from_file("pat23-28p.json"),
-        pat_eval_from_file("pat15-20p.json"),
-        pat_eval_from_file("pat9-12p.json")
-    ];
+    // let stages = vec![25, 33, 41, 49];
+    // let evals = vec![
+    //     pat_eval_from_file("pat39-44p.json"),
+    //     pat_eval_from_file("pat31-36p.json"),
+    //     pat_eval_from_file("pat23-28p.json"),
+    //     pat_eval_from_file("pat15-20p.json"),
+    //     pat_eval_from_file("pat9-12p.json")
+    // ];
 
-    let pat_eval = StagedPatternEvaluator::from(stages, evals);
+    // let pat_eval = StagedPatternEvaluator::from(stages, evals);
+    let pat_eval = pat_eval_from_file("end.json");
 
-    // let mut searcher = nm_new::NegamaxSearcher::with_eval(pat_eval);
-    // searcher.set_output(Box::new(io::stderr()));
+    // let file = File::open("end_ms.json").expect("File read error.");
+    // let reader = BufReader::new(file);
+    // let pat_eval: StagedRLPatternEvaluator = from_reader(reader).expect("Unable to parse json");
+
+    let mut searcher = nm_new::NegamaxSearcher::with_eval(pat_eval);
+    searcher.set_output(Box::new(io::stderr()));
 
     eprintln!("Initialized...");
     println!("");
@@ -282,7 +350,7 @@ fn cs2_play(mut board: Board, black: bool) {
         eprintln!("Allocating {:.2} s to search.", time_allocated as f32 / 1000.0);
 
         if board.all_disks().count_zeros() > 24 && !(board.all_disks().count_zeros() < 26 && last_bf < 3.5) {
-            let (score, best, data) = negamax::negamax_id(&mut board, time_allocated, &pat_eval, false);
+            let (score, best, data) = searcher.search(&mut board, time_allocated);//negamax::negamax_id(&mut board, time_allocated, &pat_eval, false);
             best_move = best;
             best_score = score;
             last_bf = (data.nodes as f32).powf(1.0 / data.depth as f32);
@@ -290,7 +358,7 @@ fn cs2_play(mut board: Board, black: bool) {
         } else if board.all_disks().count_zeros() > 20 {
             let (score, best, data) = endgame::endgame_solve(&mut board, true, false);
             if score == -1 { // TODO: This is bad.
-                let (score, best, data) = negamax::negamax_id(&mut board, time_allocated, &pat_eval, false);
+                let (score, best, data) = searcher.search(&mut board, time_allocated);//negamax::negamax_id(&mut board, time_allocated, &pat_eval, false);
                 best_move = best;
                 best_score = score;
                 last_bf = (data.nodes as f32).powf(1.0 / data.depth as f32);

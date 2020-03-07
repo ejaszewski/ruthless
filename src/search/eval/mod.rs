@@ -12,6 +12,8 @@ pub use self::pattern::PatternEvaluator;
 mod staged;
 pub use self::staged::StagedPatternEvaluator;
 
+pub mod pattern_util;
+
 pub trait Evaluator {
     fn get_score(&self, _: &Board) -> i32;
     fn move_order_score(&self, board: &mut Board, mv: Move) -> i32 {

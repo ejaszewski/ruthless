@@ -29,6 +29,12 @@ subcommands:
             - DEPTH:
                 help: The depth at which a heuristic should be evaluated.
                 required: false
+    - self-play:
+        about: Creates a heuristic using self-play.
+        args:
+            - NUM_GAMES:
+                help: The number of games to self-play.
+                required: true
     - cs2l:
         about: Play using the legacy CS2 API.
         args:
