@@ -117,6 +117,8 @@ pub fn negamax_id<T: Evaluator>(board: &mut Board, time: u32, evaluator: &T, pri
         let mut iter_nodes = 0;
         let mut iter_time = 0;
 
+        eprintln!("{:?}", moves);
+
         for m in &moves {
             if print {
                 print!("Evaluating: {}", m);
@@ -169,6 +171,9 @@ pub fn negamax_id<T: Evaluator>(board: &mut Board, time: u32, evaluator: &T, pri
         println!("Searched {} nodes in {} ms ({:.2} kn/s)", total_nodes, total_millis, total_nodes as f32 / total_millis as f32);
         println!("Final search was depth {}", depth);
     }
+
+    eprintln!("{:?}", moves);
+    eprintln!("{:?}", scores);
 
     (*scores.get(&moves[0]).unwrap(), moves[0], SearchData { nodes: total_nodes, time: total_millis, depth })
 }

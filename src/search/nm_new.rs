@@ -6,9 +6,16 @@ use std::i32;
 use std::io::{ Write, stdout };
 use std::time::Instant;
 
-// First prime after the table size of 100 MB
-const DEFAULT_TABLE_SIZE: usize = 8276803;
 const MIN_SEARCH_DEPTH: u8 = 8;
+
+// Hashtable Params
+const DEFAULT_TABLE_SIZE: usize = 8276803;
+
+// Probcut Params
+const PROBCUT_DEPTH: u8 = 6;
+const PROBCUT_SHALLOW: u8 = 3;
+const PROBCUT_SIGMA: f32 = 0.0;
+const PROBCUT_THRESHOLD: f32 = 0.0;
 
 pub struct NegamaxSearcher<E: Evaluator> {
     eval: E,
@@ -60,6 +67,9 @@ impl<E: Evaluator> NegamaxSearcher<E> {
 
         let mut branching_factor;
 
+        let mut best_move = moves[0];
+        let mut best_move_score = 0;
+
         while time_prediction + total_millis < time {
             let beta = i32::MAX;
 
@@ -108,6 +118,8 @@ impl<E: Evaluator> NegamaxSearcher<E> {
                 let time_taken = duration.as_secs() as u32 * 1000 + duration.subsec_millis();
 
                 if score > best_score {
+                    best_move = m;
+                    best_move_score = score;
                     if self.verbose > 0 {
                         writeln!(
                             self.output,
@@ -135,7 +147,24 @@ impl<E: Evaluator> NegamaxSearcher<E> {
                 first = false;
             }
 
-            moves.sort_by(|&m| -scores.get(&m).unwrap());
+            moves.sort_by(|&m| {
+                let undo = board.make_move(m);
+
+                let entry = self.hashtable.probe(board, depth, -i32::MAX, i32::MAX);
+                let value = if let Some(score) = entry {
+                    match score {
+                        Score::Exact(score) => score,
+                        Score::Lower(score) => score,
+                        Score::Upper(score) => score
+                    }
+                } else {
+                    i32::MAX
+                };
+
+                board.undo_move(undo, m);
+        
+                value
+            });
             
             branching_factor = (iter_nodes as f32).powf(1.0 / depth as f32);
             
@@ -161,7 +190,7 @@ impl<E: Evaluator> NegamaxSearcher<E> {
 
         self.hashtable.set_replace();
 
-        (*scores.get(&moves[0]).unwrap(), moves[0], SearchData { nodes: total_nodes, time: total_millis, depth })
+        (best_move_score, best_move, SearchData { nodes: total_nodes, time: total_millis, depth })
     }
 
     fn pvs_impl(&mut self, board: &mut Board, mut alpha: i32, mut beta: i32, depth: u8) -> (i32, u64) {
@@ -252,12 +281,14 @@ impl<E: Evaluator> NegamaxSearcher<E> {
             let node_score;
             if best_score < alpha_original {
                 node_score = Score::Upper(best_score);
+                self.hashtable.save(board, node_score, depth);
             } else if best_score >= beta {
                 node_score = Score::Lower(best_score);
-            } else {
+                self.hashtable.save(board, node_score, depth);
+            } else if best_score > alpha_original && alpha < beta {
                 node_score = Score::Exact(best_score);
+                self.hashtable.save(board, node_score, depth);
             }
-            self.hashtable.save(board, node_score, depth);
         }
     
         (alpha, total_nodes)
