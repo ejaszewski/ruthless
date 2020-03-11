@@ -35,6 +35,27 @@ subcommands:
             - NUM_GAMES:
                 help: The number of games to self-play.
                 required: true
+            - LR:
+                help: The learning rate.
+                required: true
+            - EXPLORATION:
+                help: The degree of exploration.
+                required: true
+            - OUTPUT:
+                help: The file to output the heuristic to.
+                required: true
+            - INPUT:
+                help: The file to load a starting heuristic from.
+                required: false
+    - pc-tune:
+        about: Generates statistics on an evaluator with a specific depth-pair.
+        args:
+            - DEEP:
+                help: The depth of the deep search in the depth-pair.
+                required: true
+            - SHALLOW:
+                help: The depth of the shallow search in the depth-pair.
+                required: true
     - cs2l:
         about: Play using the legacy CS2 API.
         args:

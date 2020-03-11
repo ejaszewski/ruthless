@@ -79,66 +79,121 @@ fn main() {
 
     if let Some(sp_matches) = matches.subcommand_matches("self-play") {
         let num_str = sp_matches.value_of("NUM_GAMES").unwrap();
+        let lr_str = sp_matches.value_of("LR").unwrap();
+        let ex_str = sp_matches.value_of("EXPLORATION").unwrap();
+        let output = sp_matches.value_of("OUTPUT").unwrap();
 
         if let Ok(num_games) = num_str.parse::<u64>() {
-            // let file = File::open("start.json").expect("File read error.");
-            // let reader = BufReader::new(file);
-            // let mut eval_st: RLPatternEvaluator = from_reader(reader).expect("Unable to parse json");
-            // eval_st.reset();
+            if let Ok(lr) = lr_str.parse::<f32>() {
+                if let Ok(ex) = ex_str.parse::<f32>() {
+                    let mut eval_st;
+                    if let Some(input) = sp_matches.value_of("INPUT") {
+                        let file = File::open(input).expect("File read error.");
+                        let reader = BufReader::new(file);
+                        eval_st = from_reader(reader).expect("Unable to parse json");
+                    } else {
+                        eval_st = StagedRLPatternEvaluator::from_masks(
+                            vec![
+                                1161999622361579520,
+                                580999813328273408,
+                                290499906672525312,
+                                145249953336295424,
+                                72624976668147840,
+                                71776119061217280,
+                                280375465082880,
+                                1095216660480,
+                                18393263828134526976,
+                                17940089115630370816,
+                                13889313184898088960,
+                                16204197749883666432,
+                                17924467806326226944,
+                                13635773771771019264
+                            ],
+                            vec![9, 17, 25, 33, 41, 49, 57]
+                        );
 
-            let mut eval_st = StagedRLPatternEvaluator::from_masks(
-                vec![
-                    1161999622361579520,
-                    580999813328273408,
-                    290499906672525312,
-                    145249953336295424,
-                    72624976668147840,
-                    71776119061217280,
-                    280375465082880,
-                    1095216660480,
-                    18393263828134526976,
-                    17940089115630370816,
-                    13889313184898088960,
-                    16204197749883666432,
-                    17924467806326226944,
-                    13635773771771019264
-                ],
-                vec![9, 17, 25, 33, 41, 49, 57]
-            );
+                        // eval_st = RLPatternEvaluator::from_masks(
+                        //     vec![
+                        //         1161999622361579520,
+                        //         580999813328273408,
+                        //         290499906672525312,
+                        //         145249953336295424,
+                        //         72624976668147840,
+                        //         71776119061217280,
+                        //         280375465082880,
+                        //         1095216660480,
+                        //         18393263828134526976,
+                        //         17940089115630370816,
+                        //         13889313184898088960,
+                        //         16204197749883666432,
+                        //         17924467806326226944,
+                        //         13635773771771019264
+                        //     ]
+                        // );
+                    }
 
-            // let mut eval_st = RLPatternEvaluator::from_masks(
-            //     vec![
-            //         1161999622361579520,
-            //         580999813328273408,
-            //         290499906672525312,
-            //         145249953336295424,
-            //         72624976668147840,
-            //         71776119061217280,
-            //         280375465082880,
-            //         1095216660480,
-            //         18393263828134526976,
-            //         17940089115630370816,
-            //         13889313184898088960,
-            //         16204197749883666432,
-            //         17924467806326226944,
-            //         13635773771771019264
-            //     ]
-            // );
+                    eval_st = ml::self_play(eval_st, lr, ex, 2000, num_games as usize);
 
-            // let file = File::open("rlsp4m.json").expect("File read error.");
-            // let reader = BufReader::new(file);
-            // let mut eval_st: StagedRLPatternEvaluator = from_reader(reader).expect("Unable to parse json");
-            
-            eval_st = ml::self_play(eval_st, 0.01, 0.05, 2000, num_games as usize);
-
-            let file = File::create("end_ms.json").expect("Unable to create file.");
-            let writer = BufWriter::new(file);
-            to_writer(writer, &eval_st).expect("Unable to write to file.");
+                    let file = File::create(output).expect("Unable to create file.");
+                    let writer = BufWriter::new(file);
+                    to_writer(writer, &eval_st).expect("Unable to write to file.");
+                } else {
+                    panic!("Exploration must be a floating point number.");
+                }
+            } else {
+                panic!("Learning rate must be a floating point number.");
+            }
         } else {
             panic!("NUM_GAMES must be a positive integer.")
         }
     }
-    
+
+    if let Some(pct) = matches.subcommand_matches("pc-tune") {
+        let pc_deep_str = pct.value_of("DEEP").unwrap();
+        let pc_shallow_str = pct.value_of("SHALLOW").unwrap();
+
+        if let Ok(deep) = pc_deep_str.parse::<u8>() {
+            if let Ok(shallow) = pc_shallow_str.parse::<u8>() {
+                let mut rng = rand::thread_rng();
+
+                let pat_eval_from_file = | path: &str | {
+                    let file = File::open(path).expect("File read error.");
+                    let reader = BufReader::new(file);
+                    let pat_file: PatternFile = from_reader(reader).expect("Unable to parse json");
+                
+                    PatternEvaluator::from(pat_file.masks, pat_file.weights, pat_file.parity_e, pat_file.parity_o)
+                };
+
+                let pat_eval = pat_eval_from_file("end.json");
+
+                for _ in 0..100000 {
+                    let start_depth = rng.gen_range(shallow, 63 - (deep + 1));
+
+                    // Start position
+                    let mut board = Board::new();
+                    for _ in 0..start_depth {
+                        let moves = board.get_moves();
+                        board.make_move(moves[rng.gen::<usize>() % moves.len()]);
+                    }
+
+                    // Calculate scores
+                    let deep_score = negamax::negamax(&mut board, deep, &pat_eval, false).0;
+                    let shallow_score = negamax::negamax(&mut board, shallow, &pat_eval, false).0;
+
+                    if board.black_move {
+                        println!("{}, {}", deep_score, shallow_score);
+                    } else {
+                        println!("{}, {}", -deep_score, -shallow_score);
+                    }
+                }
+            } else {
+                panic!("SHALLOW must be a positive integer less than 256.");
+            }
+        } else {
+            panic!("DEEP must be a positive integer less than 256.");
+        }
+    }
+
     if let Some(cs2_matches) = matches.subcommand_matches("cs2l") {
         let board = board::Board::new();
         let black = cs2_matches.value_of("COLOR").unwrap() == "Black";
@@ -304,11 +359,11 @@ fn cs2_play(mut board: Board, black: bool) {
     // ];
 
     // let pat_eval = StagedPatternEvaluator::from(stages, evals);
-    let pat_eval = pat_eval_from_file("end.json");
+    // let pat_eval = pat_eval_from_file("end.json");
 
-    // let file = File::open("end_ms.json").expect("File read error.");
-    // let reader = BufReader::new(file);
-    // let pat_eval: StagedRLPatternEvaluator = from_reader(reader).expect("Unable to parse json");
+    let file = File::open("end_ms.json").expect("File read error.");
+    let reader = BufReader::new(file);
+    let pat_eval: StagedRLPatternEvaluator = from_reader(reader).expect("Unable to parse json");
 
     let mut searcher = nm_new::NegamaxSearcher::with_eval(pat_eval);
     searcher.set_output(Box::new(io::stderr()));
@@ -333,10 +388,12 @@ fn cs2_play(mut board: Board, black: bool) {
         if x >= 0 && y >= 0 {
             let coord: u8 = (y * 8 + x) as u8;
             board.make_move(Move::Play(coord));
+            eprintln!("Move: {}", Move::Play(coord));
         } else if black && first_move {
             eprintln!("First move & black.");
         } else {
             board.make_move(Move::Pass);
+            eprintln!("Move: {}", Move::Pass);
         }
 
         let x: i32;
@@ -377,6 +434,8 @@ fn cs2_play(mut board: Board, black: bool) {
         }
 
         eprintln!("\nBest move was {} with score {}", best_move, best_score);
+
+        eprintln!("Move: {}", best_move);
 
         match best_move {
             Move::Play(m) => {

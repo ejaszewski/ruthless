@@ -12,10 +12,13 @@ const MIN_SEARCH_DEPTH: u8 = 8;
 const DEFAULT_TABLE_SIZE: usize = 8276803;
 
 // Probcut Params
-const PROBCUT_DEPTH: u8 = 6;
+const PROBCUT_DEPTH: u8 = 5;
 const PROBCUT_SHALLOW: u8 = 3;
-const PROBCUT_SIGMA: f32 = 0.0;
-const PROBCUT_THRESHOLD: f32 = 0.0;
+const PROBCUT_SIGMA: f32 = 2.896;
+const PROBCUT_THRESHOLD: f32 = 1.3;
+const PROBCUT_BIAS_MAX: f32 = PROBCUT_SIGMA * PROBCUT_THRESHOLD;
+const PROBCUT_A: f32 = 1.078;
+const PROBCUT_B: f32 = -0.331;
 
 pub struct NegamaxSearcher<E: Evaluator> {
     eval: E,
@@ -190,6 +193,8 @@ impl<E: Evaluator> NegamaxSearcher<E> {
 
         self.hashtable.set_replace();
 
+        self.hashtable.clear(); // TODO: Remove once better time management is implemented.
+
         (best_move_score, best_move, SearchData { nodes: total_nodes, time: total_millis, depth })
     }
 
@@ -222,16 +227,32 @@ impl<E: Evaluator> NegamaxSearcher<E> {
         }
         
         let mut moves = board.get_moves();
-        if depth > 4 {
+        if depth > 3 {
             moves.sort_by(|&m| {
                 let half_depth = ((depth / 2) & !0x1) | (depth & 0x1);
                 let undo = board.make_move(m);
                 let (result, _) = self.pvs_impl(board, -beta, -alpha, half_depth);
                 board.undo_move(undo, m);
         
-                -result
+                result
             });
         }
+
+        // // ProbCut
+        // if depth == PROBCUT_DEPTH {
+        //     let beta_bound = (100.0 * (PROBCUT_BIAS_MAX + (beta as f32 / 100.0 - PROBCUT_B)) / PROBCUT_A) as i32;
+        //     let alpha_bound = (100.0 * (-PROBCUT_BIAS_MAX + (alpha as f32 / 100.0 - PROBCUT_B)) / PROBCUT_A) as i32;
+
+        //     let (beta_score, beta_nodes) = self.pvs_impl(board, beta_bound - 1, beta_bound, PROBCUT_SHALLOW);
+        //     if beta_score >= beta_bound {
+        //         return (beta, beta_nodes);
+        //     }
+
+        //     let (alpha_score, alpha_nodes) = self.pvs_impl(board, alpha_bound, alpha_bound + 1, PROBCUT_SHALLOW);
+        //     if alpha_score <= alpha_bound {
+        //         return (alpha, alpha_nodes + beta_nodes);
+        //     }
+        // }
         
         let mut total_nodes = 1;
 

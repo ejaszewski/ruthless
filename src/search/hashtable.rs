@@ -74,4 +74,10 @@ impl HashTable {
             }
         }
     }
+
+    pub fn clear(&mut self) {
+        for i in 0..self.table.len() {
+            self.table[i] = None;
+        }
+    }
 }
