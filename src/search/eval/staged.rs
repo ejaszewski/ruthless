@@ -1,7 +1,19 @@
 use crate::board::Board;
-use super::{ PatternEvaluator };
+use super::{ PatternEvaluator, pattern::PatternFile };
 
 use std::collections::HashMap;
+use std::error::Error;
+use std::fs::File;
+use std::io::BufReader;
+
+use serde::Deserialize;
+use serde_json::{ from_reader };
+
+#[derive(Deserialize)]
+pub struct StagedPatternFile {
+    stage_map: HashMap<u32, usize>,
+    evaluators: Vec<PatternFile>
+}
 
 pub struct StagedPatternEvaluator {
     stage_map: HashMap<u32, usize>,
@@ -37,6 +49,14 @@ impl StagedPatternEvaluator {
             evaluators
         }
     }
+
+    pub fn from_file(path: &str) -> Result<StagedPatternEvaluator, Box<dyn Error>> {
+        let file = File::open(path)?;
+        let reader = BufReader::new(file);
+        let st_file: StagedPatternFile = from_reader(reader)?;
+    
+        Ok(st_file.to_eval())
+    }
 }
 
 impl super::Evaluator for StagedPatternEvaluator {
@@ -45,5 +65,16 @@ impl super::Evaluator for StagedPatternEvaluator {
         let stage = self.stage_map.get(&disks).unwrap();
 
         self.evaluators[*stage].get_score(board)
+    }
+}
+
+impl StagedPatternFile {
+    pub fn to_eval(mut self) -> StagedPatternEvaluator {
+        let evals = self.evaluators.drain(0..).map(|e| e.to_eval()).collect();
+
+        StagedPatternEvaluator {
+            stage_map: self.stage_map,
+            evaluators: evals
+        }
     }
 }

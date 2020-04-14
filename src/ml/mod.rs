@@ -90,7 +90,6 @@ pub fn self_play<E: Evaluator + Trainable + Clone>(mut eval: E, mut lr: f32, mut
         if let Some((eval_best, ps_score)) = &checkpoint {
             let sma = last_100.iter().sum::<f32>() / last_100.len() as f32;
             if *ps_score > sma * RESET_RATIO {
-                println!("{} vs. {}", ps_score, sma);
                 println!("\rResetting evaluator to checkpoint.");
                 eval = eval_best.clone();
                 last_100.clear();

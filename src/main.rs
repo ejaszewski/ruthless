@@ -156,17 +156,12 @@ fn main() {
             if let Ok(shallow) = pc_shallow_str.parse::<u8>() {
                 let mut rng = rand::thread_rng();
 
-                let pat_eval_from_file = | path: &str | {
-                    let file = File::open(path).expect("File read error.");
-                    let reader = BufReader::new(file);
-                    let pat_file: PatternFile = from_reader(reader).expect("Unable to parse json");
-                
-                    PatternEvaluator::from(pat_file.masks, pat_file.weights, pat_file.parity_e, pat_file.parity_o)
-                };
+                let pat_eval = StagedPatternEvaluator::from_file("end_ms.json").expect("Unable to load evaluator");
 
-                let pat_eval = pat_eval_from_file("end.json");
+                let mut searcher = nm_new::NegamaxSearcher::with_eval(pat_eval);
+                searcher.set_verbose(1);
 
-                for _ in 0..100000 {
+                for i in 0..100000 {
                     let start_depth = rng.gen_range(shallow, 63 - (deep + 1));
 
                     // Start position
@@ -177,13 +172,17 @@ fn main() {
                     }
 
                     // Calculate scores
-                    let deep_score = negamax::negamax(&mut board, deep, &pat_eval, false).0;
-                    let shallow_score = negamax::negamax(&mut board, shallow, &pat_eval, false).0;
+                    let deep_score = searcher.search_to_depth(&mut board, deep).0;
+                    let shallow_score = searcher.search_to_depth(&mut board, shallow).0;
 
                     if board.black_move {
                         println!("{}, {}", deep_score, shallow_score);
                     } else {
                         println!("{}, {}", -deep_score, -shallow_score);
+                    }
+
+                    if i % 1000 == 0 {
+                        eprintln!("{}", i);
                     }
                 }
             } else {
@@ -218,11 +217,7 @@ fn play() {
         io::stdout().flush().expect("Unable to flush stdout.");
     };
 
-    let file = File::open("end2.json").expect("File read error.");
-    let reader = BufReader::new(file);
-    let pat_file: PatternFile = from_reader(reader).expect("Unable to parse json");
-
-    let pat_eval = PatternEvaluator::from(pat_file.masks, pat_file.weights, pat_file.parity_e, pat_file.parity_o);
+    let pat_eval = StagedPatternEvaluator::from_file("end_ms.json").expect("Unable to load evaluator.");
 
     print_info(&mut board);
 
@@ -341,29 +336,7 @@ fn cs2_play(mut board: Board, black: bool) {
     let mut first_move = true;
     let mut last_bf = 10.0;
 
-    let pat_eval_from_file = | path: &str | {
-        let file = File::open(path).expect("File read error.");
-        let reader = BufReader::new(file);
-        let pat_file: PatternFile = from_reader(reader).expect("Unable to parse json");
-    
-        PatternEvaluator::from(pat_file.masks, pat_file.weights, pat_file.parity_e, pat_file.parity_o)
-    };
-
-    // let stages = vec![25, 33, 41, 49];
-    // let evals = vec![
-    //     pat_eval_from_file("pat39-44p.json"),
-    //     pat_eval_from_file("pat31-36p.json"),
-    //     pat_eval_from_file("pat23-28p.json"),
-    //     pat_eval_from_file("pat15-20p.json"),
-    //     pat_eval_from_file("pat9-12p.json")
-    // ];
-
-    // let pat_eval = StagedPatternEvaluator::from(stages, evals);
-    // let pat_eval = pat_eval_from_file("end.json");
-
-    let file = File::open("end_ms.json").expect("File read error.");
-    let reader = BufReader::new(file);
-    let pat_eval: StagedRLPatternEvaluator = from_reader(reader).expect("Unable to parse json");
+    let pat_eval = StagedPatternEvaluator::from_file("end_ms.json").expect("Unable to load evaluator");
 
     let mut searcher = nm_new::NegamaxSearcher::with_eval(pat_eval);
     searcher.set_output(Box::new(io::stderr()));

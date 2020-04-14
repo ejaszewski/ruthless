@@ -5,32 +5,16 @@
 use std::time::Instant;
 
 use crate::board::{ Board, Move };
-use crate::search::{ SearchData, eval::{ Evaluator, PatternEvaluator } };
-use std::fs::File;
-use std::io::BufReader;
-use serde::Deserialize;
-use serde_json::from_reader;
-
-#[derive(Deserialize)]
-struct PatternFile {
-    masks: Vec<u64>,
-    weights: Vec<Vec<f32>>,
-    parity_e: f32,
-    parity_o: f32
-}
+use crate::search::{ SearchData, eval::{ Evaluator, StagedPatternEvaluator } };
 
 pub struct EndgameSearcher {
-    eval: PatternEvaluator,
+    eval: StagedPatternEvaluator,
     print: bool
 }
 
 impl EndgameSearcher {
     pub fn new(print: bool) -> EndgameSearcher {
-        let file = File::open("pat9-12.json").expect("File read error.");
-        let reader = BufReader::new(file);
-        let pat_file: PatternFile = from_reader(reader).expect("Unable to parse json");
-
-        let pat_eval = PatternEvaluator::from(pat_file.masks, pat_file.weights, pat_file.parity_e, pat_file.parity_o);
+        let pat_eval = StagedPatternEvaluator::from_file("end_ms.json").expect("Unable to load evaluator.");
 
         EndgameSearcher {
             eval: pat_eval,

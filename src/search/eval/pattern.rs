@@ -5,6 +5,21 @@
 use crate::board::Board;
 use super::pattern_util::*;
 
+use std::error::Error;
+use std::fs::File;
+use std::io::BufReader;
+
+use serde::Deserialize;
+use serde_json::{ from_reader };
+
+#[derive(Deserialize)]
+pub struct PatternFile {
+    masks: Vec<u64>,
+    weights: Vec<Vec<f32>>,
+    parity_e: f32,
+    parity_o: f32
+}
+
 #[derive(Default)]
 pub struct PatternEvaluator {
     patterns: Vec<(u64, Vec<f32>)>,
@@ -91,6 +106,14 @@ impl PatternEvaluator {
             parity_e, parity_o
         }
     }
+
+    pub fn from_file(path: &str) -> Result<PatternEvaluator, Box<dyn Error>> {
+        let file = File::open(path)?;
+        let reader = BufReader::new(file);
+        let pat_file: PatternFile = from_reader(reader)?;
+    
+        Ok(pat_file.to_eval())
+    }
 }
 
 impl super::Evaluator for PatternEvaluator {
@@ -120,5 +143,11 @@ impl super::Evaluator for PatternEvaluator {
         } else {
             (-score * 100.0) as i32
         }
+    }
+}
+
+impl PatternFile {
+    pub fn to_eval(self) -> PatternEvaluator {
+        PatternEvaluator::from(self.masks, self.weights, self.parity_e, self.parity_o)
     }
 }
