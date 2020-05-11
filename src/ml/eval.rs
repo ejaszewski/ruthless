@@ -7,12 +7,21 @@ use std::collections::HashMap;
 use serde::{ Deserialize, Serialize };
 use rand::prelude::*;
 
+const GAMMA: f32 = 0.9;
+
 #[derive(Default, Serialize, Deserialize, Clone)]
 pub struct RLPatternEvaluator {
     masks: Vec<u64>,
     weights: Vec<Vec<f32>>,
     parity_e: f32,
     parity_o: f32,
+
+    #[serde(skip)]
+    weight_vs: Vec<Vec<f32>>,
+    #[serde(skip)]
+    v_parity_e: f32,
+    #[serde(skip)]
+    v_parity_o: f32,
 
     #[serde(skip)]
     loss_ema: f32
@@ -25,13 +34,18 @@ impl RLPatternEvaluator {
             weights: Vec::new(),
             parity_e: 0f32,
             parity_o: 0f32,
+            weight_vs: Vec::new(),
+            v_parity_e: 1f32,
+            v_parity_o: 1f32,
             loss_ema: 0f32
         }
     }
 
     pub fn from(masks: Vec<u64>, weights: Vec<Vec<f32>>, parity_e: f32, parity_o: f32) -> RLPatternEvaluator {
+        let weight_vs = weights.iter().map(|w| vec![1f32; w.len()]).collect();
         RLPatternEvaluator {
-            masks, weights, parity_e, parity_o, 
+            masks, weights, parity_e, parity_o,
+            weight_vs, v_parity_e: 1f32, v_parity_o: 1f32,
             loss_ema: 0f32
         }
     }
@@ -39,6 +53,7 @@ impl RLPatternEvaluator {
     pub fn from_masks(masks: Vec<u64>) -> RLPatternEvaluator {
         let mut rng = thread_rng();
         let mut weights = Vec::new();
+        let mut weight_vs = Vec::new();
 
         let mut small_random = || {
             rng.gen::<f32>() * 0.2 - 0.1
@@ -53,6 +68,7 @@ impl RLPatternEvaluator {
             }
 
             weights.push(w_arr);
+            weight_vs.push(vec![1f32; size]);
         }
 
         RLPatternEvaluator {
@@ -60,6 +76,9 @@ impl RLPatternEvaluator {
             weights,
             parity_e: 0f32,
             parity_o: 0f32,
+            weight_vs,
+            v_parity_e: 1f32,
+            v_parity_o: 1f32,
             loss_ema: 0f32
         }
     }
@@ -89,15 +108,17 @@ impl Trainable for RLPatternEvaluator {
         self.loss_ema = (1.0 - EMA_A) * self.loss_ema + EMA_A * loss;
 
         if board.all_disks().count_zeros() & 1 == 1 {
-            self.parity_o -= lr * gradient;
+            self.parity_o -= (lr / self.v_parity_o.sqrt()) * gradient;
+            self.v_parity_o = GAMMA * self.v_parity_o + (1.0 - GAMMA) * loss;
         } else {
-            self.parity_e -= lr * gradient;
+            self.parity_e -= (lr / self.v_parity_e.sqrt()) * gradient;
+            self.v_parity_o = GAMMA * self.v_parity_o + (1.0 - GAMMA) * loss;
         };
 
         let mut blacks = board.black_disks;
         let mut whites = board.white_disks;
 
-        for (mask, weights) in self.masks.iter().zip(self.weights.iter_mut()) {
+        for (mask, (vs, weights)) in self.masks.iter().zip(self.weight_vs.iter_mut().zip(self.weights.iter_mut())) {
             for _ in 0..4 {
                 // Extract the pattern from both bitboards
                 let black_pat = pext64(blacks, *mask) as usize;
@@ -106,7 +127,8 @@ impl Trainable for RLPatternEvaluator {
                 let index = ONES_TERNARY[white_pat] + TWOS_TERNARY[black_pat];
 
                 // Add the pattern's weight to the score
-                weights[index] -= lr * gradient;
+                weights[index] -= (lr / vs[index].sqrt()) * gradient;
+                vs[index] = GAMMA * vs[index] + (1.0 - GAMMA) * loss;
 
                 // Rotate
                 blacks = flip_vertical(flip_diag(blacks));

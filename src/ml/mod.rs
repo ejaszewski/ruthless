@@ -37,9 +37,9 @@ impl BoardState {
     }
 }
 
-const RESET_RATIO: f32 = 1.5;
+const RESET_RATIO: f32 = 1.2;
 const FORGIVENESS: f32 = 1.0;
-const TD_LAMBDA: f32 = 0.2;
+const TD_LAMBDA: f32 = 0.25;
 
 pub fn self_play<E: Evaluator + Trainable + Clone>(mut eval: E, mut lr: f32, mut e: f32, batch_size: usize, rounds: usize) -> E {
     let mut rng = thread_rng();
